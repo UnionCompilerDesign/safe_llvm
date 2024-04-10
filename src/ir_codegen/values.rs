@@ -1,9 +1,6 @@
-use llvm::{
-    core, 
-    prelude::*,
-    LLVMValue,
-    LLVMType,
-}; // change to not use wild star import
+extern crate llvm_sys as llvm;
+
+use llvm::{core, prelude::*, LLVMValue, LLVMType, }; 
 use std::ffi::CString;
 
 /// creates an integer
@@ -138,27 +135,5 @@ pub fn create_function_type(return_type: LLVMTypeRef, param_types: &[LLVMTypeRef
             param_types.len() as u32,
             is_var_arg as i32, 
         )
-    }
-}
-
-/// adds a function to a module
-pub fn add_function_to_module(module: LLVMModuleRef, function_name: &str, function_type: LLVMTypeRef) -> LLVMValueRef {
-    let c_name = CString::new(function_name).expect("Failed to create CString for function name");
-    unsafe {
-        core::LLVMAddFunction(module, c_name.as_ptr(), function_type)
-    }
-}
-
-/// creates a conditional branch
-pub fn create_cond_br(builder: LLVMBuilderRef, condition: LLVMValueRef, then_bb: LLVMBasicBlockRef, else_bb: LLVMBasicBlockRef) -> LLVMValueRef {
-    unsafe {
-        core::LLVMBuildCondBr(builder, condition, then_bb, else_bb)
-    }
-}
-
-/// creates an unconditional branch
-pub fn create_br(builder: LLVMBuilderRef, target_bb: LLVMBasicBlockRef) -> LLVMValueRef {
-    unsafe {
-        core::LLVMBuildBr(builder, target_bb)
     }
 }

@@ -1,6 +1,6 @@
 extern crate llvm_sys as llvm;
 
-use llvm::{core, prelude::LLVMTypeRef};
+use llvm::{core, prelude::{LLVMTypeRef, LLVMValueRef}};
 
 /// void type
 pub fn void_type(context: *mut llvm::LLVMContext) -> *mut llvm::LLVMType {
@@ -51,3 +51,16 @@ pub fn struct_type(context: *mut llvm::LLVMContext, element_types: &[LLVMTypeRef
     }
 }
 
+/// returns nothing
+pub fn void_return(builder: *mut llvm::LLVMBuilder) -> LLVMValueRef {
+    unsafe {
+        core::LLVMBuildRetVoid(builder)
+    }
+}
+
+/// returns something
+pub fn nonvoid_return(builder: *mut llvm::LLVMBuilder, value: LLVMValueRef) -> LLVMValueRef {
+    unsafe {
+        core::LLVMBuildRet(builder, value)
+    }
+}

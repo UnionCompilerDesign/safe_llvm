@@ -115,14 +115,14 @@ pub fn build_negation(builder: *mut llvm::LLVMBuilder, operand_ir: LLVMValueRef,
 }
 
 /// bitwise not
-pub fn generate_bitwise_not(builder: *mut llvm::LLVMBuilder, operand_ir: LLVMValueRef, name: CString) -> LLVMValueRef {
+pub fn build_bitwise_not(builder: *mut llvm::LLVMBuilder, operand_ir: LLVMValueRef, name: CString) -> LLVMValueRef {
     unsafe {
         core::LLVMBuildNot(builder, operand_ir, name.as_ptr())
     }
 }
 
 /// logical not
-pub fn generate_logical_not(builder: *mut llvm::LLVMBuilder, context: LLVMContextRef, operand_ir: LLVMValueRef, name: CString) -> LLVMValueRef {
+pub fn build_logical_not(builder: *mut llvm::LLVMBuilder, context: LLVMContextRef, operand_ir: LLVMValueRef, name: CString) -> LLVMValueRef {
     unsafe {
         core::LLVMBuildICmp(builder, llvm::LLVMIntPredicate::LLVMIntEQ, operand_ir, core::LLVMConstInt(core::LLVMInt1TypeInContext(context), 0, 0), name.as_ptr())    
     }

@@ -5,3 +5,6 @@ edition = "2021"
 
 [dependencies]
 llvm-sys = "170"
+
+[dev-dependencies]
+mockall = "0.10.2"

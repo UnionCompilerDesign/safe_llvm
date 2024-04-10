@@ -1,7 +1,39 @@
 extern crate llvm_sys as llvm;
 
-/// LLVM IR utilities
-pub mod ir_lib;
+/// LLVM IR code generation
+pub mod ir_codegen;
 
-/// Execution Engine utilities
-pub mod ee_lib;
+/// Just in time compilation tools
+pub mod jit;
+
+/// Memory management
+pub mod memory_management;
+
+/// LLD linker
+pub mod lld;
+
+/// LLVM Optimization passes
+pub mod optimization;
+
+pub mod serialization;
+
+/// Initialialize LLVM toolchain
+pub mod init;
+
+/// Debug utilities
+pub mod debug;
+
+/// Clang interface
+pub mod clang;
+
+pub mod bitcode;
+
+/// Ahead of time compilation tools
+pub mod aot;
+
+/// LLVM analysis
+pub mod analysis;
+
+pub mod utils;
+
+pub mod api;
