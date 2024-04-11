@@ -8,7 +8,10 @@ use llvm::{core,
         LLVMBasicBlock, LLVMValue
     };
 
-use crate::{api::{api_definition::LLVMApi, api_safe::SafeLLVM}, memory_management::ir_pointer::IRPointer};
+use crate::{
+    api::{LLVMApi, SafeLLVM}, 
+    memory_management::ir_pointer::IRPointer
+};
 
 impl LLVMApi for SafeLLVM {
     /// Creates a basic block in context

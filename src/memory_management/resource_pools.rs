@@ -1,7 +1,6 @@
 extern crate llvm_sys as llvm;
 
-use std::{collections::HashMap, sync::RwLock};
-
+use std::{collections::HashMap, sync::{Arc, RwLock}};
 use crate::memory_management::ir_pointer::IRPointer;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
@@ -23,13 +22,13 @@ pub struct BuilderHandle(usize);
 pub struct TypeHandle(usize);
 
 pub struct LLVMResourcePools<T> {
-    values: Option<HashMap<ValueHandle, RwLock<IRPointer<T>>>>,    
-    basic_block: Option<HashMap<BasicBlockHandle, RwLock<IRPointer<T>>>>,
-    context: Option<HashMap<ContextHandle, RwLock<IRPointer<T>>>>,
-    module: Option<HashMap<ModuleHandle, RwLock<IRPointer<T>>>>,
-    builder: Option<HashMap<BuilderHandle, RwLock<IRPointer<T>>>>,
-    type_ref: Option<HashMap<TypeHandle, RwLock<IRPointer<T>>>>,  
-    next_handle: usize, // Generates unique IDs
+    values: Option<HashMap<ValueHandle, Arc<RwLock<IRPointer<T>>>>>,    
+    basic_block: Option<HashMap<BasicBlockHandle, Arc<RwLock<IRPointer<T>>>>>,
+    context: Option<HashMap<ContextHandle, Arc<RwLock<IRPointer<T>>>>>,
+    module: Option<HashMap<ModuleHandle, Arc<RwLock<IRPointer<T>>>>>,
+    builder: Option<HashMap<BuilderHandle, Arc<RwLock<IRPointer<T>>>>>,
+    type_ref: Option<HashMap<TypeHandle, Arc<RwLock<IRPointer<T>>>>>,  
+    next_handle: usize,
 }
 
 impl<T> LLVMResourcePools<T> {
@@ -45,109 +44,74 @@ impl<T> LLVMResourcePools<T> {
         }
     }
 
-    pub fn get_value(&self, handle: ValueHandle) -> Option<&RwLock<IRPointer<T>>> {
-        match &self.values {
-            Some(values) => {
-                values.get(&handle)
-            }
-            None => None,
-        }
+    pub fn get_value(&self, handle: ValueHandle) -> Option<Arc<RwLock<IRPointer<T>>>> {
+        self.values.as_ref()?.get(&handle).cloned()
     }
 
     pub fn create_value_handle(&mut self, value: *mut T) -> ValueHandle {
-        let handle = ValueHandle(self.next_handle);
+        let handle: ValueHandle = ValueHandle(self.next_handle);
         self.next_handle += 1;
-
-        let pointer = IRPointer::new(Some(value));
-
-        if let Some(values) = self.values.as_mut() {
-            values.insert(handle, RwLock::new(pointer));
-        } else {
-            let mut map: HashMap<ValueHandle, RwLock<IRPointer<T>>> = HashMap::new();
-            map.insert(handle, RwLock::new(pointer));
-            self.values = Some(map);
-        }
-
+        let pointer: Arc<RwLock<IRPointer<T>>> = Arc::new(RwLock::new(IRPointer::new(Some(value))));
+        self.values.get_or_insert_with(HashMap::new).insert(handle, pointer);
         handle
     }
 
-
-    pub fn get_basic_block(&self, handle: BasicBlockHandle) -> Option<&RwLock<IRPointer<T>>> {
-        match &self.basic_block {
-            Some(basic_blocks) => {
-                basic_blocks.get(&handle)
-            }
-            None => None,
-        }
+    pub fn get_basic_block(&self, handle: BasicBlockHandle) -> Option<Arc<RwLock<IRPointer<T>>>> {
+        self.basic_block.as_ref()?.get(&handle).cloned()
     }
 
     pub fn create_basic_block_handle(&mut self, basic_block: *mut T) -> BasicBlockHandle {
-        let handle = BasicBlockHandle(self.next_handle);
+        let handle: BasicBlockHandle = BasicBlockHandle(self.next_handle);
         self.next_handle += 1;
-
-        let pointer = IRPointer::new(Some(basic_block));
-
-        if let Some(basic_blocks) = self.basic_block.as_mut() {
-            basic_blocks.insert(handle, pointer.into());
-        } else {
-            let mut map: HashMap<BasicBlockHandle, RwLock<IRPointer<T>>> = HashMap::new();
-                map.insert(handle, RwLock::new(pointer));
-                self.basic_block = Some(map);
-        }
-
+        let pointer: Arc<RwLock<IRPointer<T>>> = Arc::new(RwLock::new(IRPointer::new(Some(basic_block))));
+        self.basic_block.get_or_insert_with(HashMap::new).insert(handle, pointer);
         handle
     }
-    
-    pub fn get_context(&self, handle: ContextHandle) -> Option<&RwLock<IRPointer<T>>> {
-        self.context.as_ref()?.get(&handle)
+
+    pub fn get_context(&self, handle: ContextHandle) -> Option<Arc<RwLock<IRPointer<T>>>> {
+        self.context.as_ref()?.get(&handle).cloned()
     }
 
     pub fn create_context_handle(&mut self, context: *mut T) -> ContextHandle {
-        let handle = ContextHandle(self.next_handle);
+        let handle: ContextHandle = ContextHandle(self.next_handle);
         self.next_handle += 1;
-
-        let pointer = IRPointer::new(Some(context));
-
+        let pointer: Arc<RwLock<IRPointer<T>>> = Arc::new(RwLock::new(IRPointer::new(Some(context))));
         self.context.get_or_insert_with(HashMap::new).insert(handle, pointer);
         handle
     }
 
-    pub fn get_module(&self, handle: ModuleHandle) -> Option<&RwLock<IRPointer<T>>> {
-        self.module.as_ref()?.get(&handle)
+    pub fn get_module(&self, handle: ModuleHandle) -> Option<Arc<RwLock<IRPointer<T>>>> {
+        self.module.as_ref()?.get(&handle).cloned()
     }
 
     pub fn create_module_handle(&mut self, module: *mut T) -> ModuleHandle {
-        let handle = ModuleHandle(self.next_handle);
+        let handle: ModuleHandle = ModuleHandle(self.next_handle);
         self.next_handle += 1;
-
-        let pointer = IRPointer::new(Some(module));
-    
+        let pointer: Arc<RwLock<IRPointer<T>>> = Arc::new(RwLock::new(IRPointer::new(Some(module))));
         self.module.get_or_insert_with(HashMap::new).insert(handle, pointer);
         handle
     }
 
-    pub fn get_builder(&self, handle: BuilderHandle) -> Option<&RwLock<IRPointer<T>>> {
-        self.builder.as_ref()?.get(&handle)
+    pub fn get_builder(&self, handle: BuilderHandle) -> Option<Arc<RwLock<IRPointer<T>>>> {
+        self.builder.as_ref()?.get(&handle).cloned()
     }
 
     pub fn create_builder_handle(&mut self, builder: *mut T) -> BuilderHandle {
-        let handle = BuilderHandle(self.next_handle);
+        let handle: BuilderHandle = BuilderHandle(self.next_handle);
         self.next_handle += 1;
-
-        let pointer = IRPointer::new(Some(builder));
+        let pointer: Arc<RwLock<IRPointer<T>>> = Arc::new(RwLock::new(IRPointer::new(Some(builder))));
         self.builder.get_or_insert_with(HashMap::new).insert(handle, pointer);
         handle
     }
 
-    pub fn get_type_ref(&self, handle: TypeHandle) -> Option<&RwLock<IRPointer<T>>> {
-        self.type_ref.as_ref()?.get(&handle)
+    pub fn get_type_ref(&self, handle: TypeHandle) -> Option<Arc<RwLock<IRPointer<T>>>> {
+        self.type_ref.as_ref()?.get(&handle).cloned()
     }
 
     pub fn create_type_handle(&mut self, type_ref: *mut T) -> TypeHandle {
-        let handle = TypeHandle(self.next_handle);
+        let handle: TypeHandle = TypeHandle(self.next_handle);
         self.next_handle += 1;
-
-        let pointer = IRPointer::new(Some(type_ref));
+        let pointer: Arc<RwLock<IRPointer<T>>> = Arc::new(RwLock::new(IRPointer::new(Some(type_ref))));
         self.type_ref.get_or_insert_with(HashMap::new).insert(handle, pointer);
         handle
     }
