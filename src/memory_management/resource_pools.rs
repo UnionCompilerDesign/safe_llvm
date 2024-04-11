@@ -1,6 +1,6 @@
 extern crate llvm_sys as llvm;
 
-use std::collections::HashMap;
+use std::{collections::HashMap, sync::RwLock};
 
 use crate::memory_management::ir_pointer::IRPointer;
 
@@ -23,12 +23,12 @@ pub struct BuilderHandle(usize);
 pub struct TypeHandle(usize);
 
 pub struct LLVMResourcePools<T> {
-    values: Option<HashMap<ValueHandle, IRPointer<T>>>,
-    basic_block: Option<HashMap<BasicBlockHandle, IRPointer<T>>>,
-    context: Option<HashMap<ContextHandle, IRPointer<T>>>,
-    module: Option<HashMap<ModuleHandle, IRPointer<T>>>,
-    builder: Option<HashMap<BuilderHandle, IRPointer<T>>>,
-    type_ref: Option<HashMap<TypeHandle, IRPointer<T>>>,  
+    values: Option<HashMap<ValueHandle, RwLock<IRPointer<T>>>>,    
+    basic_block: Option<HashMap<BasicBlockHandle, RwLock<IRPointer<T>>>>,
+    context: Option<HashMap<ContextHandle, RwLock<IRPointer<T>>>>,
+    module: Option<HashMap<ModuleHandle, RwLock<IRPointer<T>>>>,
+    builder: Option<HashMap<BuilderHandle, RwLock<IRPointer<T>>>>,
+    type_ref: Option<HashMap<TypeHandle, RwLock<IRPointer<T>>>>,  
     next_handle: usize, // Generates unique IDs
 }
 
@@ -45,7 +45,7 @@ impl<T> LLVMResourcePools<T> {
         }
     }
 
-    pub fn get_value(&self, handle: ValueHandle) -> Option<&IRPointer<T>> {
+    pub fn get_value(&self, handle: ValueHandle) -> Option<&RwLock<IRPointer<T>>> {
         match &self.values {
             Some(values) => {
                 values.get(&handle)
@@ -58,12 +58,13 @@ impl<T> LLVMResourcePools<T> {
         let handle = ValueHandle(self.next_handle);
         self.next_handle += 1;
 
-        let pointer = IRPointer::new(value);
+        let pointer = IRPointer::new(Some(value));
+
         if let Some(values) = self.values.as_mut() {
-            values.insert(handle, pointer);
+            values.insert(handle, RwLock::new(pointer));
         } else {
-            let mut map = HashMap::new();
-            map.insert(handle, pointer);
+            let mut map: HashMap<ValueHandle, RwLock<IRPointer<T>>> = HashMap::new();
+            map.insert(handle, RwLock::new(pointer));
             self.values = Some(map);
         }
 
@@ -71,7 +72,7 @@ impl<T> LLVMResourcePools<T> {
     }
 
 
-    pub fn get_basic_block(&self, handle: BasicBlockHandle) -> Option<&IRPointer<T>> {
+    pub fn get_basic_block(&self, handle: BasicBlockHandle) -> Option<&RwLock<IRPointer<T>>> {
         match &self.basic_block {
             Some(basic_blocks) => {
                 basic_blocks.get(&handle)
@@ -84,19 +85,20 @@ impl<T> LLVMResourcePools<T> {
         let handle = BasicBlockHandle(self.next_handle);
         self.next_handle += 1;
 
-        let pointer = IRPointer::new(basic_block);
+        let pointer = IRPointer::new(Some(basic_block));
+
         if let Some(basic_blocks) = self.basic_block.as_mut() {
-            basic_blocks.insert(handle, pointer);
+            basic_blocks.insert(handle, pointer.into());
         } else {
-            let mut map = HashMap::new();
-            map.insert(handle, pointer);
-            self.basic_block = Some(map);
+            let mut map: HashMap<BasicBlockHandle, RwLock<IRPointer<T>>> = HashMap::new();
+                map.insert(handle, RwLock::new(pointer));
+                self.basic_block = Some(map);
         }
 
         handle
     }
     
-    pub fn get_context(&self, handle: ContextHandle) -> Option<&IRPointer<T>> {
+    pub fn get_context(&self, handle: ContextHandle) -> Option<&RwLock<IRPointer<T>>> {
         self.context.as_ref()?.get(&handle)
     }
 
@@ -104,12 +106,13 @@ impl<T> LLVMResourcePools<T> {
         let handle = ContextHandle(self.next_handle);
         self.next_handle += 1;
 
-        let pointer = IRPointer::new(context);
+        let pointer = IRPointer::new(Some(context));
+
         self.context.get_or_insert_with(HashMap::new).insert(handle, pointer);
         handle
     }
 
-    pub fn get_module(&self, handle: ModuleHandle) -> Option<&IRPointer<T>> {
+    pub fn get_module(&self, handle: ModuleHandle) -> Option<&RwLock<IRPointer<T>>> {
         self.module.as_ref()?.get(&handle)
     }
 
@@ -117,12 +120,13 @@ impl<T> LLVMResourcePools<T> {
         let handle = ModuleHandle(self.next_handle);
         self.next_handle += 1;
 
-        let pointer = IRPointer::new(module);
+        let pointer = IRPointer::new(Some(module));
+    
         self.module.get_or_insert_with(HashMap::new).insert(handle, pointer);
         handle
     }
 
-    pub fn get_builder(&self, handle: BuilderHandle) -> Option<&IRPointer<T>> {
+    pub fn get_builder(&self, handle: BuilderHandle) -> Option<&RwLock<IRPointer<T>>> {
         self.builder.as_ref()?.get(&handle)
     }
 
@@ -130,12 +134,12 @@ impl<T> LLVMResourcePools<T> {
         let handle = BuilderHandle(self.next_handle);
         self.next_handle += 1;
 
-        let pointer = IRPointer::new(builder);
+        let pointer = IRPointer::new(Some(builder));
         self.builder.get_or_insert_with(HashMap::new).insert(handle, pointer);
         handle
     }
 
-    pub fn get_type_ref(&self, handle: TypeHandle) -> Option<&IRPointer<T>> {
+    pub fn get_type_ref(&self, handle: TypeHandle) -> Option<&RwLock<IRPointer<T>>> {
         self.type_ref.as_ref()?.get(&handle)
     }
 
@@ -143,7 +147,7 @@ impl<T> LLVMResourcePools<T> {
         let handle = TypeHandle(self.next_handle);
         self.next_handle += 1;
 
-        let pointer = IRPointer::new(type_ref);
+        let pointer = IRPointer::new(Some(type_ref));
         self.type_ref.get_or_insert_with(HashMap::new).insert(handle, pointer);
         handle
     }
