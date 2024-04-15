@@ -1,15 +1,10 @@
-use std::ffi::{CString, NulError};
-use std::path::Path;
-use std::fs;
-use llvm_sys::core;
-use llvm_sys::prelude::LLVMModuleRef;
+extern crate llvm_sys as llvm;
 
-/// Gets the parameter of a function
-pub fn get_param(function: *mut llvm::LLVMValue, index: u32) -> *mut llvm::LLVMValue{
-    unsafe {
-        core::LLVMGetParam(function, index)
-    }
-}
+use std::{fs, path::Path};
+
+use llvm::{core, prelude::LLVMModuleRef};
+
+use crate::utils::cstring;
 
 /// Writes an LLVM module to a file
 pub fn write_to_file(module: &LLVMModuleRef, file_name: &str) -> Result<(), String> {
@@ -25,7 +20,7 @@ pub fn write_to_file(module: &LLVMModuleRef, file_name: &str) -> Result<(), Stri
             .map_err(|e| format!("Failed to create target directory: {}", e))?;
     }
 
-    let output_file_cstr = path_to_cstring(&output_file_path)
+    let output_file_cstr = cstring::convert_path_to_cstring(&output_file_path)
         .map_err(|e| format!("Failed to convert path to CString: {}", e))?;
 
     let result = unsafe {
@@ -37,10 +32,4 @@ pub fn write_to_file(module: &LLVMModuleRef, file_name: &str) -> Result<(), Stri
     } else {
         Err("LLVMPrintModuleToFile failed".into())
     }
-}
-
-fn path_to_cstring(path: &Path) -> Result<CString, NulError> {
-    let path_str = path.to_str()
-        .ok_or_else(|| CString::new("").unwrap_err())?; 
-    CString::new(path_str) 
 }

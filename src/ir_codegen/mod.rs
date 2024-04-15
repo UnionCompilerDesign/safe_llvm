@@ -1,16 +1,10 @@
 /// Initialize IR generation
-pub mod init_ir;
-
-/// Create return types
-pub mod return_type;
-
-/// Utilities
-pub mod utils;
+pub mod builder;
 
 /// Create LLVM module element
-pub mod element;
+pub mod values;
 
-/// Create operation
+/// Create operations
 pub mod ops;
 
 /// Create a type
@@ -21,3 +15,10 @@ pub mod var;
 
 /// Maintain block constructions
 pub mod block;
+
+/// TLE related utilities
+pub mod top_level_exp;
+
+pub mod api;
+
+pub use api::SafeLLVM;
