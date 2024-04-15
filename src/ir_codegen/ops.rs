@@ -1,129 +1,146 @@
 extern crate llvm_sys as llvm;
 
-use llvm::{core, prelude::{LLVMValueRef, LLVMContextRef}}; 
+use llvm::{core, prelude::*};
 use std::ffi::CString;
+use crate::memory_management::ir_pointer::IRPointer;
 
-/// basic addition
+/// Basic addition
 pub fn build_add(builder: *mut llvm::LLVMBuilder, param_a: *mut llvm::LLVMValue, param_b: *mut llvm::LLVMValue, sum: CString) 
-        -> *mut llvm::LLVMValue {
-    unsafe {
+        -> IRPointer<LLVMValueRef> {
+    let raw_ptr = unsafe {
         core::LLVMBuildAdd(builder, param_a, param_b, sum.as_ptr())
-    }
+    };
+    IRPointer::new(Some(raw_ptr as *mut _))
 }
 
-/// basic subtraction
+/// Basic subtraction
 pub fn build_sub(builder: *mut llvm::LLVMBuilder, param_a: *mut llvm::LLVMValue, param_b: *mut llvm::LLVMValue, name: CString) 
-        -> *mut llvm::LLVMValue {
-    unsafe {
+        -> IRPointer<LLVMValueRef> {
+    let raw_ptr = unsafe {
         core::LLVMBuildSub(builder, param_a, param_b, name.as_ptr())
-    }
+    };
+    IRPointer::new(Some(raw_ptr as *mut _))
 }
 
-/// basic multiplication
+/// Basic multiplication
 pub fn build_mul(builder: *mut llvm::LLVMBuilder, param_a: *mut llvm::LLVMValue, param_b: *mut llvm::LLVMValue, name: CString) 
-        -> *mut llvm::LLVMValue {
-    unsafe {
+        -> IRPointer<LLVMValueRef> {
+    let raw_ptr = unsafe {
         core::LLVMBuildMul(builder, param_a, param_b, name.as_ptr())
-    }
+    };
+    IRPointer::new(Some(raw_ptr as *mut _))
 }
 
-/// basic division
+/// Basic division
 pub fn build_div(builder: *mut llvm::LLVMBuilder, param_a: *mut llvm::LLVMValue, param_b: *mut llvm::LLVMValue, name: CString) 
-        -> *mut llvm::LLVMValue {
-    unsafe {
+        -> IRPointer<LLVMValueRef> {
+    let raw_ptr = unsafe {
         core::LLVMBuildSDiv(builder, param_a, param_b, name.as_ptr()) // Signed division
-    }
+    };
+    IRPointer::new(Some(raw_ptr as *mut _))
 }
 
-/// modular arithmetic
+/// Modular arithmetic
 pub fn build_rem(builder: *mut llvm::LLVMBuilder, param_a: *mut llvm::LLVMValue, param_b: *mut llvm::LLVMValue, name: CString) 
-        -> *mut llvm::LLVMValue {
-    unsafe {
+        -> IRPointer<LLVMValueRef> {
+    let raw_ptr = unsafe {
         core::LLVMBuildSRem(builder, param_a, param_b, name.as_ptr()) // Signed remainder
-    }
+    };
+    IRPointer::new(Some(raw_ptr as *mut _))
 }
 
-/// logical and
+/// Logical and
 pub fn build_and(builder: *mut llvm::LLVMBuilder, param_a: *mut llvm::LLVMValue, param_b: *mut llvm::LLVMValue, name: CString) 
-        -> *mut llvm::LLVMValue {
-    unsafe {
+        -> IRPointer<LLVMValueRef> {
+    let raw_ptr = unsafe {
         core::LLVMBuildAnd(builder, param_a, param_b, name.as_ptr())
-    }
+    };
+    IRPointer::new(Some(raw_ptr as *mut _))
 }
 
-/// logical or
+/// Logical or
 pub fn build_or(builder: *mut llvm::LLVMBuilder, param_a: *mut llvm::LLVMValue, param_b: *mut llvm::LLVMValue, name: CString) 
-        -> *mut llvm::LLVMValue {
-    unsafe {
+        -> IRPointer<LLVMValueRef> {
+    let raw_ptr = unsafe {
         core::LLVMBuildOr(builder, param_a, param_b, name.as_ptr())
-    }
+    };
+    IRPointer::new(Some(raw_ptr as *mut _))
 }
 
-/// logical xor
+/// Logical xor
 pub fn build_xor(builder: *mut llvm::LLVMBuilder, param_a: *mut llvm::LLVMValue, param_b: *mut llvm::LLVMValue, name: CString) 
-        -> *mut llvm::LLVMValue {
-    unsafe {
+        -> IRPointer<LLVMValueRef> {
+    let raw_ptr = unsafe {
         core::LLVMBuildXor(builder, param_a, param_b, name.as_ptr())
-    }
+    };
+    IRPointer::new(Some(raw_ptr as *mut _))
 }
 
-/// logical left shift
+/// Logical left shift
 pub fn build_shl(builder: *mut llvm::LLVMBuilder, param_a: *mut llvm::LLVMValue, param_b: *mut llvm::LLVMValue, name: CString) 
-        -> *mut llvm::LLVMValue {
-    unsafe {
+        -> IRPointer<LLVMValueRef> {
+    let raw_ptr = unsafe {
         core::LLVMBuildShl(builder, param_a, param_b, name.as_ptr())
-    }
+    };
+    IRPointer::new(Some(raw_ptr as *mut _))
 }
 
-/// logical right shift
+/// Logical right shift
 pub fn build_shr(builder: *mut llvm::LLVMBuilder, param_a: *mut llvm::LLVMValue, param_b: *mut llvm::LLVMValue, name: CString) 
-        -> *mut llvm::LLVMValue {
-    unsafe {
+        -> IRPointer<LLVMValueRef> {
+    let raw_ptr = unsafe {
         core::LLVMBuildLShr(builder, param_a, param_b, name.as_ptr())
-    }
+    };
+    IRPointer::new(Some(raw_ptr as *mut _))
 }
 
-/// greater than
+/// Greater than comparison
 pub fn build_icmp_gt(builder: *mut llvm::LLVMBuilder, param_a: *mut llvm::LLVMValue, param_b: *mut llvm::LLVMValue, name: CString) 
-        -> *mut llvm::LLVMValue {
-    unsafe {
+        -> IRPointer<LLVMValueRef> {
+    let raw_ptr = unsafe {
         core::LLVMBuildICmp(builder, llvm::LLVMIntPredicate::LLVMIntSGT, param_a, param_b, name.as_ptr())
-    }
+    };
+    IRPointer::new(Some(raw_ptr as *mut _))
 }
 
-/// less than
+/// Less than comparison
 pub fn build_icmp_lt(builder: *mut llvm::LLVMBuilder, param_a: *mut llvm::LLVMValue, param_b: *mut llvm::LLVMValue, name: CString) 
-        -> *mut llvm::LLVMValue {
-    unsafe {
+        -> IRPointer<LLVMValueRef> {
+    let raw_ptr = unsafe {
         core::LLVMBuildICmp(builder, llvm::LLVMIntPredicate::LLVMIntSLT, param_a, param_b, name.as_ptr())
-    }
+    };
+    IRPointer::new(Some(raw_ptr as *mut _))
 }
 
-/// equal
+/// Equal comparison
 pub fn build_icmp_eq(builder: *mut llvm::LLVMBuilder, param_a: *mut llvm::LLVMValue, param_b: *mut llvm::LLVMValue, name: CString) 
-        -> *mut llvm::LLVMValue {
-    unsafe {
+        -> IRPointer<LLVMValueRef> {
+    let raw_ptr = unsafe {
         core::LLVMBuildICmp(builder, llvm::LLVMIntPredicate::LLVMIntEQ, param_a, param_b, name.as_ptr())
-    }
+    };
+    IRPointer::new(Some(raw_ptr as *mut _))
 }
 
-/// negation
-pub fn build_negation(builder: *mut llvm::LLVMBuilder, operand_ir: LLVMValueRef, name: CString) -> LLVMValueRef {
-    unsafe {
+/// Negation
+pub fn build_negation(builder: *mut llvm::LLVMBuilder, operand_ir: LLVMValueRef, name: CString) -> IRPointer<LLVMValueRef> {
+    let raw_ptr = unsafe {
         core::LLVMBuildNeg(builder, operand_ir, name.as_ptr())
-    }
+    };
+    IRPointer::new(Some(raw_ptr as *mut _))
 }
 
-/// bitwise not
-pub fn generate_bitwise_not(builder: *mut llvm::LLVMBuilder, operand_ir: LLVMValueRef, name: CString) -> LLVMValueRef {
-    unsafe {
+/// Bitwise not
+pub fn build_bitwise_not(builder: *mut llvm::LLVMBuilder, operand_ir: LLVMValueRef, name: CString) -> IRPointer<LLVMValueRef> {
+    let raw_ptr = unsafe {
         core::LLVMBuildNot(builder, operand_ir, name.as_ptr())
-    }
+    };
+    IRPointer::new(Some(raw_ptr as *mut _))
 }
 
-/// logical not
-pub fn generate_logical_not(builder: *mut llvm::LLVMBuilder, context: LLVMContextRef, operand_ir: LLVMValueRef, name: CString) -> LLVMValueRef {
-    unsafe {
-        core::LLVMBuildICmp(builder, llvm::LLVMIntPredicate::LLVMIntEQ, operand_ir, core::LLVMConstInt(core::LLVMInt1TypeInContext(context), 0, 0), name.as_ptr())    
-    }
+/// Logical not
+pub fn build_logical_not(builder: *mut llvm::LLVMBuilder, context: LLVMContextRef, operand_ir: LLVMValueRef, name: CString) -> IRPointer<LLVMValueRef> {
+    let raw_ptr = unsafe {
+        core::LLVMBuildICmp(builder, llvm::LLVMIntPredicate::LLVMIntEQ, operand_ir, core::LLVMConstInt(core::LLVMInt1TypeInContext(context), 0, 0), name.as_ptr())
+    };
+    IRPointer::new(Some(raw_ptr as *mut _))
 }
