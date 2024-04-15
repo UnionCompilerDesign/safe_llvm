@@ -18,3 +18,7 @@ pub mod block;
 
 /// TLE related utilities
 pub mod top_level_exp;
+
+pub mod api;
+
+pub use api::SafeLLVM;
