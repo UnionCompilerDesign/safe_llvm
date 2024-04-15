@@ -12,9 +12,6 @@ pub mod memory_management;
 /// LLD linker
 pub mod lld;
 
-/// LLVM Optimization passes
-pub mod optimization;
-
 pub mod serialization;
 
 /// Initialialize LLVM toolchain
@@ -22,11 +19,6 @@ pub mod init;
 
 /// Debug utilities
 pub mod debug;
-
-/// Clang interface
-pub mod clang;
-
-pub mod bitcode;
 
 /// Ahead of time compilation tools
 pub mod aot;
@@ -36,4 +28,8 @@ pub mod analysis;
 
 pub mod utils;
 
+pub mod interface;
+
 pub mod api;
+
+pub use api::SafeLLVM;
