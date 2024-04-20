@@ -58,7 +58,7 @@ pub trait LLVMApi {
     fn create_integer(&self, val: i64, context: CPointer<LLVMContextRef>) -> CPointer<LLVMValueRef>;
     fn create_float(&self, val: f64, context: CPointer<LLVMContextRef>) -> CPointer<LLVMValueRef>;
     fn create_boolean(&self, val: bool, context: CPointer<LLVMContextRef>) -> CPointer<LLVMValueRef>;
-    fn create_function(&self, name: &str, return_type: Option<CPointer<LLVMTypeRef>>, param_types: &[CPointer<LLVMTypeRef>], is_var_arg: bool, module: CPointer<LLVMModuleRef>) -> CPointer<LLVMValueRef>;
+    fn create_function(&self, name: &str, return_type: Option<CPointer<LLVMTypeRef>>, param_types: &[CPointer<LLVMTypeRef>], is_var_arg: bool, module: CPointer<LLVMModuleRef>) -> Option<CPointer<LLVMValueRef>>;
     fn create_array(&self, value: CPointer<LLVMValueRef>, num_elements: u64) -> CPointer<LLVMValueRef>;
     fn create_pointer(&self, value: CPointer<LLVMTypeRef>) -> CPointer<LLVMValueRef>;
     fn create_struct(&self, values: &[CPointer<LLVMValueRef>], context: CPointer<LLVMContextRef>, packed: bool) -> CPointer<LLVMValueRef>;
