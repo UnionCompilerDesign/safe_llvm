@@ -7,10 +7,12 @@ use llvm::{core, prelude::{LLVMContextRef, LLVMModuleRef}};
 use crate::memory_management::pointer::CPointer;
 
 /// Initializes a context
-pub fn create_context() -> LLVMContextRef {
-    unsafe {
+pub fn create_context() -> CPointer<LLVMContextRef> {
+    let raw_ptr = unsafe {
         core::LLVMContextCreate()
-    }
+    };
+    
+    CPointer::new(Some(raw_ptr as *mut _))
 }
 
 /// Initializes a module in the specified LLVM context
