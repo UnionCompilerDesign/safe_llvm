@@ -48,71 +48,129 @@ impl<T> LLVMResourcePools<T> {
         self.values.as_ref()?.get(&handle).cloned()
     }
 
-    pub fn create_value_handle(&mut self, value: *mut T) -> ValueHandle {
-        let handle: ValueHandle = ValueHandle(self.next_handle);
+    pub fn create_value_handle(&mut self, value: *mut T) -> Option<ValueHandle> {
+        if value.is_null() {
+            return None;
+        }
+    
+        let handle = ValueHandle(self.next_handle);
         self.next_handle += 1;
-        let pointer: Arc<RwLock<CPointer<T>>> = Arc::new(RwLock::new(CPointer::new(Some(value))));
-        self.values.get_or_insert_with(HashMap::new).insert(handle, pointer);
-        handle
+    
+        if let Some(c_pointer) = CPointer::new(value) {
+            let map = self.values.get_or_insert_with(HashMap::new);
+            map.insert(handle, Arc::new(RwLock::new(c_pointer)));
+            Some(handle)
+        } else {
+            None
+        }
     }
+    
 
     pub fn get_basic_block(&self, handle: BasicBlockHandle) -> Option<Arc<RwLock<CPointer<T>>>> {
         self.basic_block.as_ref()?.get(&handle).cloned()
     }
 
-    pub fn create_basic_block_handle(&mut self, basic_block: *mut T) -> BasicBlockHandle {
-        let handle: BasicBlockHandle = BasicBlockHandle(self.next_handle);
+
+    pub fn create_basic_block_handle(&mut self, basic_block: *mut T) -> Option<BasicBlockHandle> {
+        if basic_block.is_null() {
+            return None;
+        }
+    
+        let handle = BasicBlockHandle(self.next_handle);
         self.next_handle += 1;
-        let pointer: Arc<RwLock<CPointer<T>>> = Arc::new(RwLock::new(CPointer::new(Some(basic_block))));
-        self.basic_block.get_or_insert_with(HashMap::new).insert(handle, pointer);
-        handle
+    
+        if let Some(c_pointer) = CPointer::new(basic_block) {
+            let map = self.basic_block.get_or_insert_with(HashMap::new);
+            map.insert(handle, Arc::new(RwLock::new(c_pointer)));
+            Some(handle)
+        } else {
+            None
+        }
     }
 
     pub fn get_context(&self, handle: ContextHandle) -> Option<Arc<RwLock<CPointer<T>>>> {
         self.context.as_ref()?.get(&handle).cloned()
     }
 
-    pub fn create_context_handle(&mut self, context: *mut T) -> ContextHandle {
-        let handle: ContextHandle = ContextHandle(self.next_handle);
+    pub fn create_context_handle(&mut self, context: *mut T) -> Option<ContextHandle> {
+        if context.is_null() {
+            return None;
+        }
+    
+        let handle = ContextHandle(self.next_handle);
         self.next_handle += 1;
-        let pointer: Arc<RwLock<CPointer<T>>> = Arc::new(RwLock::new(CPointer::new(Some(context))));
-        self.context.get_or_insert_with(HashMap::new).insert(handle, pointer);
-        handle
+    
+        if let Some(c_pointer) = CPointer::new(context) {
+            let map = self.context.get_or_insert_with(HashMap::new);
+            map.insert(handle, Arc::new(RwLock::new(c_pointer)));
+            Some(handle)
+        } else {
+            None
+        }
     }
 
     pub fn get_module(&self, handle: ModuleHandle) -> Option<Arc<RwLock<CPointer<T>>>> {
         self.module.as_ref()?.get(&handle).cloned()
     }
 
-    pub fn create_module_handle(&mut self, module: *mut T) -> ModuleHandle {
-        let handle: ModuleHandle = ModuleHandle(self.next_handle);
+    pub fn create_module_handle(&mut self, module: *mut T) -> Option<ModuleHandle> {
+        if module.is_null() {
+            return None;
+        }
+    
+        let handle = ModuleHandle(self.next_handle);
         self.next_handle += 1;
-        let pointer: Arc<RwLock<CPointer<T>>> = Arc::new(RwLock::new(CPointer::new(Some(module))));
-        self.module.get_or_insert_with(HashMap::new).insert(handle, pointer);
-        handle
+    
+        if let Some(c_pointer) = CPointer::new(module) {
+            let map = self.module.get_or_insert_with(HashMap::new);
+            map.insert(handle, Arc::new(RwLock::new(c_pointer)));
+            Some(handle)
+        } else {
+            None
+        }
     }
+    
 
     pub fn get_builder(&self, handle: BuilderHandle) -> Option<Arc<RwLock<CPointer<T>>>> {
         self.builder.as_ref()?.get(&handle).cloned()
     }
 
-    pub fn create_builder_handle(&mut self, builder: *mut T) -> BuilderHandle {
-        let handle: BuilderHandle = BuilderHandle(self.next_handle);
+    pub fn create_builder_handle(&mut self, builder: *mut T) -> Option<BuilderHandle> {
+        if builder.is_null() {
+            return None;
+        }
+    
+        let handle = BuilderHandle(self.next_handle);
         self.next_handle += 1;
-        let pointer: Arc<RwLock<CPointer<T>>> = Arc::new(RwLock::new(CPointer::new(Some(builder))));
-        self.builder.get_or_insert_with(HashMap::new).insert(handle, pointer);
-        handle
+    
+        if let Some(c_pointer) = CPointer::new(builder) {
+            let map = self.builder.get_or_insert_with(HashMap::new);
+            map.insert(handle, Arc::new(RwLock::new(c_pointer)));
+            Some(handle)
+        } else {
+            None
+        }
     }
-
+    
     pub fn get_type_ref(&self, handle: TypeHandle) -> Option<Arc<RwLock<CPointer<T>>>> {
         self.type_ref.as_ref()?.get(&handle).cloned()
     }
 
-    pub fn create_type_handle(&mut self, type_ref: *mut T) -> TypeHandle {
-        let handle: TypeHandle = TypeHandle(self.next_handle);
+    pub fn create_type_handle(&mut self, type_ref: *mut T) -> Option<TypeHandle> {
+        if type_ref.is_null() {
+            return None;
+        }
+    
+        let handle = TypeHandle(self.next_handle);
         self.next_handle += 1;
-        let pointer: Arc<RwLock<CPointer<T>>> = Arc::new(RwLock::new(CPointer::new(Some(type_ref))));
-        self.type_ref.get_or_insert_with(HashMap::new).insert(handle, pointer);
-        handle
+    
+        if let Some(c_pointer) = CPointer::new(type_ref) {
+            let map = self.type_ref.get_or_insert_with(HashMap::new);
+            map.insert(handle, Arc::new(RwLock::new(c_pointer)));
+            Some(handle)
+        } else {
+            None
+        }
     }
+    
 }

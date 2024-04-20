@@ -12,8 +12,11 @@ pub fn get_param(function: CPointer<LLVMValueRef>, index: u32) -> CPointer<LLVMV
     let raw_ptr = unsafe {
         core::LLVMGetParam(*function_ptr, index)
     };
-    CPointer::new(Some(raw_ptr as *mut _))
-}
+    let c_pointer = CPointer::new(raw_ptr as *mut _);
+    if c_pointer.is_some() {
+        return c_pointer.unwrap();
+    }
+    panic!("Missing c_pointer")}
 
 /// Adds a function to a module
 pub fn add_function_to_module(module: CPointer<LLVMModuleRef>, function_name: &str, function_type: CPointer<LLVMTypeRef>) -> CPointer<LLVMValueRef> {
@@ -23,5 +26,8 @@ pub fn add_function_to_module(module: CPointer<LLVMModuleRef>, function_name: &s
     let raw_ptr = unsafe {
         core::LLVMAddFunction(*module_ptr, c_name.as_ptr(), *function_type_ptr)
     };
-    CPointer::new(Some(raw_ptr as *mut _))
-}
+    let c_pointer = CPointer::new(raw_ptr as *mut _);
+    if c_pointer.is_some() {
+        return c_pointer.unwrap();
+    }
+    panic!("Missing c_pointer")}

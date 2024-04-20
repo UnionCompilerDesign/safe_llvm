@@ -12,8 +12,11 @@ pub fn create_context() -> CPointer<LLVMContextRef> {
         core::LLVMContextCreate()
     };
     
-    CPointer::new(Some(raw_ptr as *mut _))
-}
+    let c_pointer = CPointer::new(raw_ptr as *mut _);
+    if c_pointer.is_some() {
+        return c_pointer.unwrap();
+    }
+    panic!("Missing c_pointer")}
 
 /// Initializes a module in the specified LLVM context
 pub fn create_module(module_name: &str, context: CPointer<LLVMContextRef>) -> CPointer<LLVMModuleRef> {
@@ -35,5 +38,8 @@ pub fn create_module(module_name: &str, context: CPointer<LLVMContextRef>) -> CP
         panic!("Failed to create LLVM module");
     }
 
-    CPointer::new(Some(raw_ptr as *mut _))
-}
+    let c_pointer = CPointer::new(raw_ptr as *mut _);
+    if c_pointer.is_some() {
+        return c_pointer.unwrap();
+    }
+    panic!("Missing c_pointer")}

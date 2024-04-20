@@ -9,8 +9,11 @@ pub fn void_type(context: CPointer<LLVMContextRef>) -> CPointer<LLVMTypeRef> {
     let raw_ptr = unsafe {
         core::LLVMVoidTypeInContext(*context_ptr)
     };
-    CPointer::new(Some(raw_ptr as *mut _))
-}
+    let c_pointer = CPointer::new(raw_ptr as *mut _);
+    if c_pointer.is_some() {
+        return c_pointer.unwrap();
+    }
+    panic!("Missing c_pointer")}
 
 /// integer type
 pub fn int_type(context: CPointer<LLVMContextRef>) -> CPointer<LLVMTypeRef> {
@@ -18,8 +21,11 @@ pub fn int_type(context: CPointer<LLVMContextRef>) -> CPointer<LLVMTypeRef> {
     let raw_ptr = unsafe {
         core::LLVMIntTypeInContext(*context_ptr, 64)
     };
-    CPointer::new(Some(raw_ptr as *mut _))
-}
+    let c_pointer = CPointer::new(raw_ptr as *mut _);
+    if c_pointer.is_some() {
+        return c_pointer.unwrap();
+    }
+    panic!("Missing c_pointer")}
 
 /// float type
 pub fn float_type(context: CPointer<LLVMContextRef>) -> CPointer<LLVMTypeRef> {
@@ -27,8 +33,11 @@ pub fn float_type(context: CPointer<LLVMContextRef>) -> CPointer<LLVMTypeRef> {
     let raw_ptr = unsafe {
         core::LLVMFloatTypeInContext(*context_ptr)
     };
-    CPointer::new(Some(raw_ptr as *mut _))
-}
+    let c_pointer = CPointer::new(raw_ptr as *mut _);
+    if c_pointer.is_some() {
+        return c_pointer.unwrap();
+    }
+    panic!("Missing c_pointer")}
 
 /// boolean type
 pub fn boolean_type(context: CPointer<LLVMContextRef>) -> CPointer<LLVMTypeRef> {
@@ -36,8 +45,11 @@ pub fn boolean_type(context: CPointer<LLVMContextRef>) -> CPointer<LLVMTypeRef> 
     let raw_ptr = unsafe {
         core::LLVMInt1TypeInContext(*context_ptr)
     };
-    CPointer::new(Some(raw_ptr as *mut _))
-}
+    let c_pointer = CPointer::new(raw_ptr as *mut _);
+    if c_pointer.is_some() {
+        return c_pointer.unwrap();
+    }
+    panic!("Missing c_pointer")}
 
 /// pointer type
 pub fn pointer_type(element_type: CPointer<LLVMTypeRef>) -> CPointer<LLVMTypeRef> {
@@ -45,8 +57,11 @@ pub fn pointer_type(element_type: CPointer<LLVMTypeRef>) -> CPointer<LLVMTypeRef
     let raw_ptr = unsafe {
         core::LLVMPointerType(*element_type_ptr, 0)
     };
-    CPointer::new(Some(raw_ptr as *mut _))
-}
+    let c_pointer = CPointer::new(raw_ptr as *mut _);
+    if c_pointer.is_some() {
+        return c_pointer.unwrap();
+    }
+    panic!("Missing c_pointer")}
 
 /// array type
 pub fn array_type(element_type: CPointer<LLVMTypeRef>, num_elements: u64) -> CPointer<LLVMTypeRef> {
@@ -54,8 +69,11 @@ pub fn array_type(element_type: CPointer<LLVMTypeRef>, num_elements: u64) -> CPo
     let raw_ptr = unsafe {
         core::LLVMArrayType2(*element_type_ptr, num_elements)
     };
-    CPointer::new(Some(raw_ptr as *mut _))
-}
+    let c_pointer = CPointer::new(raw_ptr as *mut _);
+    if c_pointer.is_some() {
+        return c_pointer.unwrap();
+    }
+    panic!("Missing c_pointer")}
 
 /// struct type
 pub fn struct_type(context: CPointer<LLVMContextRef>, element_types: &[CPointer<LLVMTypeRef>], packed: bool) -> CPointer<LLVMTypeRef> {
@@ -64,8 +82,11 @@ pub fn struct_type(context: CPointer<LLVMContextRef>, element_types: &[CPointer<
     let raw_ptr = unsafe {
         core::LLVMStructTypeInContext(*context_ptr, *raw_element_types.as_mut_ptr(), raw_element_types.len() as u32, packed as i32)
     };
-    CPointer::new(Some(raw_ptr as *mut _))
-}
+    let c_pointer = CPointer::new(raw_ptr as *mut _);
+    if c_pointer.is_some() {
+        return c_pointer.unwrap();
+    }
+    panic!("Missing c_pointer")}
 
 /// returns nothing
 pub fn void_return(builder: CPointer<LLVMBuilderRef>) -> CPointer<LLVMValueRef> {
@@ -73,8 +94,11 @@ pub fn void_return(builder: CPointer<LLVMBuilderRef>) -> CPointer<LLVMValueRef> 
     let raw_ptr = unsafe {
         core::LLVMBuildRetVoid(*builder_ptr)
     };
-    CPointer::new(Some(raw_ptr as *mut _))
-}
+    let c_pointer = CPointer::new(raw_ptr as *mut _);
+    if c_pointer.is_some() {
+        return c_pointer.unwrap();
+    }
+    panic!("Missing c_pointer")}
 
 /// returns something
 pub fn nonvoid_return(builder: CPointer<LLVMBuilderRef>, value: CPointer<LLVMValueRef>) -> CPointer<LLVMValueRef> {
@@ -83,5 +107,8 @@ pub fn nonvoid_return(builder: CPointer<LLVMBuilderRef>, value: CPointer<LLVMVal
     let raw_ptr = unsafe {
         core::LLVMBuildRet(*builder_ptr, *value_ptr)
     };
-    CPointer::new(Some(raw_ptr as *mut _))
-}
+    let c_pointer = CPointer::new(raw_ptr as *mut _);
+    if c_pointer.is_some() {
+        return c_pointer.unwrap();
+    }
+    panic!("Missing c_pointer")}

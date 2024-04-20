@@ -21,8 +21,11 @@ pub fn create_basic_block(context: CPointer<LLVMContextRef>, function: CPointer<
         core::LLVMAppendBasicBlockInContext(*context_ptr, *function_ptr, c_name.as_ptr()) 
     };
 
-    CPointer::new(Some(raw_ptr as *mut _))
-}
+    let c_pointer = CPointer::new(raw_ptr as *mut _);
+    if c_pointer.is_some() {
+        return c_pointer.unwrap();
+    }
+    panic!("Missing c_pointer")}
 
 /// Retrieves the current insertion block
 pub fn get_current_block(builder: CPointer<LLVMBuilderRef>) -> CPointer<LLVMBasicBlockRef> {
@@ -32,8 +35,11 @@ pub fn get_current_block(builder: CPointer<LLVMBuilderRef>) -> CPointer<LLVMBasi
         core::LLVMGetInsertBlock(*builder_ptr)
     };
 
-    CPointer::new(Some(raw_ptr as *mut _))
-}
+    let c_pointer = CPointer::new(raw_ptr as *mut _);
+    if c_pointer.is_some() {
+        return c_pointer.unwrap();
+    }
+    panic!("Missing c_pointer")}
 
 /// creates a conditional branch
 pub fn create_cond_br(builder: CPointer<LLVMBuilderRef>, condition: CPointer<LLVMValueRef>, then_bb: CPointer<LLVMBasicBlockRef>, else_bb: CPointer<LLVMBasicBlockRef>) -> CPointer<LLVMValueRef> {
@@ -46,8 +52,11 @@ pub fn create_cond_br(builder: CPointer<LLVMBuilderRef>, condition: CPointer<LLV
         core::LLVMBuildCondBr(*builder_ptr,*condition_ptr, *then_bb_ptr, *else_bb_ptr)
     };
 
-    CPointer::new(Some(raw_ptr as *mut _))
-}
+    let c_pointer = CPointer::new(raw_ptr as *mut _);
+    if c_pointer.is_some() {
+        return c_pointer.unwrap();
+    }
+    panic!("Missing c_pointer")}
 
 /// creates an unconditional branch
 pub fn create_br(builder: CPointer<LLVMBuilderRef>, target_bb: CPointer<LLVMBasicBlockRef>) -> CPointer<LLVMValueRef> {
@@ -58,8 +67,11 @@ pub fn create_br(builder: CPointer<LLVMBuilderRef>, target_bb: CPointer<LLVMBasi
         core::LLVMBuildBr(*builder_ptr, *target_bb_ptr)
     };
 
-    CPointer::new(Some(raw_ptr as *mut _))
-}
+    let c_pointer = CPointer::new(raw_ptr as *mut _);
+    if c_pointer.is_some() {
+        return c_pointer.unwrap();
+    }
+    panic!("Missing c_pointer")}
 
 /// Inserts a basic block in the context before the specified basic block
 pub fn insert_before_basic_block(context: CPointer<LLVMContextRef>, before_target: CPointer<LLVMBasicBlockRef>, name: &str) -> CPointer<LLVMBasicBlockRef> {
@@ -72,8 +84,11 @@ pub fn insert_before_basic_block(context: CPointer<LLVMContextRef>, before_targe
         core::LLVMInsertBasicBlockInContext(*context_ptr, *before_target_ptr, c_name.as_ptr())
     };
 
-    CPointer::new(Some(raw_ptr as *mut _))
-}
+    let c_pointer = CPointer::new(raw_ptr as *mut _);
+    if c_pointer.is_some() {
+        return c_pointer.unwrap();
+    }
+    panic!("Missing c_pointer")}
 
 /// Positions the builder at the end of a block
 pub fn position_builder(builder: CPointer<LLVMBuilderRef>, bb: CPointer<LLVMBasicBlockRef>) {
@@ -102,8 +117,11 @@ pub fn get_first_instruction(bb: CPointer<LLVMBasicBlockRef>) -> CPointer<LLVMVa
         core::LLVMGetFirstInstruction(*bb_ptr)
     };
 
-    CPointer::new(Some(raw_ptr as *mut _))
-}
+    let c_pointer = CPointer::new(raw_ptr as *mut _);
+    if c_pointer.is_some() {
+        return c_pointer.unwrap();
+    }
+    panic!("Missing c_pointer")}
 
 /// Retrieves the last instruction
 pub fn get_last_instruction(bb: CPointer<LLVMBasicBlockRef>) -> CPointer<LLVMValueRef> {
@@ -113,8 +131,11 @@ pub fn get_last_instruction(bb: CPointer<LLVMBasicBlockRef>) -> CPointer<LLVMVal
         core::LLVMGetLastInstruction(*bb_ptr) 
     };
 
-    CPointer::new(Some(raw_ptr as *mut _))
-}
+    let c_pointer = CPointer::new(raw_ptr as *mut _);
+    if c_pointer.is_some() {
+        return c_pointer.unwrap();
+    }
+    panic!("Missing c_pointer")}
 
 /// Creates a PHI node in the specified basic block
 pub fn create_phi(builder: CPointer<LLVMBuilderRef>, possible_values: &[(CPointer<LLVMValueRef>, CPointer<LLVMBasicBlockRef>)], name: &str) -> CPointer<LLVMValueRef> {
@@ -140,5 +161,8 @@ pub fn create_phi(builder: CPointer<LLVMBuilderRef>, possible_values: &[(CPointe
         llvm::core::LLVMAddIncoming(phi_node, values.as_ptr() as *mut _, blocks.as_ptr() as *mut _, values.len() as u32);
     }
 
-    CPointer::new(Some(phi_node as *mut _))
-}
+    let c_pointer = CPointer::new(phi_node as *mut _);
+    if c_pointer.is_some() {
+        return c_pointer.unwrap();
+    }
+    panic!("Missing c_pointer")}

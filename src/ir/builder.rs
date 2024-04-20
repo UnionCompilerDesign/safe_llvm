@@ -14,8 +14,11 @@ pub fn create_builder(context: CPointer<LLVMContextRef>) -> CPointer<LLVMBuilder
         core::LLVMCreateBuilderInContext(*context_ptr)
     };
 
-    CPointer::new(Some(raw_ptr as *mut _))
-}
+    let c_pointer = CPointer::new(raw_ptr as *mut _);
+    if c_pointer.is_some() {
+        return c_pointer.unwrap();
+    }
+    panic!("Missing c_pointer")}
 
 /// Creates a new function within the given LLVM module.
 pub fn create_function(
@@ -48,6 +51,9 @@ pub fn create_function(
 
         let raw_ptr = LLVMAddFunction(*module_ptr, c_name.as_ptr(), function_type);
 
-        CPointer::new(Some(raw_ptr as *mut _))
+        let c_pointer = CPointer::new(raw_ptr as *mut _);
+    if c_pointer.is_some() {
+        return c_pointer.unwrap();
     }
+    panic!("Missing c_pointer")    }
 }
