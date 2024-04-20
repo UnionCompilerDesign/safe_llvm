@@ -50,6 +50,6 @@ pub fn create_function(
             panic!("Failed to create LLVM function type");
         }
 
-        CPointer::new(function_type as *mut _)
+        CPointer::new(function_type as *mut LLVMTypeRef)
     }
 }
