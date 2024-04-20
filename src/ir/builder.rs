@@ -28,18 +28,32 @@ pub fn create_function(
     context: CPointer<LLVMContextRef>,
 ) -> Option<CPointer<LLVMTypeRef>> {
     unsafe {
+        if context.is_null() {
+            panic!("Context pointer is null or uninitialized");
+        }
+
         let llvm_return_type = match return_type {
-            Some(ref_type) => *ref_type.get_ref(),
+            Some(ref_type) => {
+                if ref_type.is_null() {
+                    panic!("Return type pointer is null or uninitialized");
+                }
+                *ref_type.get_ref()
+            },
             None => LLVMVoidTypeInContext(*context.get_ref()),
         };
 
         let llvm_param_types: Vec<LLVMTypeRef> = param_types
             .iter()
-            .map(|ty| *ty.get_ref())
+            .map(|ty| {
+                if ty.is_null() {
+                    panic!("Parameter type pointer is null or uninitialized");
+                }
+                *ty.get_ref()
+            })
             .collect();
 
-        if llvm_param_types.is_empty() && !param_types.is_empty() {
-            panic!("Failed to properly convert parameter types");
+        if llvm_param_types.is_empty() {
+            panic!("No parameter types provided");
         }
 
         let param_ptr = llvm_param_types.as_ptr() as *mut LLVMTypeRef;
