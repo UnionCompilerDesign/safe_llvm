@@ -1,6 +1,6 @@
 extern crate llvm_sys as llvm;
 
-use std::ffi::CString;
+use std::{ffi::CString, ptr};
 
 use llvm::{core::{self, LLVMAddFunction, LLVMFunctionType, LLVMGetModuleContext, LLVMVoidTypeInContext}, prelude::{LLVMBuilderRef, LLVMContextRef, LLVMModuleRef, LLVMTypeRef, LLVMValueRef}};
 
@@ -52,11 +52,12 @@ pub fn create_function(
             })
             .collect();
 
-        if llvm_param_types.is_empty() {
-            panic!("No parameter types provided");
-        }
+        let param_ptr = if llvm_param_types.is_empty() {
+            ptr::null_mut()
+        } else {
+            llvm_param_types.as_ptr() as *mut LLVMTypeRef
+        };
 
-        let param_ptr = llvm_param_types.as_ptr() as *mut LLVMTypeRef;
         let param_count = llvm_param_types.len() as u32;
 
         let function_type = LLVMFunctionType(llvm_return_type, param_ptr, param_count, is_var_arg as i32);
