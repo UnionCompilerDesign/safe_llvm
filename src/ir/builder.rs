@@ -27,33 +27,36 @@ pub fn create_function(
     param_types: &[CPointer<LLVMTypeRef>],
     is_var_arg: bool,
     module: CPointer<LLVMModuleRef>
-) -> CPointer<LLVMValueRef> {
+) -> Option<CPointer<LLVMValueRef>> {
     unsafe {
         let module_ptr = module.get_ref();
+        if module_ptr.is_null() {
+            panic!("Module pointer is null");
+        }
 
         let llvm_return_type = match return_type {
-            Some(ref_type) => *ref_type.get_ref(),
+            Some(ref_type) => {
+                let rt = ref_type.get_ref();
+                if rt.is_null() {
+                    panic!("Return type pointer is null");
+                }
+                *rt  
+            },
             None => LLVMVoidTypeInContext(LLVMGetModuleContext(*module_ptr)),
         };
 
-        let llvm_param_types: Vec<*mut LLVMTypeRef> = param_types.iter().map(|ty| {
-            ty.get_ref()  
-        }).collect();
+        let llvm_param_types: Vec<LLVMTypeRef> = param_types.iter().map(|ty| *ty.get_ref()).collect();
 
         let function_type = LLVMFunctionType(
             llvm_return_type,
-            llvm_param_types.as_ptr() as *mut _,
-            llvm_param_types.len() as c_uint,
+            llvm_param_types.as_ptr() as *mut _, 
+            llvm_param_types.len() as u32,
             is_var_arg as i32,
         );
 
-        let c_name = CString::new(name).expect("Failed to create function name");
+        let c_name = CString::new(name).expect("Failed to create function name due to null bytes.");
 
         let raw_ptr = LLVMAddFunction(*module_ptr, c_name.as_ptr(), function_type);
-
-        let c_pointer = CPointer::new(raw_ptr as *mut _);
-    if c_pointer.is_some() {
-        return c_pointer.unwrap();
+        CPointer::new(raw_ptr as *mut _)
     }
-    panic!("Missing c_pointer")    }
 }

@@ -182,7 +182,7 @@ impl LLVMApi for SafeLLVM {
         self.ir_codegen_impl.create_boolean(val, context)
     }
 
-    fn create_function(&self, name: &str, return_type: Option<CPointer<LLVMTypeRef>>, param_types: &[CPointer<LLVMTypeRef>], is_var_arg: bool, module: CPointer<LLVMModuleRef>) -> CPointer<LLVMValueRef> {
+    fn create_function(&self, name: &str, return_type: Option<CPointer<LLVMTypeRef>>, param_types: &[CPointer<LLVMTypeRef>], is_var_arg: bool, module: CPointer<LLVMModuleRef>) -> Option<CPointer<LLVMValueRef>> {
         self.ir_codegen_impl.create_function(name, return_type, param_types, is_var_arg, module)
     }
 

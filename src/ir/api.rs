@@ -182,7 +182,7 @@ impl LLVMApi for SafeLLVM {
         values::create_boolean(val, context)
     }
  
-    fn create_function(&self, name: &str, return_type: Option<CPointer<LLVMTypeRef>>, param_types: &[CPointer<LLVMTypeRef>], is_var_arg: bool, module: CPointer<LLVMModuleRef>) -> CPointer<LLVMValueRef> {
+    fn create_function(&self, name: &str, return_type: Option<CPointer<LLVMTypeRef>>, param_types: &[CPointer<LLVMTypeRef>], is_var_arg: bool, module: CPointer<LLVMModuleRef>) -> Option<CPointer<LLVMValueRef>> {
         builder::create_function(name, return_type, param_types, is_var_arg, module)
     }
 
