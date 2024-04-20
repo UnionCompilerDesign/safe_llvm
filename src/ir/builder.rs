@@ -1,6 +1,6 @@
 extern crate llvm_sys as llvm;
 
-use std::{ffi::{c_uint, CString}, ptr};
+use std::ffi::CString;
 
 use llvm::{core::{self, LLVMAddFunction, LLVMFunctionType, LLVMGetModuleContext, LLVMVoidTypeInContext}, prelude::{LLVMBuilderRef, LLVMContextRef, LLVMModuleRef, LLVMTypeRef, LLVMValueRef}};
 
@@ -20,44 +20,23 @@ pub fn create_builder(context: CPointer<LLVMContextRef>) -> CPointer<LLVMBuilder
     }
     panic!("Missing c_pointer")}
 
-/// Creates a new function within the given LLVM module.
+/// Creates a new function type within the given LLVM context.
 pub fn create_function(
-    name: &str,
     return_type: Option<CPointer<LLVMTypeRef>>,
     param_types: &[CPointer<LLVMTypeRef>],
     is_var_arg: bool,
-    module: CPointer<LLVMModuleRef>
-) -> Option<CPointer<LLVMValueRef>> {
+    context: CPointer<LLVMContextRef>,
+) -> Option<CPointer<LLVMTypeRef>> {
     unsafe {
-        let module_ptr = module.get_ref();
-        if module_ptr.is_null() {
-            panic!("Module pointer is null");
-        }
-
         let llvm_return_type = match return_type {
-            Some(ref_type) => {
-                let rt = ref_type.get_ref();
-                if rt.is_null() {
-                    panic!("Return type pointer is null");
-                }
-                *rt
-            },
-            None => {
-                let context = LLVMGetModuleContext(*module_ptr);
-                if context.is_null() {
-                    panic!("Failed to obtain a valid LLVM context from the module");
-                }
-                LLVMVoidTypeInContext(context)
-            },
+            Some(ref_type) => *ref_type.get_ref(),
+            None => LLVMVoidTypeInContext(*context.get_ref()),
         };
 
-        let llvm_param_types: Vec<LLVMTypeRef> = param_types.iter().map(|ty| {
-            let ty_ptr = ty.get_ref();
-            if ty_ptr.is_null() {
-                panic!("One of the parameter type pointers is null");
-            }
-            *ty_ptr
-        }).collect();
+        let llvm_param_types: Vec<LLVMTypeRef> = param_types
+            .iter()
+            .map(|ty| *ty.get_ref())
+            .collect();
 
         if llvm_param_types.is_empty() && !param_types.is_empty() {
             panic!("Failed to properly convert parameter types");
@@ -71,13 +50,6 @@ pub fn create_function(
             panic!("Failed to create LLVM function type");
         }
 
-        let c_name = CString::new(name).expect("Failed to create function name due to null bytes.");
-
-        let raw_ptr = LLVMAddFunction(*module_ptr, c_name.as_ptr(), function_type);
-        if raw_ptr.is_null() {
-            panic!("Failed to add function to LLVM module");
-        }
-
-        CPointer::new(raw_ptr as *mut _)
+        CPointer::new(function_type as *mut _)
     }
 }
