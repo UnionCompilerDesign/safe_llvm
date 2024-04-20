@@ -14,7 +14,7 @@ pub fn create_context() -> CPointer<LLVMContextRef> {
         panic!("Failed to create LLVM context; the returned pointer is null.");
     }
 
-    CPointer::new(raw_ptr as *mut _).expect("Failed to wrap the LLVM context in CPointer.")
+    CPointer::new(raw_ptr as *mut LLVMContextRef).expect("Failed to wrap the LLVM context in CPointer.")
 }
 
 /// Initializes a module in the specified LLVM context
@@ -40,5 +40,5 @@ pub fn create_module(module_name: &str, context: CPointer<LLVMContextRef>) -> CP
         panic!("Failed to create LLVM module; the returned pointer is null.");
     }
 
-    CPointer::new(raw_ptr as *mut _).expect("Failed to wrap the LLVM module in CPointer.")
+    CPointer::new(raw_ptr as *mut LLVMModuleRef).expect("Failed to wrap the LLVM module in CPointer.")
 }
