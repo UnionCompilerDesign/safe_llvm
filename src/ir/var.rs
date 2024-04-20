@@ -72,4 +72,5 @@ pub fn get_var(
     if c_pointer.is_some() {
         return c_pointer.unwrap();
     }
-    panic!("Missing c_pointer")}
+    panic!("Missing c_pointer")
+}

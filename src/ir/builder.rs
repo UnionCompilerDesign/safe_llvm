@@ -40,19 +40,23 @@ pub fn create_function(
                 if rt.is_null() {
                     panic!("Return type pointer is null");
                 }
-                *rt  
+                *rt
             },
             None => LLVMVoidTypeInContext(LLVMGetModuleContext(*module_ptr)),
         };
 
-        let llvm_param_types: Vec<LLVMTypeRef> = param_types.iter().map(|ty| *ty.get_ref()).collect();
+        let llvm_param_types: Vec<LLVMTypeRef> = param_types.iter().map(|ty| {
+            let ty_ptr = ty.get_ref();
+            if ty_ptr.is_null() {
+                panic!("One of the parameter type pointers is null");
+            }
+            *ty_ptr
+        }).collect();
 
-        let function_type = LLVMFunctionType(
-            llvm_return_type,
-            llvm_param_types.as_ptr() as *mut _, 
-            llvm_param_types.len() as u32,
-            is_var_arg as i32,
-        );
+        let param_ptr = llvm_param_types.as_ptr() as *mut LLVMTypeRef;
+        let param_count = llvm_param_types.len() as u32;
+
+        let function_type = LLVMFunctionType(llvm_return_type, param_ptr, param_count, is_var_arg as i32);
 
         let c_name = CString::new(name).expect("Failed to create function name due to null bytes.");
 
