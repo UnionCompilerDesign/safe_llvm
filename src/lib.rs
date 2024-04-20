@@ -1,7 +1,7 @@
 extern crate llvm_sys as llvm;
 
 /// LLVM IR code generation
-pub mod ir_codegen;
+pub mod ir;
 
 /// Just in time compilation tools
 pub mod jit;
@@ -13,9 +13,6 @@ pub mod memory_management;
 pub mod lld;
 
 pub mod serialization;
-
-/// Initialialize LLVM toolchain
-pub mod init;
 
 /// Debug utilities
 pub mod debug;
