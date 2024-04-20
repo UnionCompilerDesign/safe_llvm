@@ -42,7 +42,13 @@ pub fn create_function(
                 }
                 *rt
             },
-            None => LLVMVoidTypeInContext(LLVMGetModuleContext(*module_ptr)),
+            None => {
+                let context = LLVMGetModuleContext(*module_ptr);
+                if context.is_null() {
+                    panic!("Failed to obtain a valid LLVM context from the module");
+                }
+                LLVMVoidTypeInContext(context)
+            },
         };
 
         let llvm_param_types: Vec<LLVMTypeRef> = param_types.iter().map(|ty| {
@@ -53,14 +59,25 @@ pub fn create_function(
             *ty_ptr
         }).collect();
 
+        if llvm_param_types.is_empty() && !param_types.is_empty() {
+            panic!("Failed to properly convert parameter types");
+        }
+
         let param_ptr = llvm_param_types.as_ptr() as *mut LLVMTypeRef;
         let param_count = llvm_param_types.len() as u32;
 
         let function_type = LLVMFunctionType(llvm_return_type, param_ptr, param_count, is_var_arg as i32);
+        if function_type.is_null() {
+            panic!("Failed to create LLVM function type");
+        }
 
         let c_name = CString::new(name).expect("Failed to create function name due to null bytes.");
 
         let raw_ptr = LLVMAddFunction(*module_ptr, c_name.as_ptr(), function_type);
+        if raw_ptr.is_null() {
+            panic!("Failed to add function to LLVM module");
+        }
+
         CPointer::new(raw_ptr as *mut _)
     }
 }
