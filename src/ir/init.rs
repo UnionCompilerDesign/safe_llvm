@@ -19,14 +19,21 @@ pub fn create_context() -> CPointer<LLVMContextRef> {
 pub fn create_module(module_name: &str, context: CPointer<LLVMContextRef>) -> CPointer<LLVMModuleRef> {
     let c_module_name = CString::new(module_name).expect("Failed to create module name");
 
-    let context_ptr: *mut LLVMContextRef = context.get_ref();
+    let context_ptr = context.get_ref();
+    if context_ptr.is_null() || unsafe { *context_ptr }.is_null() {
+        panic!("Context pointer is null or points to null");
+    }
 
     let raw_ptr = unsafe {
         core::LLVMModuleCreateWithNameInContext(
             c_module_name.as_ptr(),
-            *context_ptr,
+            *context_ptr
         )
     };
+
+    if raw_ptr.is_null() {
+        panic!("Failed to create LLVM module");
+    }
 
     CPointer::new(Some(raw_ptr as *mut _))
 }
