@@ -8,38 +8,37 @@ use crate::memory_management::pointer::CPointer;
 
 /// Initializes a context
 pub fn create_context() -> CPointer<LLVMContextRef> {
-    let raw_ptr = unsafe {
-        core::LLVMContextCreate()
-    };
-    
-    let c_pointer = CPointer::new(raw_ptr as *mut _);
-    if c_pointer.is_some() {
-        return c_pointer.unwrap();
+    let raw_ptr = unsafe { core::LLVMContextCreate() };
+
+    if raw_ptr.is_null() {
+        panic!("Failed to create LLVM context; the returned pointer is null.");
     }
-    panic!("Missing c_pointer")}
+
+    CPointer::new(raw_ptr as *mut _).expect("Failed to wrap the LLVM context in CPointer.")
+}
 
 /// Initializes a module in the specified LLVM context
 pub fn create_module(module_name: &str, context: CPointer<LLVMContextRef>) -> CPointer<LLVMModuleRef> {
-    let c_module_name = CString::new(module_name).expect("Failed to create module name");
+    if module_name.is_empty() {
+        panic!("Module name cannot be empty.");
+    }
+
+    let c_module_name = CString::new(module_name).expect("Failed to create CString from module name");
 
     let context_ptr = context.get_ref();
-    if context_ptr.is_null() || unsafe { *context_ptr }.is_null() {
-        panic!("Context pointer is null or points to null");
+    if context_ptr.is_null() {
+        panic!("Context CPointer is null, which indicates an invalid pointer handling.");
     }
 
-    let raw_ptr = unsafe {
-        core::LLVMModuleCreateWithNameInContext(
-            c_module_name.as_ptr(),
-            *context_ptr
-        )
-    };
+    let llvm_context = unsafe { *context_ptr };
+    if llvm_context.is_null() {
+        panic!("Dereferenced context pointer is null, indicating invalid or uninitialized LLVM context.");
+    }
 
+    let raw_ptr = unsafe { core::LLVMModuleCreateWithNameInContext(c_module_name.as_ptr(), llvm_context) };
     if raw_ptr.is_null() {
-        panic!("Failed to create LLVM module");
+        panic!("Failed to create LLVM module; the returned pointer is null.");
     }
 
-    let c_pointer = CPointer::new(raw_ptr as *mut _);
-    if c_pointer.is_some() {
-        return c_pointer.unwrap();
-    }
-    panic!("Missing c_pointer")}
+    CPointer::new(raw_ptr as *mut _).expect("Failed to wrap the LLVM module in CPointer.")
+}
