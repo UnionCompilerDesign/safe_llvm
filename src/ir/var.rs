@@ -33,7 +33,11 @@ pub fn init_var(
             LLVMBuildStore(*builder_ptr, *value_ptr, alloca);
         }
     }
-    CPointer::new(Some(alloca as *mut _))
+    let c_pointer = CPointer::new(alloca as *mut _);
+    if c_pointer.is_some() {
+        return c_pointer.unwrap();
+    }
+    panic!("Missing c_pointer")
 }
 
 /// Reassigns a variable
@@ -64,5 +68,8 @@ pub fn get_var(
     let raw_ptr = unsafe {
         LLVMBuildLoad2(*builder_ptr, *variable_type_ptr, *variable_alloc_ptr, CString::new("tmpload").expect("Failed to create CString for tmpload").as_ptr())
     };
-    CPointer::new(Some(raw_ptr as *mut _))
-}
+    let c_pointer = CPointer::new(raw_ptr as *mut _);
+    if c_pointer.is_some() {
+        return c_pointer.unwrap();
+    }
+    panic!("Missing c_pointer")}
