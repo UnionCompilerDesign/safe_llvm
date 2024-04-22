@@ -1,4 +1,4 @@
-pub mod ir_codegen_tests;
+pub mod ir_tests;
 
 pub mod memory_management_tests;
 

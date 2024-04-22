@@ -1,3 +1,5 @@
+#![warn(clippy::all)]
+
 extern crate llvm_sys as llvm;
 
 /// LLVM IR code generation
@@ -29,4 +31,4 @@ pub mod interface;
 
 pub mod api;
 
-pub use api::SafeLLVM;
+// pub use api::SafeLLVM;
