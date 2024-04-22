@@ -1,8 +1,8 @@
 extern crate llvm_sys as llvm;
 
-use std::{ffi::CString, ptr};
+use std::ptr;
 
-use llvm::{core::{self, LLVMAddFunction, LLVMFunctionType, LLVMGetModuleContext, LLVMVoidTypeInContext}, prelude::{LLVMBuilderRef, LLVMContextRef, LLVMModuleRef, LLVMTypeRef, LLVMValueRef}};
+use llvm::{core::{self, LLVMFunctionType, LLVMVoidTypeInContext}, prelude::{LLVMBuilderRef, LLVMContextRef, LLVMTypeRef}};
 
 use crate::memory_management::pointer::CPointer; 
 

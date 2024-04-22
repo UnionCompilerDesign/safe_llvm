@@ -33,5 +33,15 @@ impl<T> Clone for CPointer<T> {
     }
 }
 
+impl<T> Drop for CPointer<T> {
+    fn drop(&mut self) {
+        unsafe {
+            std::ptr::drop_in_place(self.ptr.as_ptr());
+            std::alloc::dealloc(self.ptr.cast().as_ptr(), std::alloc::Layout::new::<T>());
+        }
+        
+    }
+}
+
 unsafe impl<T> Send for CPointer<T> {}
 unsafe impl<T> Sync for CPointer<T> {}

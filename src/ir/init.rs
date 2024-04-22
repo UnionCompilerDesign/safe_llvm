@@ -30,12 +30,8 @@ pub fn create_module(module_name: &str, context: CPointer<LLVMContextRef>) -> CP
         panic!("Context CPointer is null, which indicates an invalid pointer handling.");
     }
 
-    let llvm_context = unsafe { *context_ptr };
-    if llvm_context.is_null() {
-        panic!("Dereferenced context pointer is null, indicating invalid or uninitialized LLVM context.");
-    }
+    let raw_ptr = unsafe { core::LLVMModuleCreateWithNameInContext(c_module_name.as_ptr(), *context_ptr ) };
 
-    let raw_ptr = unsafe { core::LLVMModuleCreateWithNameInContext(c_module_name.as_ptr(), llvm_context) };
     if raw_ptr.is_null() {
         panic!("Failed to create LLVM module; the returned pointer is null.");
     }
