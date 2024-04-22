@@ -31,4 +31,4 @@ pub mod interface;
 
 pub mod api;
 
-pub use api::SafeLLVM;
+// pub use api::SafeLLVM;
