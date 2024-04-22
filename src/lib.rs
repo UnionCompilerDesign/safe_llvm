@@ -1,3 +1,5 @@
+#![warn(clippy::all)]
+
 extern crate llvm_sys as llvm;
 
 /// LLVM IR code generation
