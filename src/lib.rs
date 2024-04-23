@@ -11,19 +11,21 @@ pub mod jit;
 /// Memory management
 pub mod memory_management;
 
-/// LLD linker
-pub mod lld;
+// /// LLD linker
+// pub mod lld;
 
-pub mod serialization;
+// pub mod serialization;
 
-/// Debug utilities
-pub mod debug;
+// /// Debug utilities
+// pub mod debug;
 
-/// Ahead of time compilation tools
-pub mod aot;
+// /// Ahead of time compilation tools
+// pub mod aot;
 
-/// LLVM analysis
-pub mod analysis;
+// /// LLVM analysis
+// pub mod analysis;
+
+pub mod logger;
 
 pub mod utils;
 

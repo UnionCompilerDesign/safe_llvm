@@ -4,9 +4,9 @@ use llvm::{core, prelude::*, LLVMBasicBlock, LLVMBuilder, LLVMContext, LLVMModul
 
 use std::sync::{Arc, Mutex};
 
-use crate::memory_management::resource_pools::{LLVMResourcePools, Handle};
+use crate::memory_management::resource_pools::{ResourcePools, Handle};
 
-pub fn create_builder(pool: &Arc<Mutex<LLVMResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, context_handle: Handle) -> Option<Handle> {
+pub fn create_builder(pool: &Arc<Mutex<ResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, context_handle: Handle) -> Option<Handle> {
     let pool_guard = pool.lock().expect("Failed to lock pool");
     let context_lock = pool_guard.get_context(context_handle)?;
     drop(pool_guard); 
@@ -20,7 +20,7 @@ pub fn create_builder(pool: &Arc<Mutex<LLVMResourcePools<LLVMContext, LLVMModule
 }
 
 pub fn create_function(
-    pool: &Arc<Mutex<LLVMResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>,
+    pool: &Arc<Mutex<ResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>,
     return_type_handle: Option<Handle>,
     param_type_handles: &[Handle],
     is_var_arg: bool,

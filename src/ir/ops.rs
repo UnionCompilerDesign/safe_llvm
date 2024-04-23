@@ -4,10 +4,10 @@ use llvm::{core, LLVMBasicBlock, LLVMBuilder, LLVMContext, LLVMIntPredicate, LLV
 
 use std::{ffi::CString, sync::{Arc, Mutex}};
 
-use crate::memory_management::resource_pools::{Handle, LLVMResourcePools};
+use crate::memory_management::resource_pools::{Handle, ResourcePools};
 
 /// Basic addition
-pub fn build_add(pool: &Arc<Mutex<LLVMResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, builder_handle: Handle, param_a_handle: Handle, param_b_handle: Handle, name: &str) -> Option<Handle> {
+pub fn build_add(pool: &Arc<Mutex<ResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, builder_handle: Handle, param_a_handle: Handle, param_b_handle: Handle, name: &str) -> Option<Handle> {
     let pool_guard = pool.lock().unwrap();
     let builder = pool_guard.get_builder(builder_handle)?;
     let param_a = pool_guard.get_value(param_a_handle)?;
@@ -34,7 +34,7 @@ pub fn build_add(pool: &Arc<Mutex<LLVMResourcePools<LLVMContext, LLVMModule, LLV
 }
 
 /// Basic subtraction
-pub fn build_sub(pool: &Arc<Mutex<LLVMResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, builder_handle: Handle, param_a_handle: Handle, param_b_handle: Handle, name: &str) -> Option<Handle> {
+pub fn build_sub(pool: &Arc<Mutex<ResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, builder_handle: Handle, param_a_handle: Handle, param_b_handle: Handle, name: &str) -> Option<Handle> {
     let pool_guard = pool.lock().unwrap();
     let builder = pool_guard.get_builder(builder_handle)?;
     let param_a = pool_guard.get_value(param_a_handle)?;
@@ -62,7 +62,7 @@ pub fn build_sub(pool: &Arc<Mutex<LLVMResourcePools<LLVMContext, LLVMModule, LLV
 }
 
 /// Basic multiplication
-pub fn build_mul(pool: &Arc<Mutex<LLVMResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, builder_handle: Handle, param_a_handle: Handle, param_b_handle: Handle, name: &str) -> Option<Handle> {
+pub fn build_mul(pool: &Arc<Mutex<ResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, builder_handle: Handle, param_a_handle: Handle, param_b_handle: Handle, name: &str) -> Option<Handle> {
     let pool_guard = pool.lock().unwrap();
     let builder = pool_guard.get_builder(builder_handle)?;
     let param_a = pool_guard.get_value(param_a_handle)?;
@@ -90,7 +90,7 @@ pub fn build_mul(pool: &Arc<Mutex<LLVMResourcePools<LLVMContext, LLVMModule, LLV
 }
 
 /// Basic division
-pub fn build_div(pool: &Arc<Mutex<LLVMResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, builder_handle: Handle, param_a_handle: Handle, param_b_handle: Handle, name: &str) -> Option<Handle> {
+pub fn build_div(pool: &Arc<Mutex<ResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, builder_handle: Handle, param_a_handle: Handle, param_b_handle: Handle, name: &str) -> Option<Handle> {
     let pool_guard = pool.lock().unwrap();
     let builder = pool_guard.get_builder(builder_handle)?;
     let param_a = pool_guard.get_value(param_a_handle)?;
@@ -118,7 +118,7 @@ pub fn build_div(pool: &Arc<Mutex<LLVMResourcePools<LLVMContext, LLVMModule, LLV
 }
 
 /// Modular arithmetic (remainder)
-pub fn build_rem(pool: &Arc<Mutex<LLVMResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, builder_handle: Handle, param_a_handle: Handle, param_b_handle: Handle, name: &str) -> Option<Handle> {
+pub fn build_rem(pool: &Arc<Mutex<ResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, builder_handle: Handle, param_a_handle: Handle, param_b_handle: Handle, name: &str) -> Option<Handle> {
     let pool_guard = pool.lock().unwrap();
     let builder = pool_guard.get_builder(builder_handle)?;
     let param_a = pool_guard.get_value(param_a_handle)?;
@@ -146,7 +146,7 @@ pub fn build_rem(pool: &Arc<Mutex<LLVMResourcePools<LLVMContext, LLVMModule, LLV
 }
 
 /// Logical and
-pub fn build_and(pool: &Arc<Mutex<LLVMResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, builder_handle: Handle, param_a_handle: Handle, param_b_handle: Handle, name: &str) -> Option<Handle> {
+pub fn build_and(pool: &Arc<Mutex<ResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, builder_handle: Handle, param_a_handle: Handle, param_b_handle: Handle, name: &str) -> Option<Handle> {
     let pool_guard = pool.lock().unwrap();
     let builder = pool_guard.get_builder(builder_handle)?;
     let param_a = pool_guard.get_value(param_a_handle)?;
@@ -174,7 +174,7 @@ pub fn build_and(pool: &Arc<Mutex<LLVMResourcePools<LLVMContext, LLVMModule, LLV
 }
 
 /// Logical or
-pub fn build_or(pool: &Arc<Mutex<LLVMResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, builder_handle: Handle, param_a_handle: Handle, param_b_handle: Handle, name: &str) -> Option<Handle> {
+pub fn build_or(pool: &Arc<Mutex<ResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, builder_handle: Handle, param_a_handle: Handle, param_b_handle: Handle, name: &str) -> Option<Handle> {
     let pool_guard = pool.lock().unwrap();
     let builder = pool_guard.get_builder(builder_handle)?;
     let param_a = pool_guard.get_value(param_a_handle)?;
@@ -202,7 +202,7 @@ pub fn build_or(pool: &Arc<Mutex<LLVMResourcePools<LLVMContext, LLVMModule, LLVM
 }
 
 /// Logical xor
-pub fn build_xor(pool: &Arc<Mutex<LLVMResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, builder_handle: Handle, param_a_handle: Handle, param_b_handle: Handle, name: &str) -> Option<Handle> {
+pub fn build_xor(pool: &Arc<Mutex<ResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, builder_handle: Handle, param_a_handle: Handle, param_b_handle: Handle, name: &str) -> Option<Handle> {
     let pool_guard = pool.lock().unwrap();
     let builder = pool_guard.get_builder(builder_handle)?;
     let param_a = pool_guard.get_value(param_a_handle)?;
@@ -230,7 +230,7 @@ pub fn build_xor(pool: &Arc<Mutex<LLVMResourcePools<LLVMContext, LLVMModule, LLV
 }
 
 /// Logical left shift
-pub fn build_shl(pool: &Arc<Mutex<LLVMResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, builder_handle: Handle, param_a_handle: Handle, param_b_handle: Handle, name: &str) -> Option<Handle> {
+pub fn build_shl(pool: &Arc<Mutex<ResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, builder_handle: Handle, param_a_handle: Handle, param_b_handle: Handle, name: &str) -> Option<Handle> {
     let pool_guard = pool.lock().unwrap();
     let builder = pool_guard.get_builder(builder_handle)?;
     let param_a = pool_guard.get_value(param_a_handle)?;
@@ -258,7 +258,7 @@ pub fn build_shl(pool: &Arc<Mutex<LLVMResourcePools<LLVMContext, LLVMModule, LLV
 }
 
 /// Logical right shift
-pub fn build_shr(pool: &Arc<Mutex<LLVMResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, builder_handle: Handle, param_a_handle: Handle, param_b_handle: Handle, name: &str) -> Option<Handle> {
+pub fn build_shr(pool: &Arc<Mutex<ResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, builder_handle: Handle, param_a_handle: Handle, param_b_handle: Handle, name: &str) -> Option<Handle> {
     let pool_guard = pool.lock().unwrap();
     let builder = pool_guard.get_builder(builder_handle)?;
     let param_a = pool_guard.get_value(param_a_handle)?;
@@ -286,7 +286,7 @@ pub fn build_shr(pool: &Arc<Mutex<LLVMResourcePools<LLVMContext, LLVMModule, LLV
 }
 
 /// Greater than comparison
-pub fn build_icmp_gt(pool: &Arc<Mutex<LLVMResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, builder_handle: Handle, param_a_handle: Handle, param_b_handle: Handle, name: &str) -> Option<Handle> {
+pub fn build_icmp_gt(pool: &Arc<Mutex<ResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, builder_handle: Handle, param_a_handle: Handle, param_b_handle: Handle, name: &str) -> Option<Handle> {
     let pool_guard = pool.lock().unwrap();
     let builder = pool_guard.get_builder(builder_handle)?;
     let param_a = pool_guard.get_value(param_a_handle)?;
@@ -314,7 +314,7 @@ pub fn build_icmp_gt(pool: &Arc<Mutex<LLVMResourcePools<LLVMContext, LLVMModule,
 }
 
 /// Less than comparison
-pub fn build_icmp_lt(pool: &Arc<Mutex<LLVMResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, builder_handle: Handle, param_a_handle: Handle, param_b_handle: Handle, name: &str) -> Option<Handle> {
+pub fn build_icmp_lt(pool: &Arc<Mutex<ResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, builder_handle: Handle, param_a_handle: Handle, param_b_handle: Handle, name: &str) -> Option<Handle> {
     let pool_guard = pool.lock().unwrap();
     let builder = pool_guard.get_builder(builder_handle)?;
     let param_a = pool_guard.get_value(param_a_handle)?;
@@ -342,7 +342,7 @@ pub fn build_icmp_lt(pool: &Arc<Mutex<LLVMResourcePools<LLVMContext, LLVMModule,
 }
 
 /// Equal comparison
-pub fn build_icmp_eq(pool: &Arc<Mutex<LLVMResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, builder_handle: Handle, param_a_handle: Handle, param_b_handle: Handle, name: &str) -> Option<Handle> {
+pub fn build_icmp_eq(pool: &Arc<Mutex<ResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, builder_handle: Handle, param_a_handle: Handle, param_b_handle: Handle, name: &str) -> Option<Handle> {
     let pool_guard = pool.lock().unwrap();
     let builder = pool_guard.get_builder(builder_handle)?;
     let param_a = pool_guard.get_value(param_a_handle)?;
@@ -370,7 +370,7 @@ pub fn build_icmp_eq(pool: &Arc<Mutex<LLVMResourcePools<LLVMContext, LLVMModule,
 }
 
 /// Negation
-pub fn build_negation(pool: &Arc<Mutex<LLVMResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, builder_handle: Handle, operand_handle: Handle, name: &str) -> Option<Handle> {
+pub fn build_negation(pool: &Arc<Mutex<ResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, builder_handle: Handle, operand_handle: Handle, name: &str) -> Option<Handle> {
     let pool_guard = pool.lock().unwrap();
     let builder = pool_guard.get_builder(builder_handle)?;
     let operand = pool_guard.get_value(operand_handle)?;
@@ -395,7 +395,7 @@ pub fn build_negation(pool: &Arc<Mutex<LLVMResourcePools<LLVMContext, LLVMModule
 }
 
 /// Bitwise not
-pub fn build_bitwise_not(pool: &Arc<Mutex<LLVMResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, builder_handle: Handle, operand_handle: Handle, name: &str) -> Option<Handle> {
+pub fn build_bitwise_not(pool: &Arc<Mutex<ResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, builder_handle: Handle, operand_handle: Handle, name: &str) -> Option<Handle> {
     let pool_guard = pool.lock().unwrap();
     let builder = pool_guard.get_builder(builder_handle)?;
     let operand = pool_guard.get_value(operand_handle)?;
@@ -420,7 +420,7 @@ pub fn build_bitwise_not(pool: &Arc<Mutex<LLVMResourcePools<LLVMContext, LLVMMod
 }
 
 /// Logical not
-pub fn build_logical_not(pool: &Arc<Mutex<LLVMResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, builder_handle: Handle, context_handle: Handle, operand_handle: Handle, name: &str) -> Option<Handle> {
+pub fn build_logical_not(pool: &Arc<Mutex<ResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, builder_handle: Handle, context_handle: Handle, operand_handle: Handle, name: &str) -> Option<Handle> {
     let pool_guard = pool.lock().unwrap();
     let builder = pool_guard.get_builder(builder_handle)?;
     let context = pool_guard.get_context(context_handle)?;

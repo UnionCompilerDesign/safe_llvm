@@ -4,10 +4,10 @@ use llvm::{core, prelude::LLVMValueRef, LLVMBasicBlock, LLVMBuilder, LLVMContext
 
 use std::{ffi::CString, sync::{Arc, Mutex}};
 
-use crate::memory_management::resource_pools::{Handle, LLVMResourcePools};
+use crate::memory_management::resource_pools::{Handle, ResourcePools};
 
 /// Creates an integer
-pub fn create_integer(pool: &Arc<Mutex<LLVMResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, val: i64, context_handle: Handle) -> Option<Handle> {
+pub fn create_integer(pool: &Arc<Mutex<ResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, val: i64, context_handle: Handle) -> Option<Handle> {
     let pool_guard = pool.lock().unwrap();
     let context = pool_guard.get_context(context_handle)?;
     drop(pool_guard);
@@ -31,7 +31,7 @@ pub fn create_integer(pool: &Arc<Mutex<LLVMResourcePools<LLVMContext, LLVMModule
 }
 
 /// Creates a float
-pub fn create_float(pool: &Arc<Mutex<LLVMResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, val: f64, context_handle: Handle) -> Option<Handle> {
+pub fn create_float(pool: &Arc<Mutex<ResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, val: f64, context_handle: Handle) -> Option<Handle> {
     let pool_guard = pool.lock().unwrap();
     let context = pool_guard.get_context(context_handle)?;
     drop(pool_guard);
@@ -51,7 +51,7 @@ pub fn create_float(pool: &Arc<Mutex<LLVMResourcePools<LLVMContext, LLVMModule, 
 }
 
 /// Creates a boolean
-pub fn create_boolean(pool: &Arc<Mutex<LLVMResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, val: bool, context_handle: Handle) -> Option<Handle> {
+pub fn create_boolean(pool: &Arc<Mutex<ResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, val: bool, context_handle: Handle) -> Option<Handle> {
     let pool_guard = pool.lock().unwrap();
     let context = pool_guard.get_context(context_handle)?;
     drop(pool_guard);
@@ -72,7 +72,7 @@ pub fn create_boolean(pool: &Arc<Mutex<LLVMResourcePools<LLVMContext, LLVMModule
 
 
 /// Creates an array
-pub fn create_array(pool: &Arc<Mutex<LLVMResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, value_handle: Handle, num_elements: u64) -> Option<Handle> {
+pub fn create_array(pool: &Arc<Mutex<ResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, value_handle: Handle, num_elements: u64) -> Option<Handle> {
     let pool_guard = pool.lock().unwrap();
     let value = pool_guard.get_value(value_handle)?;
     drop(pool_guard);
@@ -93,7 +93,7 @@ pub fn create_array(pool: &Arc<Mutex<LLVMResourcePools<LLVMContext, LLVMModule, 
 }
 
 /// Creates a pointer
-pub fn create_pointer(pool: &Arc<Mutex<LLVMResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, element_type_handle: Handle) -> Option<Handle> {
+pub fn create_pointer(pool: &Arc<Mutex<ResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, element_type_handle: Handle) -> Option<Handle> {
     let pool_guard = pool.lock().unwrap();
     let element_type = pool_guard.get_type(element_type_handle)?;
     drop(pool_guard);
@@ -113,7 +113,7 @@ pub fn create_pointer(pool: &Arc<Mutex<LLVMResourcePools<LLVMContext, LLVMModule
 }
 
 /// Creates a struct
-pub fn create_struct(pool: Arc<Mutex<LLVMResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, values: &[Handle], context_handle: Handle, packed: bool) -> Option<Handle> {
+pub fn create_struct(pool: Arc<Mutex<ResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, values: &[Handle], context_handle: Handle, packed: bool) -> Option<Handle> {
     let pool_guard = pool.lock().unwrap();
     let context = pool_guard.get_context(context_handle)?;
     let value_ptrs: Vec<LLVMValueRef> = values.iter().map(|&handle| pool_guard.get_value(handle).unwrap().read().unwrap().use_ref(|ptr| ptr)).collect();
@@ -135,7 +135,7 @@ pub fn create_struct(pool: Arc<Mutex<LLVMResourcePools<LLVMContext, LLVMModule, 
 
 
 /// Creates a global variable
-pub fn create_global_variable(pool: &Arc<Mutex<LLVMResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, module_handle: Handle, initializer_handle: Handle, name: &str) -> Option<Handle> {
+pub fn create_global_variable(pool: &Arc<Mutex<ResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, module_handle: Handle, initializer_handle: Handle, name: &str) -> Option<Handle> {
     let pool_guard = pool.lock().unwrap();
     let module = pool_guard.get_module(module_handle)?;
     let initializer = pool_guard.get_value(initializer_handle)?;
@@ -163,7 +163,7 @@ pub fn create_global_variable(pool: &Arc<Mutex<LLVMResourcePools<LLVMContext, LL
 
 
 /// Creates an immutable (global) string
-pub fn create_string(pool: &Arc<Mutex<LLVMResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, val: &str, builder_handle: Handle) -> Option<Handle> {
+pub fn create_string(pool: &Arc<Mutex<ResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, val: &str, builder_handle: Handle) -> Option<Handle> {
     let pool_guard = pool.lock().unwrap();
     let builder = pool_guard.get_builder(builder_handle)?;
     drop(pool_guard);
@@ -186,7 +186,7 @@ pub fn create_string(pool: &Arc<Mutex<LLVMResourcePools<LLVMContext, LLVMModule,
 }
 
 /// Creates a mutable (local) string
-pub fn create_mut_string(pool: &Arc<Mutex<LLVMResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, val: &str, context_handle: Handle, builder_handle: Handle) -> Option<Handle> {
+pub fn create_mut_string(pool: &Arc<Mutex<ResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, val: &str, context_handle: Handle, builder_handle: Handle) -> Option<Handle> {
     let pool_guard = pool.lock().unwrap();
     let context = pool_guard.get_context(context_handle)?;
     let builder = pool_guard.get_builder(builder_handle)?;
@@ -222,7 +222,7 @@ pub fn create_mut_string(pool: &Arc<Mutex<LLVMResourcePools<LLVMContext, LLVMMod
 }
 
 /// Creates a null pointer
-pub fn create_null_pointer(pool: &Arc<Mutex<LLVMResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, ty_handle: Handle) -> Option<Handle> {
+pub fn create_null_pointer(pool: &Arc<Mutex<ResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, ty_handle: Handle) -> Option<Handle> {
     let pool_guard = pool.lock().unwrap();
     let ty = pool_guard.get_type(ty_handle)?;
     drop(pool_guard);
@@ -242,7 +242,7 @@ pub fn create_null_pointer(pool: &Arc<Mutex<LLVMResourcePools<LLVMContext, LLVMM
 }
 
 /// Creates a continue statement
-pub fn create_continue_statement(pool: &Arc<Mutex<LLVMResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, builder_handle: Handle, continue_block_handle: Handle) -> Option<Handle> {
+pub fn create_continue_statement(pool: &Arc<Mutex<ResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, builder_handle: Handle, continue_block_handle: Handle) -> Option<Handle> {
     let pool_guard = pool.lock().unwrap();
     let builder = pool_guard.get_builder(builder_handle)?;
     let continue_block = pool_guard.get_basic_block(continue_block_handle)?;
@@ -265,7 +265,7 @@ pub fn create_continue_statement(pool: &Arc<Mutex<LLVMResourcePools<LLVMContext,
 }
 
 /// Creates a break statement
-pub fn create_break_statement(pool: &Arc<Mutex<LLVMResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, builder_handle: Handle, break_block_handle: Handle) -> Option<Handle> {
+pub fn create_break_statement(pool: &Arc<Mutex<ResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, builder_handle: Handle, break_block_handle: Handle) -> Option<Handle> {
     let pool_guard = pool.lock().unwrap();
     let builder = pool_guard.get_builder(builder_handle)?;
     let break_block = pool_guard.get_basic_block(break_block_handle)?;

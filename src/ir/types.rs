@@ -4,10 +4,10 @@ use llvm::{core, prelude::LLVMTypeRef, LLVMBasicBlock, LLVMBuilder, LLVMContext,
 
 use std::sync::{Arc, Mutex};
 
-use crate::memory_management::resource_pools::{Handle, LLVMResourcePools};
+use crate::memory_management::resource_pools::{Handle, ResourcePools};
 
 /// void type
-pub fn void_type(pool: &Arc<Mutex<LLVMResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, context_handle: Handle) -> Option<Handle> {
+pub fn void_type(pool: &Arc<Mutex<ResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, context_handle: Handle) -> Option<Handle> {
     let pool_guard = pool.lock().unwrap();
     let context = pool_guard.get_context(context_handle)?;
     drop(pool_guard);
@@ -27,7 +27,7 @@ pub fn void_type(pool: &Arc<Mutex<LLVMResourcePools<LLVMContext, LLVMModule, LLV
 }
 
 /// integer type
-pub fn int_type(pool: &Arc<Mutex<LLVMResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, context_handle: Handle) -> Option<Handle> {
+pub fn int_type(pool: &Arc<Mutex<ResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, context_handle: Handle) -> Option<Handle> {
     let pool_guard = pool.lock().unwrap();
     let context = pool_guard.get_context(context_handle)?;
     drop(pool_guard);
@@ -47,7 +47,7 @@ pub fn int_type(pool: &Arc<Mutex<LLVMResourcePools<LLVMContext, LLVMModule, LLVM
 }
 
 /// float type
-pub fn float_type(pool: &Arc<Mutex<LLVMResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, context_handle: Handle) -> Option<Handle> {
+pub fn float_type(pool: &Arc<Mutex<ResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, context_handle: Handle) -> Option<Handle> {
     let pool_guard = pool.lock().unwrap();
     let context = pool_guard.get_context(context_handle)?;
     drop(pool_guard);
@@ -67,7 +67,7 @@ pub fn float_type(pool: &Arc<Mutex<LLVMResourcePools<LLVMContext, LLVMModule, LL
 }
 
 /// boolean type
-pub fn boolean_type(pool: &Arc<Mutex<LLVMResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, context_handle: Handle) -> Option<Handle> {
+pub fn boolean_type(pool: &Arc<Mutex<ResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, context_handle: Handle) -> Option<Handle> {
     let pool_guard = pool.lock().unwrap();
     let context = pool_guard.get_context(context_handle)?;
     drop(pool_guard);
@@ -87,7 +87,7 @@ pub fn boolean_type(pool: &Arc<Mutex<LLVMResourcePools<LLVMContext, LLVMModule, 
 }
 
 /// pointer type
-pub fn pointer_type(pool: &Arc<Mutex<LLVMResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, element_type_handle: Handle) -> Option<Handle> {
+pub fn pointer_type(pool: &Arc<Mutex<ResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, element_type_handle: Handle) -> Option<Handle> {
     let pool_guard = pool.lock().unwrap();
     let element_type = pool_guard.get_type(element_type_handle)?;
     drop(pool_guard);
@@ -107,7 +107,7 @@ pub fn pointer_type(pool: &Arc<Mutex<LLVMResourcePools<LLVMContext, LLVMModule, 
 }
 
 /// array type
-pub fn array_type(pool: &Arc<Mutex<LLVMResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, element_type_handle: Handle, num_elements: u64) -> Option<Handle> {
+pub fn array_type(pool: &Arc<Mutex<ResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, element_type_handle: Handle, num_elements: u64) -> Option<Handle> {
     let pool_guard = pool.lock().unwrap();
     let element_type = pool_guard.get_type(element_type_handle)?;
     drop(pool_guard);
@@ -127,7 +127,7 @@ pub fn array_type(pool: &Arc<Mutex<LLVMResourcePools<LLVMContext, LLVMModule, LL
 }
 
 /// struct type
-pub fn struct_type(pool: &Arc<Mutex<LLVMResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, context_handle: Handle, element_type_handles: &[Handle], packed: bool) -> Option<Handle> {
+pub fn struct_type(pool: &Arc<Mutex<ResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, context_handle: Handle, element_type_handles: &[Handle], packed: bool) -> Option<Handle> {
     let pool_guard = pool.lock().unwrap();
     let context = pool_guard.get_context(context_handle)?;
     let mut element_types: Vec<LLVMTypeRef> = element_type_handles.iter().map(|&handle| pool_guard.get_type(handle).unwrap().read().unwrap().use_ref(|ptr| ptr)).collect();
@@ -148,7 +148,7 @@ pub fn struct_type(pool: &Arc<Mutex<LLVMResourcePools<LLVMContext, LLVMModule, L
 }
 
 /// returns nothing
-pub fn void_return(pool: &Arc<Mutex<LLVMResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, builder_handle: Handle) -> Option<Handle> {
+pub fn void_return(pool: &Arc<Mutex<ResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, builder_handle: Handle) -> Option<Handle> {
     let pool_guard = pool.lock().unwrap();
     let builder = pool_guard.get_builder(builder_handle)?;
     drop(pool_guard);
@@ -168,7 +168,7 @@ pub fn void_return(pool: &Arc<Mutex<LLVMResourcePools<LLVMContext, LLVMModule, L
 }
 
 /// returns something
-pub fn nonvoid_return(pool: &Arc<Mutex<LLVMResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, builder_handle: Handle, value_handle: Handle) -> Option<Handle> {
+pub fn nonvoid_return(pool: &Arc<Mutex<ResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, builder_handle: Handle, value_handle: Handle) -> Option<Handle> {
     let pool_guard = pool.lock().unwrap();
     let builder = pool_guard.get_builder(builder_handle)?;
     let value = pool_guard.get_value(value_handle)?;

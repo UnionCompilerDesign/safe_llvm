@@ -4,10 +4,10 @@ use llvm::{core, LLVMBasicBlock, LLVMBuilder, LLVMContext, LLVMModule, LLVMType,
 
 use std::{ffi::CString, sync::{Arc, Mutex}};
 
-use crate::memory_management::resource_pools::{Handle, LLVMResourcePools};
+use crate::memory_management::resource_pools::{Handle, ResourcePools};
 
 /// Gets the parameter of a function
-pub fn get_param(pool: &Arc<Mutex<LLVMResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, function_handle: Handle, index: u32) -> Option<Handle> {
+pub fn get_param(pool: &Arc<Mutex<ResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, function_handle: Handle, index: u32) -> Option<Handle> {
     let pool_guard = pool.lock().unwrap();
     let function = pool_guard.get_value(function_handle)?;
     drop(pool_guard);
@@ -28,7 +28,7 @@ pub fn get_param(pool: &Arc<Mutex<LLVMResourcePools<LLVMContext, LLVMModule, LLV
 
 /// Adds a function to a module
 pub fn add_function_to_module(
-    pool: &Arc<Mutex<LLVMResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>,
+    pool: &Arc<Mutex<ResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>,
     module_handle: Handle,
     function_name: &str,
     function_type_handle: Handle

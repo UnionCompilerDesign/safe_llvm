@@ -7,10 +7,10 @@ use llvm::{core, prelude::{LLVMBasicBlockRef, LLVMValueRef},
 
 use std::{ffi::CString, sync::{Arc, Mutex}};
 
-use crate::memory_management::resource_pools::{Handle, LLVMResourcePools};
+use crate::memory_management::resource_pools::{Handle, ResourcePools};
 
 /// Creates a basic block in context
-pub fn create_basic_block(pool: &Arc<Mutex<LLVMResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, context_handle: Handle, function_handle: Handle, name: &str) -> Option<Handle> {
+pub fn create_basic_block(pool: &Arc<Mutex<ResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, context_handle: Handle, function_handle: Handle, name: &str) -> Option<Handle> {
     let pool_guard = pool.lock().unwrap();
     let context = pool_guard.get_context(context_handle)?;
     let function = pool_guard.get_value(function_handle)?;
@@ -35,7 +35,7 @@ pub fn create_basic_block(pool: &Arc<Mutex<LLVMResourcePools<LLVMContext, LLVMMo
 }
 
 /// Retrieves the current insertion block
-pub fn get_current_block(pool: &Arc<Mutex<LLVMResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, builder_handle: Handle) -> Option<Handle> {
+pub fn get_current_block(pool: &Arc<Mutex<ResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, builder_handle: Handle) -> Option<Handle> {
     let pool_guard = pool.lock().unwrap();
     let builder = pool_guard.get_builder(builder_handle)?;
     drop(pool_guard);
@@ -55,7 +55,7 @@ pub fn get_current_block(pool: &Arc<Mutex<LLVMResourcePools<LLVMContext, LLVMMod
 }
 
 /// Creates a conditional branch
-pub fn create_cond_br(pool: &Arc<Mutex<LLVMResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, builder_handle: Handle, condition_handle: Handle, then_bb_handle: Handle, else_bb_handle: Handle) -> Option<Handle> {
+pub fn create_cond_br(pool: &Arc<Mutex<ResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, builder_handle: Handle, condition_handle: Handle, then_bb_handle: Handle, else_bb_handle: Handle) -> Option<Handle> {
     let pool_guard = pool.lock().unwrap();
     let builder = pool_guard.get_builder(builder_handle)?;
     let condition = pool_guard.get_value(condition_handle)?;
@@ -84,7 +84,7 @@ pub fn create_cond_br(pool: &Arc<Mutex<LLVMResourcePools<LLVMContext, LLVMModule
 }
 
 /// Creates an unconditional branch
-pub fn create_br(pool: &Arc<Mutex<LLVMResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, builder_handle: Handle, target_bb_handle: Handle) -> Option<Handle> {
+pub fn create_br(pool: &Arc<Mutex<ResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, builder_handle: Handle, target_bb_handle: Handle) -> Option<Handle> {
     let pool_guard = pool.lock().unwrap();
     let builder = pool_guard.get_builder(builder_handle)?;
     let target_bb = pool_guard.get_basic_block(target_bb_handle)?;
@@ -106,7 +106,7 @@ pub fn create_br(pool: &Arc<Mutex<LLVMResourcePools<LLVMContext, LLVMModule, LLV
     }
 }
 /// Inserts a basic block in the context before the specified basic block
-pub fn insert_before_basic_block(pool: &Arc<Mutex<LLVMResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, context_handle: Handle, before_target_handle: Handle, name: &str) -> Option<Handle> {
+pub fn insert_before_basic_block(pool: &Arc<Mutex<ResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, context_handle: Handle, before_target_handle: Handle, name: &str) -> Option<Handle> {
     let pool_guard = pool.lock().unwrap();
     let context = pool_guard.get_context(context_handle)?;
     let before_target = pool_guard.get_basic_block(before_target_handle)?;
@@ -131,7 +131,7 @@ pub fn insert_before_basic_block(pool: &Arc<Mutex<LLVMResourcePools<LLVMContext,
 }
 
 /// Positions the builder at the end of a block
-pub fn position_builder(pool: &Arc<Mutex<LLVMResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, builder_handle: Handle, bb_handle: Handle) -> Option<()> {
+pub fn position_builder(pool: &Arc<Mutex<ResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, builder_handle: Handle, bb_handle: Handle) -> Option<()> {
     let pool_guard = pool.lock().unwrap();
     let builder = pool_guard.get_builder(builder_handle)?;
     let bb = pool_guard.get_basic_block(bb_handle)?;
@@ -147,7 +147,7 @@ pub fn position_builder(pool: &Arc<Mutex<LLVMResourcePools<LLVMContext, LLVMModu
 }
 
 /// Deletes a specified basic block
-pub fn delete_basic_block(pool: &Arc<Mutex<LLVMResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, bb_handle: Handle) -> Option<()> {
+pub fn delete_basic_block(pool: &Arc<Mutex<ResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, bb_handle: Handle) -> Option<()> {
     let pool_guard = pool.lock().unwrap();
     let bb = pool_guard.get_basic_block(bb_handle)?;
 
@@ -161,7 +161,7 @@ pub fn delete_basic_block(pool: &Arc<Mutex<LLVMResourcePools<LLVMContext, LLVMMo
 }
 
 /// Retrieves the first instruction
-pub fn get_first_instruction(pool: &Arc<Mutex<LLVMResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, bb_handle: Handle) -> Option<Handle> {
+pub fn get_first_instruction(pool: &Arc<Mutex<ResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, bb_handle: Handle) -> Option<Handle> {
     let pool_guard = pool.lock().unwrap();
     let bb = pool_guard.get_basic_block(bb_handle)?;
     drop(pool_guard);
@@ -181,7 +181,7 @@ pub fn get_first_instruction(pool: &Arc<Mutex<LLVMResourcePools<LLVMContext, LLV
 }
 
 /// Retrieves the last instruction
-pub fn get_last_instruction(pool: &Arc<Mutex<LLVMResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, bb_handle: Handle) -> Option<Handle> {
+pub fn get_last_instruction(pool: &Arc<Mutex<ResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, bb_handle: Handle) -> Option<Handle> {
     let pool_guard = pool.lock().unwrap();
     let bb = pool_guard.get_basic_block(bb_handle)?;
     drop(pool_guard);
@@ -201,7 +201,7 @@ pub fn get_last_instruction(pool: &Arc<Mutex<LLVMResourcePools<LLVMContext, LLVM
 }
 
 /// Creates a PHI node in the specified basic block
-pub fn create_phi(pool: &Arc<Mutex<LLVMResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, builder_handle: Handle, possible_values: &[(Handle, Handle)], name: &str) -> Option<Handle> {
+pub fn create_phi(pool: &Arc<Mutex<ResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, builder_handle: Handle, possible_values: &[(Handle, Handle)], name: &str) -> Option<Handle> {
     let pool_guard = pool.lock().unwrap();
     let builder = pool_guard.get_builder(builder_handle)?;
     let first_value = pool_guard.get_value(possible_values[0].0)?;
