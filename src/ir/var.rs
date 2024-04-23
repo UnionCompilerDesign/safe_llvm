@@ -4,11 +4,11 @@ use llvm::{core, LLVMBasicBlock, LLVMBuilder, LLVMContext, LLVMModule, LLVMType,
 
 use std::{ffi::CString, sync::{Arc, Mutex}};
 
-use crate::memory_management::resource_pools::{Handle, LLVMResourcePools};
+use crate::memory_management::resource_pools::{Handle, ResourcePools};
 
 /// Initializes a variable
 pub fn init_var(
-    pool: &Arc<Mutex<LLVMResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>,    
+    pool: &Arc<Mutex<ResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>,    
     builder_handle: Handle, 
     var_name: &str, 
     data_type_handle: Handle, 
@@ -51,7 +51,7 @@ pub fn init_var(
 
 /// Reassigns a variable
 pub fn reassign_var(
-    pool: &Arc<Mutex<LLVMResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>,    
+    pool: &Arc<Mutex<ResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>,    
     builder_handle: Handle, 
     variable_alloc_handle: Handle, 
     new_value_handle: Handle
@@ -75,7 +75,7 @@ pub fn reassign_var(
 
 /// Gets a variable
 pub fn get_var(
-    pool: &Arc<Mutex<LLVMResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>,    
+    pool: &Arc<Mutex<ResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>,    
     builder_handle: Handle, 
     variable_type_handle: Handle, 
     variable_alloc_handle: Handle

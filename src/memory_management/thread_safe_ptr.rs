@@ -3,14 +3,14 @@ use std::marker::PhantomData;
 use std::ptr::NonNull;
 
 #[derive(Debug)]
-pub struct CPointer<T> {
+pub struct ThreadSafePtr<T> {
     ptr: Arc<Mutex<NonNull<T>>>,
     _marker: PhantomData<T>,
 }
 
-impl<T> CPointer<T> {
+impl<T> ThreadSafePtr<T> {
     pub fn new(ptr: *mut T) -> Option<Self> {
-        NonNull::new(ptr).map(|ptr| CPointer {
+        NonNull::new(ptr).map(|ptr| ThreadSafePtr {
             ptr: Arc::new(Mutex::new(ptr)),
             _marker: PhantomData,
         })
@@ -27,15 +27,15 @@ impl<T> CPointer<T> {
     }
 }
 
-impl<T> Clone for CPointer<T> {
+impl<T> Clone for ThreadSafePtr<T> {
     fn clone(&self) -> Self {
-        CPointer {
+        ThreadSafePtr {
             ptr: Arc::clone(&self.ptr),
             _marker: PhantomData,
         }
     }
 }
 
-unsafe impl<T> Send for CPointer<T> {}
-unsafe impl<T> Sync for CPointer<T> {}
+unsafe impl<T> Send for ThreadSafePtr<T> {}
+unsafe impl<T> Sync for ThreadSafePtr<T> {}
     
