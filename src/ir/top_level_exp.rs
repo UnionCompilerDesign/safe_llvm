@@ -1,57 +1,61 @@
-// extern crate llvm_sys as llvm;
+extern crate llvm_sys as llvm;
 
-// use std::ffi::CString;
+use llvm::{core, LLVMBasicBlock, LLVMBuilder, LLVMContext, LLVMModule, LLVMType, LLVMValue};
 
-// use llvm::{core, prelude::{LLVMModuleRef, LLVMTypeRef, LLVMValueRef}};
+use std::{ffi::CString, sync::{Arc, Mutex}};
 
-// use crate::memory_management::pointer::CPointer;
+use crate::memory_management::resource_pools::{Handle, LLVMResourcePools};
 
-// /// Gets the parameter of a function
-// pub fn get_param(function: CPointer<LLVMValueRef>, index: u32) -> CPointer<LLVMValueRef> {
-//     let function_ptr = function.get_ref();
-//     let raw_ptr = unsafe {
-//         core::LLVMGetParam(*function_ptr, index)
-//     };
-//     let c_pointer = CPointer::new(raw_ptr as *mut _);
-//     if c_pointer.is_some() {
-//         return c_pointer.unwrap();
-//     }
-//     panic!("Missing c_pointer")}
+/// Gets the parameter of a function
+pub fn get_param(pool: &Arc<Mutex<LLVMResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, function_handle: Handle, index: u32) -> Option<Handle> {
+    let pool_guard = pool.lock().unwrap();
+    let function = pool_guard.get_value(function_handle)?;
+    drop(pool_guard);
 
-// /// Adds a function to a module
-// pub fn add_function_to_module(
-//     module: CPointer<LLVMModuleRef>,
-//     function_name: &str,
-//     function_type: CPointer<LLVMTypeRef>,
-// ) -> CPointer<LLVMValueRef> {
-//     let module_ptr = module.get_ref();
-//     if module_ptr.is_null() {
-//         panic!("Module pointer is null");
-//     }
+    let param = unsafe {
+        function.read().unwrap().use_ref(|function_ptr| {
+            core::LLVMGetParam(function_ptr, index)
+        })
+    };
 
-//     if function_name.is_empty() {
-//         panic!("Function name is empty");
-//     }
+    if param.is_null() {
+        None
+    } else {
+        let mut pool_guard = pool.lock().unwrap();
+        pool_guard.create_value(param)
+    }
+}
 
-//     let function_type_ptr = function_type.get_ref();
-//     if function_type_ptr.is_null() {
-//         panic!("Function type pointer is null");
-//     }
+/// Adds a function to a module
+pub fn add_function_to_module(
+    pool: &Arc<Mutex<LLVMResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>,
+    module_handle: Handle,
+    function_name: &str,
+    function_type_handle: Handle
+) -> Option<Handle> {
+    let pool_guard = pool.lock().unwrap();
+    let module = pool_guard.get_module(module_handle)?;
+    let function_type = pool_guard.get_type(function_type_handle)?;
+    drop(pool_guard);
 
-//     let c_name = CString::new(function_name).expect("Failed to create CString for function name");
+    if function_name.is_empty() {
+        panic!("Function name is empty");
+    }
 
-//     let raw_ptr = unsafe {
-//         core::LLVMAddFunction(*module_ptr, c_name.as_ptr(), *function_type_ptr)
-//     };
+    let c_name = CString::new(function_name).expect("Failed to create CString for function name");
 
-//     if raw_ptr.is_null() {
-//         panic!("Failed to add function to LLVM module");
-//     }
+    let function = unsafe {
+        module.read().unwrap().use_ref(|module_ptr| {
+            function_type.read().unwrap().use_ref(|function_type_ptr| {
+                core::LLVMAddFunction(module_ptr, c_name.as_ptr(), function_type_ptr)
+            })
+        })
+    };
 
-//     let c_pointer = CPointer::new(raw_ptr as *mut _);
-//     if c_pointer.is_some() {
-//         return c_pointer.unwrap();
-//     }
-    
-//     panic!("Failed to create CPointer for the function");
-// }
+    if function.is_null() {
+        None
+    } else {
+        let mut pool_guard = pool.lock().unwrap();
+        pool_guard.create_value(function)
+    }
+}

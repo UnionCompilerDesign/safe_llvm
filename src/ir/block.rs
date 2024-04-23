@@ -1,168 +1,249 @@
 extern crate llvm_sys as llvm;
 
-use std::ffi::CString;
+use llvm::{core, prelude::{LLVMBasicBlockRef, LLVMValueRef}, 
+    LLVMBasicBlock, LLVMBuilder, LLVMContext, LLVMModule, LLVMType, LLVMValue
+};
 
-use llvm::{core,
-    prelude::{
-        LLVMBasicBlockRef, LLVMBuilderRef, LLVMContextRef, LLVMValueRef}, 
-        LLVMBasicBlock, LLVMValue
+
+use std::{ffi::CString, sync::{Arc, Mutex}};
+
+use crate::memory_management::resource_pools::{Handle, LLVMResourcePools};
+
+/// Creates a basic block in context
+pub fn create_basic_block(pool: &Arc<Mutex<LLVMResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, context_handle: Handle, function_handle: Handle, name: &str) -> Option<Handle> {
+    let pool_guard = pool.lock().unwrap();
+    let context = pool_guard.get_context(context_handle)?;
+    let function = pool_guard.get_value(function_handle)?;
+    drop(pool_guard);
+
+    let c_name = CString::new(name).expect("Failed to create CString from name");
+
+    let basic_block = unsafe {
+        context.read().unwrap().use_ref(|context_ptr| {
+            function.read().unwrap().use_ref(|function_ptr| {
+                core::LLVMAppendBasicBlockInContext(context_ptr, function_ptr, c_name.as_ptr())
+            })
+        })
     };
 
-use crate::memory_management::pointer::CPointer;
+    if basic_block.is_null() {
+        None
+    } else {
+        let mut pool_guard = pool.lock().unwrap();
+        pool_guard.create_basic_block(basic_block)
+    }
+}
 
-//// Creates a basic block in context
-// pub fn create_basic_block(context: CPointer<LLVMContextRef>, function: CPointer<LLVMValueRef>, name: &str) -> CPointer<LLVMBasicBlockRef> {
-//     let c_name: CString = CString::new(name).expect("Failed to create basic block name");
+/// Retrieves the current insertion block
+pub fn get_current_block(pool: &Arc<Mutex<LLVMResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, builder_handle: Handle) -> Option<Handle> {
+    let pool_guard = pool.lock().unwrap();
+    let builder = pool_guard.get_builder(builder_handle)?;
+    drop(pool_guard);
 
-//     let context_ptr: *mut LLVMContextRef = context.get_ref();
-//     let function_ptr: *mut LLVMValueRef = function.get_ref();
+    let block = unsafe {
+        builder.read().unwrap().use_ref(|builder_ptr| {
+            core::LLVMGetInsertBlock(builder_ptr)
+        })
+    };
 
-//     let raw_ptr: *mut LLVMBasicBlock = unsafe { 
-//         core::LLVMAppendBasicBlockInContext(*context_ptr, *function_ptr, c_name.as_ptr()) 
-//     };
+    if block.is_null() {
+        None
+    } else {
+        let mut pool_guard = pool.lock().unwrap();
+        pool_guard.create_basic_block(block)
+    }
+}
 
-//     let c_pointer = CPointer::new(raw_ptr as *mut _);
-//     if c_pointer.is_some() {
-//         return c_pointer.unwrap();
-//     }
-//     panic!("Missing c_pointer")}
+/// Creates a conditional branch
+pub fn create_cond_br(pool: &Arc<Mutex<LLVMResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, builder_handle: Handle, condition_handle: Handle, then_bb_handle: Handle, else_bb_handle: Handle) -> Option<Handle> {
+    let pool_guard = pool.lock().unwrap();
+    let builder = pool_guard.get_builder(builder_handle)?;
+    let condition = pool_guard.get_value(condition_handle)?;
+    let then_bb = pool_guard.get_basic_block(then_bb_handle)?;
+    let else_bb = pool_guard.get_basic_block(else_bb_handle)?;
+    drop(pool_guard);
 
-// /// Retrieves the current insertion block
-// pub fn get_current_block(builder: CPointer<LLVMBuilderRef>) -> CPointer<LLVMBasicBlockRef> {
-//     let builder_ptr: *mut LLVMBuilderRef = builder.get_ref();
-    
-//     let raw_ptr: *mut LLVMBasicBlock = unsafe {
-//         core::LLVMGetInsertBlock(*builder_ptr)
-//     };
+    let branch = unsafe {
+        builder.read().unwrap().use_ref(|builder_ptr| {
+            condition.read().unwrap().use_ref(|condition_ptr| {
+                then_bb.read().unwrap().use_ref(|then_bb_ptr| {
+                    else_bb.read().unwrap().use_ref(|else_bb_ptr| {
+                        core::LLVMBuildCondBr(builder_ptr, condition_ptr, then_bb_ptr, else_bb_ptr)
+                    })
+                })
+            })
+        })
+    };
 
-//     let c_pointer = CPointer::new(raw_ptr as *mut _);
-//     if c_pointer.is_some() {
-//         return c_pointer.unwrap();
-//     }
-//     panic!("Missing c_pointer")}
+    if branch.is_null() {
+        None
+    } else {
+        let mut pool_guard = pool.lock().unwrap();
+        pool_guard.create_value(branch)
+    }
+}
 
-// /// creates a conditional branch
-// pub fn create_cond_br(builder: CPointer<LLVMBuilderRef>, condition: CPointer<LLVMValueRef>, then_bb: CPointer<LLVMBasicBlockRef>, else_bb: CPointer<LLVMBasicBlockRef>) -> CPointer<LLVMValueRef> {
-//     let builder_ptr: *mut LLVMBuilderRef = builder.get_ref();
-//     let condition_ptr: *mut LLVMValueRef = condition.get_ref();
-//     let then_bb_ptr: *mut LLVMBasicBlockRef = then_bb.get_ref();
-//     let else_bb_ptr: *mut LLVMBasicBlockRef = else_bb.get_ref();
-    
-//     let raw_ptr: *mut LLVMValue = unsafe {
-//         core::LLVMBuildCondBr(*builder_ptr,*condition_ptr, *then_bb_ptr, *else_bb_ptr)
-//     };
+/// Creates an unconditional branch
+pub fn create_br(pool: &Arc<Mutex<LLVMResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, builder_handle: Handle, target_bb_handle: Handle) -> Option<Handle> {
+    let pool_guard = pool.lock().unwrap();
+    let builder = pool_guard.get_builder(builder_handle)?;
+    let target_bb = pool_guard.get_basic_block(target_bb_handle)?;
+    drop(pool_guard);
 
-//     let c_pointer = CPointer::new(raw_ptr as *mut _);
-//     if c_pointer.is_some() {
-//         return c_pointer.unwrap();
-//     }
-//     panic!("Missing c_pointer")}
+    let branch = unsafe {
+        builder.read().unwrap().use_ref(|builder_ptr| {
+            target_bb.read().unwrap().use_ref(|target_bb_ptr| {
+                core::LLVMBuildBr(builder_ptr, target_bb_ptr)
+            })
+        })
+    };
 
-// /// creates an unconditional branch
-// pub fn create_br(builder: CPointer<LLVMBuilderRef>, target_bb: CPointer<LLVMBasicBlockRef>) -> CPointer<LLVMValueRef> {
-//     let builder_ptr: *mut LLVMBuilderRef = builder.get_ref();
-//     let target_bb_ptr: *mut LLVMBasicBlockRef = target_bb.get_ref();
-    
-//     let raw_ptr: *mut LLVMValue = unsafe {
-//         core::LLVMBuildBr(*builder_ptr, *target_bb_ptr)
-//     };
+    if branch.is_null() {
+        None
+    } else {
+        let mut pool_guard = pool.lock().unwrap();
+        pool_guard.create_value(branch)
+    }
+}
+/// Inserts a basic block in the context before the specified basic block
+pub fn insert_before_basic_block(pool: &Arc<Mutex<LLVMResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, context_handle: Handle, before_target_handle: Handle, name: &str) -> Option<Handle> {
+    let pool_guard = pool.lock().unwrap();
+    let context = pool_guard.get_context(context_handle)?;
+    let before_target = pool_guard.get_basic_block(before_target_handle)?;
+    drop(pool_guard);
 
-//     let c_pointer = CPointer::new(raw_ptr as *mut _);
-//     if c_pointer.is_some() {
-//         return c_pointer.unwrap();
-//     }
-//     panic!("Missing c_pointer")}
+    let c_name = CString::new(name).expect("Failed to create CString from name");
 
-// /// Inserts a basic block in the context before the specified basic block
-// pub fn insert_before_basic_block(context: CPointer<LLVMContextRef>, before_target: CPointer<LLVMBasicBlockRef>, name: &str) -> CPointer<LLVMBasicBlockRef> {
-//     let c_name: CString = CString::new(name).unwrap();
+    let basic_block = unsafe {
+        context.read().unwrap().use_ref(|context_ptr| {
+            before_target.read().unwrap().use_ref(|before_target_ptr| {
+                core::LLVMInsertBasicBlockInContext(context_ptr, before_target_ptr, c_name.as_ptr())
+            })
+        })
+    };
 
-//     let context_ptr: *mut LLVMContextRef = context.get_ref();
-//     let before_target_ptr: *mut LLVMBasicBlockRef = before_target.get_ref();
+    if basic_block.is_null() {
+        None
+    } else {
+        let mut pool_guard = pool.lock().unwrap();
+        pool_guard.create_basic_block(basic_block)
+    }
+}
 
-//     let raw_ptr: *mut LLVMBasicBlock = unsafe {
-//         core::LLVMInsertBasicBlockInContext(*context_ptr, *before_target_ptr, c_name.as_ptr())
-//     };
+/// Positions the builder at the end of a block
+pub fn position_builder(pool: &Arc<Mutex<LLVMResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, builder_handle: Handle, bb_handle: Handle) -> Option<()> {
+    let pool_guard = pool.lock().unwrap();
+    let builder = pool_guard.get_builder(builder_handle)?;
+    let bb = pool_guard.get_basic_block(bb_handle)?;
 
-//     let c_pointer = CPointer::new(raw_ptr as *mut _);
-//     if c_pointer.is_some() {
-//         return c_pointer.unwrap();
-//     }
-//     panic!("Missing c_pointer")}
+    unsafe {
+        builder.read().unwrap().use_ref(|builder_ptr| {
+            bb.read().unwrap().use_ref(|bb_ptr| {
+                core::LLVMPositionBuilderAtEnd(builder_ptr, bb_ptr)
+            })
+        });
+    }
+    Some(())
+}
 
-// /// Positions the builder at the end of a block
-// pub fn position_builder(builder: CPointer<LLVMBuilderRef>, bb: CPointer<LLVMBasicBlockRef>) {
-//     let builder_ptr: *mut LLVMBuilderRef = builder.get_ref();
-//     let bb_ptr: *mut LLVMBasicBlockRef = bb.get_ref();
+/// Deletes a specified basic block
+pub fn delete_basic_block(pool: &Arc<Mutex<LLVMResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, bb_handle: Handle) -> Option<()> {
+    let pool_guard = pool.lock().unwrap();
+    let bb = pool_guard.get_basic_block(bb_handle)?;
 
-//     unsafe {
-//         core::LLVMPositionBuilderAtEnd(*builder_ptr, *bb_ptr);
-//     }
-// }
+    unsafe {
+        bb.read().unwrap().use_ref(|bb_ptr| {
+            core::LLVMDeleteBasicBlock(bb_ptr)
+        });
+    }
 
-// /// Deletes a specified basic block
-// pub fn delete_basic_block(bb: CPointer<LLVMBasicBlockRef>) {
-//     let bb_ptr: *mut LLVMBasicBlockRef = bb.get_ref();
-    
-//     unsafe {
-//         core::LLVMDeleteBasicBlock(*bb_ptr);
-//     }
-// }
+    Some(())
+}
 
-// /// Retrieves the first instruction 
-// pub fn get_first_instruction(bb: CPointer<LLVMBasicBlockRef>) -> CPointer<LLVMValueRef> {
-//     let bb_ptr: *mut LLVMBasicBlockRef = bb.get_ref();
-    
-//     let raw_ptr: *mut LLVMValue = unsafe { 
-//         core::LLVMGetFirstInstruction(*bb_ptr)
-//     };
+/// Retrieves the first instruction
+pub fn get_first_instruction(pool: &Arc<Mutex<LLVMResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, bb_handle: Handle) -> Option<Handle> {
+    let pool_guard = pool.lock().unwrap();
+    let bb = pool_guard.get_basic_block(bb_handle)?;
+    drop(pool_guard);
 
-//     let c_pointer = CPointer::new(raw_ptr as *mut _);
-//     if c_pointer.is_some() {
-//         return c_pointer.unwrap();
-//     }
-//     panic!("Missing c_pointer")}
+    let instruction = unsafe {
+        bb.read().unwrap().use_ref(|bb_ptr| {
+            core::LLVMGetFirstInstruction(bb_ptr)
+        })
+    };
 
-// /// Retrieves the last instruction
-// pub fn get_last_instruction(bb: CPointer<LLVMBasicBlockRef>) -> CPointer<LLVMValueRef> {
-//     let bb_ptr: *mut LLVMBasicBlockRef = bb.get_ref();
-    
-//     let raw_ptr: *mut LLVMValue = unsafe { 
-//         core::LLVMGetLastInstruction(*bb_ptr) 
-//     };
+    if instruction.is_null() {
+        None
+    } else {
+        let mut pool_guard = pool.lock().unwrap();
+        pool_guard.create_value(instruction)
+    }
+}
 
-//     let c_pointer = CPointer::new(raw_ptr as *mut _);
-//     if c_pointer.is_some() {
-//         return c_pointer.unwrap();
-//     }
-//     panic!("Missing c_pointer")}
+/// Retrieves the last instruction
+pub fn get_last_instruction(pool: &Arc<Mutex<LLVMResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, bb_handle: Handle) -> Option<Handle> {
+    let pool_guard = pool.lock().unwrap();
+    let bb = pool_guard.get_basic_block(bb_handle)?;
+    drop(pool_guard);
 
-// /// Creates a PHI node in the specified basic block
-// pub fn create_phi(builder: CPointer<LLVMBuilderRef>, possible_values: &[(CPointer<LLVMValueRef>, CPointer<LLVMBasicBlockRef>)], name: &str) -> CPointer<LLVMValueRef> {
-//     let builder_ptr: *mut LLVMBuilderRef = builder.get_ref();
+    let instruction = unsafe {
+        bb.read().unwrap().use_ref(|bb_ptr| {
+            core::LLVMGetLastInstruction(bb_ptr)
+        })
+    };
 
-//     let first_value_ptr: *mut LLVMValueRef = possible_values[0].0.get_ref();
-//     let phi_type = unsafe { llvm::core::LLVMTypeOf(*first_value_ptr) };
+    if instruction.is_null() {
+        None
+    } else {
+        let mut pool_guard = pool.lock().unwrap();
+        pool_guard.create_value(instruction)
+    }
+}
 
-//     let c_name = CString::new(name).expect("Failed to create CString from name");
-//     let phi_node = unsafe {
-//         llvm::core::LLVMBuildPhi(*builder_ptr, phi_type, c_name.as_ptr())
-//     };
+/// Creates a PHI node in the specified basic block
+pub fn create_phi(pool: &Arc<Mutex<LLVMResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, builder_handle: Handle, possible_values: &[(Handle, Handle)], name: &str) -> Option<Handle> {
+    let pool_guard = pool.lock().unwrap();
+    let builder = pool_guard.get_builder(builder_handle)?;
+    let first_value = pool_guard.get_value(possible_values[0].0)?;
+    drop(pool_guard);
 
-//     let values: Vec<*mut LLVMValueRef> = possible_values.iter()
-//         .map(|&(ref v, _)| v.get_ref())
-//         .collect();
+    let phi_type = unsafe {
+        first_value.read().unwrap().use_ref(|first_value_ptr| {
+            core::LLVMTypeOf(first_value_ptr)
+        })
+    };
 
-//     let blocks: Vec<*mut LLVMBasicBlockRef> = possible_values.iter()
-//         .map(|&(_, ref b)| b.get_ref())
-//         .collect();
+    let c_name = CString::new(name).expect("Failed to create CString from name");
 
-//     unsafe {
-//         llvm::core::LLVMAddIncoming(phi_node, values.as_ptr() as *mut _, blocks.as_ptr() as *mut _, values.len() as u32);
-//     }
+    let phi_node = unsafe {
+        builder.read().unwrap().use_ref(|builder_ptr| {
+            core::LLVMBuildPhi(builder_ptr, phi_type, c_name.as_ptr())
+        })
+    };
 
-//     let c_pointer = CPointer::new(phi_node as *mut _);
-//     if c_pointer.is_some() {
-//         return c_pointer.unwrap();
-//     }
-//     panic!("Missing c_pointer")}
+    if phi_node.is_null() {
+        None
+    } else {
+        let pool_guard = pool.lock().unwrap();
+        let mut values: Vec<LLVMValueRef> = possible_values.iter().map(|&(val_handle, _)| {
+            let val = pool_guard.get_value(val_handle).unwrap();
+            let unwrapped_val = val.read().unwrap().use_ref(|ptr| ptr as LLVMValueRef); 
+            unwrapped_val
+        }).collect();
+
+        let mut blocks: Vec<LLVMBasicBlockRef> = possible_values.iter().map(|&(_, block_handle)| {
+            let block = pool_guard.get_basic_block(block_handle).unwrap();
+            let unwrapped_block = block.read().unwrap().use_ref(|ptr| ptr as *mut _); 
+            unwrapped_block
+        }).collect();
+
+        drop(pool_guard);
+
+        unsafe {
+            core::LLVMAddIncoming(phi_node, values.as_mut_ptr(), blocks.as_mut_ptr(), values.len() as u32);
+        }
+
+        let mut pool_guard = pool.lock().unwrap();
+        pool_guard.create_value(phi_node)
+    }
+}
