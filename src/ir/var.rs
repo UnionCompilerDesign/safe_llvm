@@ -1,107 +1,166 @@
-// extern crate llvm_sys as llvm;
+extern crate llvm_sys as llvm;
 
-// use llvm::{core, LLVMBasicBlock, LLVMBuilder, LLVMContext, LLVMModule, LLVMType, LLVMValue};
+use llvm::core;
 
-// use std::{ffi::CString, sync::{Arc, Mutex}};
+use std::ffi::CString;
 
-// use crate::memory_management::resource_pools::{Handle, ResourcePools};
+use crate::memory_management::{
+    pointer::{LLVMRef, LLVMRefType}, 
+    resource_pools::{BuilderHandle, ResourcePools, TypeHandle, ValueHandle}
+};
 
-// /// Initializes a variable
-// pub fn init_var(
-//     pool: &Arc<Mutex<ResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>,    
-//     builder_handle: Handle, 
-//     var_name: &str, 
-//     data_type_handle: Handle, 
-//     initial_value_handle: Option<Handle>
-// ) -> Option<Handle> {
-//     let pool_guard = pool.lock().unwrap();
-//     let builder = pool_guard.get_builder(builder_handle)?;
-//     let data_type = pool_guard.get_type(data_type_handle)?;
-//     drop(pool_guard);
+impl ResourcePools {
+    /// Initializes a variable
+    pub fn init_var(
+        &mut self,
+        builder_handle: BuilderHandle, 
+        var_name: &str, 
+        data_type_handle: TypeHandle, 
+        initial_value_handle: Option<ValueHandle>
+    ) -> Option<ValueHandle> {
+        let builder_arc_rwlock = self.get_builder(builder_handle)?;
+        let data_type_arc_rwlock = self.get_type(data_type_handle)?;
 
-//     let var_name_cstr = CString::new(var_name).expect("Failed to create CString from var_name");
+        let var_name_cstr = CString::new(var_name).expect("Failed to create CString from var_name");
 
-//     let alloca = unsafe {
-//         builder.read().unwrap().use_ref(|builder_ptr| {
-//             data_type.read().unwrap().use_ref(|data_type_ptr| {
-//                 core::LLVMBuildAlloca(builder_ptr, data_type_ptr, var_name_cstr.as_ptr())
-//             })
-//         })
-//     };
+        let alloca = unsafe {
+            let builder_ptr = builder_arc_rwlock.read().expect("Failed to lock builder for reading").read(LLVMRefType::Builder, |builder_ref| {
+                if let LLVMRef::Builder(ptr) = builder_ref {
+                    Some(*ptr)
+                } else {
+                    None
+                }
+            })?;
 
-//     if alloca.is_null() {
-//         None
-//     } else {
-//         let mut pool_guard = pool.lock().unwrap();
-//         let alloca_handle = pool_guard.create_value(alloca)?;
+            let data_type_ptr = data_type_arc_rwlock.read().expect("Failed to lock data type for reading").read(LLVMRefType::Type, |data_type_ref| {
+                if let LLVMRef::Type(ptr) = data_type_ref {
+                    Some(*ptr)
+                } else {
+                    None
+                }
+            })?;
 
-//         if let Some(value_handle) = initial_value_handle {
-//             let value = pool_guard.get_value(value_handle)?;
-//             unsafe {
-//                 value.read().unwrap().use_ref(|value_ptr| {
-//                     builder.read().unwrap().use_ref(|builder_ptr| {
-//                         core::LLVMBuildStore(builder_ptr, value_ptr, alloca);
-//                     });
-//                 });
-//             }
-//         }
-//         Some(alloca_handle)
-//     }
-// }
+            core::LLVMBuildAlloca(builder_ptr, data_type_ptr, var_name_cstr.as_ptr())
+        };
 
-// /// Reassigns a variable
-// pub fn reassign_var(
-//     pool: &Arc<Mutex<ResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>,    
-//     builder_handle: Handle, 
-//     variable_alloc_handle: Handle, 
-//     new_value_handle: Handle
-// ) -> Option<()> {
-//     let pool_guard = pool.lock().unwrap();
-//     let builder = pool_guard.get_builder(builder_handle)?;
-//     let variable_alloc = pool_guard.get_value(variable_alloc_handle)?;
-//     let new_value = pool_guard.get_value(new_value_handle)?;
+        if alloca.is_null() {
+            None
+        } else {
+            let alloca_handle = self.store_value(alloca)?;
 
-//     unsafe {
-//         variable_alloc.read().unwrap().use_ref(|variable_alloc_ptr| {
-//             new_value.read().unwrap().use_ref(|new_value_ptr| {
-//                 builder.read().unwrap().use_ref(|builder_ptr| {
-//                     core::LLVMBuildStore(builder_ptr, new_value_ptr, variable_alloc_ptr);
-//                 });
-//             });
-//         });
-//     }
-//     Some(())
-// }
+            if let Some(value_handle) = initial_value_handle {
+                let value_arc_rwlock = self.get_value(value_handle)?;
+                unsafe {
+                    let value_ptr = value_arc_rwlock.read().expect("Failed to lock value for reading").read(LLVMRefType::Value, |value_ref| {
+                        if let LLVMRef::Value(ptr) = value_ref {
+                            Some(*ptr)
+                        } else {
+                            None
+                        }
+                    })?;
+                    let builder_ptr = builder_arc_rwlock.read().expect("Failed to lock builder for reading").read(LLVMRefType::Builder, |builder_ref| {
+                        if let LLVMRef::Builder(ptr) = builder_ref {
+                            Some(*ptr)
+                        } else {
+                            None
+                        }
+                    })?;
 
-// /// Gets a variable
-// pub fn get_var(
-//     pool: &Arc<Mutex<ResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>,    
-//     builder_handle: Handle, 
-//     variable_type_handle: Handle, 
-//     variable_alloc_handle: Handle
-// ) -> Option<Handle> {
-//     let pool_guard = pool.lock().unwrap();
-//     let builder = pool_guard.get_builder(builder_handle)?;
-//     let variable_type = pool_guard.get_type(variable_type_handle)?;
-//     let variable_alloc = pool_guard.get_value(variable_alloc_handle)?;
-//     drop(pool_guard);
+                    core::LLVMBuildStore(builder_ptr, value_ptr, alloca);
+                }
+            }
 
-//     let tmp_load_cstr = CString::new("tmpload").expect("Failed to create CString for tmpload");
+            Some(alloca_handle)
+        }
+    }
 
-//     let raw_ptr = unsafe {
-//         variable_alloc.read().unwrap().use_ref(|variable_alloc_ptr| {
-//             variable_type.read().unwrap().use_ref(|variable_type_ptr| {
-//                 builder.read().unwrap().use_ref(|builder_ptr| {
-//                     core::LLVMBuildLoad2(builder_ptr, variable_type_ptr, variable_alloc_ptr, tmp_load_cstr.as_ptr())
-//                 })
-//             })
-//         })
-//     };
+    /// Reassigns a variable
+    pub fn reassign_var(
+        &mut self,
+        builder_handle: BuilderHandle, 
+        variable_alloc_handle: ValueHandle, 
+        new_value_handle: ValueHandle
+    ) -> Option<()> {
+        let builder_arc_rwlock = self.get_builder(builder_handle)?;
+        let variable_alloc_arc_rwlock = self.get_value(variable_alloc_handle)?;
+        let new_value_arc_rwlock = self.get_value(new_value_handle)?;
 
-//     if raw_ptr.is_null() {
-//         None
-//     } else {
-//         let mut pool_guard = pool.lock().unwrap();
-//         pool_guard.create_value(raw_ptr)
-//     }
-// }
+        unsafe {
+            let builder_ptr = builder_arc_rwlock.read().expect("Failed to lock builder for reading").read(LLVMRefType::Builder, |builder_ref| {
+                if let LLVMRef::Builder(ptr) = builder_ref {
+                    Some(*ptr)
+                } else {
+                    None
+                }
+            })?;
+
+            let variable_alloc_ptr = variable_alloc_arc_rwlock.read().expect("Failed to lock variable alloc for reading").read(LLVMRefType::Value, |variable_alloc_ref| {
+                if let LLVMRef::Value(ptr) = variable_alloc_ref {
+                    Some(*ptr)
+                } else {
+                    None
+                }
+            })?;
+
+            let new_value_ptr = new_value_arc_rwlock.read().expect("Failed to lock new value for reading").read(LLVMRefType::Value, |new_value_ref| {
+                if let LLVMRef::Value(ptr) = new_value_ref {
+                    Some(*ptr)
+                } else {
+                    None
+                }
+            })?;
+
+            core::LLVMBuildStore(builder_ptr, new_value_ptr, variable_alloc_ptr);
+        }
+
+        Some(())
+    }
+
+    /// Gets a variable
+    pub fn get_var(
+        &mut self,
+        builder_handle: BuilderHandle, 
+        variable_type_handle: TypeHandle, 
+        variable_alloc_handle: ValueHandle
+    ) -> Option<ValueHandle> {
+        let builder_arc_rwlock = self.get_builder(builder_handle)?;
+        let variable_type_arc_rwlock = self.get_type(variable_type_handle)?;
+        let variable_alloc_arc_rwlock = self.get_value(variable_alloc_handle)?;
+
+        let tmp_load_cstr = CString::new("tmpload").expect("Failed to create CString for tmpload");
+
+        let raw_ptr = unsafe {
+            let builder_ptr = builder_arc_rwlock.read().expect("Failed to lock builder for reading").read(LLVMRefType::Builder, |builder_ref| {
+                if let LLVMRef::Builder(ptr) = builder_ref {
+                    Some(*ptr)
+                } else {
+                    None
+                }
+            })?;
+
+            let variable_type_ptr = variable_type_arc_rwlock.read().expect("Failed to lock variable type for reading").read(LLVMRefType::Type, |variable_type_ref| {
+                if let LLVMRef::Type(ptr) = variable_type_ref {
+                    Some(*ptr)
+                } else {
+                    None
+                }
+            })?;
+
+            let variable_alloc_ptr = variable_alloc_arc_rwlock.read().expect("Failed to lock variable alloc for reading").read(LLVMRefType::Value, |variable_alloc_ref| {
+                if let LLVMRef::Value(ptr) = variable_alloc_ref {
+                    Some(*ptr)
+                } else {
+                    None
+                }
+            })?;
+
+            core::LLVMBuildLoad2(builder_ptr, variable_type_ptr, variable_alloc_ptr, tmp_load_cstr.as_ptr())
+        };
+
+        if raw_ptr.is_null() {
+            None
+        } else {
+            self.store_value(raw_ptr)
+        }
+    }
+}
