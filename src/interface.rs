@@ -2,75 +2,75 @@
 
 // use llvm::prelude::{LLVMBasicBlockRef, LLVMBuilderRef, LLVMContextRef, LLVMModuleRef, LLVMTypeRef, LLVMValueRef};
 
-// use crate::memory_management::pointer::ThreadSafePtr;
+// use crate::memory_management::pointer::CPointer;
 
 // pub trait LLVMApi {
 //     /// --- IR CODE GENERATION SECTION --- ///
 //     /// --- BLOCK --- ///
-//     fn create_basic_block(&self, context: ThreadSafePtr<LLVMContextRef>, function: ThreadSafePtr<LLVMValueRef>, name: &str) -> ThreadSafePtr<LLVMBasicBlockRef>;
-//     fn get_current_block(&self, builder: ThreadSafePtr<LLVMBuilderRef>) -> ThreadSafePtr<LLVMBasicBlockRef>;
-//     fn create_cond_br(&self, builder: ThreadSafePtr<LLVMBuilderRef>, condition: ThreadSafePtr<LLVMValueRef>, then_bb: ThreadSafePtr<LLVMBasicBlockRef>, else_bb: ThreadSafePtr<LLVMBasicBlockRef>) -> ThreadSafePtr<LLVMValueRef>;
-//     fn create_br(&self, builder: ThreadSafePtr<LLVMBuilderRef>, target_bb: ThreadSafePtr<LLVMBasicBlockRef>) -> ThreadSafePtr<LLVMValueRef>;
-//     fn insert_before_basic_block(&self, context: ThreadSafePtr<LLVMContextRef>, before_target: ThreadSafePtr<LLVMBasicBlockRef>, name: &str) -> ThreadSafePtr<LLVMBasicBlockRef>;
-//     fn position_builder(&self, builder: ThreadSafePtr<LLVMBuilderRef>, bb: ThreadSafePtr<LLVMBasicBlockRef>);
-//     fn delete_basic_block(&self, bb: ThreadSafePtr<LLVMBasicBlockRef>);
-//     fn get_first_instruction(&self, bb: ThreadSafePtr<LLVMBasicBlockRef>) -> ThreadSafePtr<LLVMValueRef>;
-//     fn get_last_instruction(&self, bb: ThreadSafePtr<LLVMBasicBlockRef>) -> ThreadSafePtr<LLVMValueRef>;   
-//     fn create_phi(&self, builder: ThreadSafePtr<LLVMBuilderRef>, possible_values: &[(ThreadSafePtr<LLVMValueRef>, ThreadSafePtr<LLVMBasicBlockRef>)], name: &str) -> ThreadSafePtr<LLVMValueRef>; 
+//     fn create_basic_block(&self, context: CPointer<LLVMContextRef>, function: CPointer<LLVMValueRef>, name: &str) -> CPointer<LLVMBasicBlockRef>;
+//     fn get_current_block(&self, builder: CPointer<LLVMBuilderRef>) -> CPointer<LLVMBasicBlockRef>;
+//     fn create_cond_br(&self, builder: CPointer<LLVMBuilderRef>, condition: CPointer<LLVMValueRef>, then_bb: CPointer<LLVMBasicBlockRef>, else_bb: CPointer<LLVMBasicBlockRef>) -> CPointer<LLVMValueRef>;
+//     fn create_br(&self, builder: CPointer<LLVMBuilderRef>, target_bb: CPointer<LLVMBasicBlockRef>) -> CPointer<LLVMValueRef>;
+//     fn insert_before_basic_block(&self, context: CPointer<LLVMContextRef>, before_target: CPointer<LLVMBasicBlockRef>, name: &str) -> CPointer<LLVMBasicBlockRef>;
+//     fn position_builder(&self, builder: CPointer<LLVMBuilderRef>, bb: CPointer<LLVMBasicBlockRef>);
+//     fn delete_basic_block(&self, bb: CPointer<LLVMBasicBlockRef>);
+//     fn get_first_instruction(&self, bb: CPointer<LLVMBasicBlockRef>) -> CPointer<LLVMValueRef>;
+//     fn get_last_instruction(&self, bb: CPointer<LLVMBasicBlockRef>) -> CPointer<LLVMValueRef>;   
+//     fn create_phi(&self, builder: CPointer<LLVMBuilderRef>, possible_values: &[(CPointer<LLVMValueRef>, CPointer<LLVMBasicBlockRef>)], name: &str) -> CPointer<LLVMValueRef>; 
     
 //     /// --- BUILDER --- ///
-//     fn create_builder(&self, context: ThreadSafePtr<LLVMContextRef>) -> ThreadSafePtr<LLVMBuilderRef>;
+//     fn create_builder(&self, context: CPointer<LLVMContextRef>) -> CPointer<LLVMBuilderRef>;
 
 //     /// --- OPERATIONS --- ///
-//     fn build_add(&self, builder: ThreadSafePtr<LLVMBuilderRef>, param_a: ThreadSafePtr<LLVMValueRef>, param_b: ThreadSafePtr<LLVMValueRef>, sum: &str) -> ThreadSafePtr<LLVMValueRef>;
-//     fn build_sub(&self, builder: ThreadSafePtr<LLVMBuilderRef>, param_a: ThreadSafePtr<LLVMValueRef>, param_b: ThreadSafePtr<LLVMValueRef>, name: &str) -> ThreadSafePtr<LLVMValueRef>;
-//     fn build_mul(&self, builder: ThreadSafePtr<LLVMBuilderRef>, param_a: ThreadSafePtr<LLVMValueRef>, param_b: ThreadSafePtr<LLVMValueRef>, name: &str) -> ThreadSafePtr<LLVMValueRef>;
-//     fn build_div(&self, builder: ThreadSafePtr<LLVMBuilderRef>, param_a: ThreadSafePtr<LLVMValueRef>, param_b: ThreadSafePtr<LLVMValueRef>, name: &str) -> ThreadSafePtr<LLVMValueRef>;
-//     fn build_rem(&self, builder: ThreadSafePtr<LLVMBuilderRef>, param_a: ThreadSafePtr<LLVMValueRef>, param_b: ThreadSafePtr<LLVMValueRef>, name: &str) -> ThreadSafePtr<LLVMValueRef>;
-//     fn build_and(&self, builder: ThreadSafePtr<LLVMBuilderRef>, param_a: ThreadSafePtr<LLVMValueRef>, param_b: ThreadSafePtr<LLVMValueRef>, name: &str) -> ThreadSafePtr<LLVMValueRef>;
-//     fn build_or(&self, builder: ThreadSafePtr<LLVMBuilderRef>, param_a: ThreadSafePtr<LLVMValueRef>, param_b: ThreadSafePtr<LLVMValueRef>, name: &str) -> ThreadSafePtr<LLVMValueRef>;
-//     fn build_xor(&self, builder: ThreadSafePtr<LLVMBuilderRef>, param_a: ThreadSafePtr<LLVMValueRef>, param_b: ThreadSafePtr<LLVMValueRef>, name: &str) -> ThreadSafePtr<LLVMValueRef>;
-//     fn build_shl(&self, builder: ThreadSafePtr<LLVMBuilderRef>, param_a: ThreadSafePtr<LLVMValueRef>, param_b: ThreadSafePtr<LLVMValueRef>, name: &str) -> ThreadSafePtr<LLVMValueRef>;
-//     fn build_shr(&self, builder: ThreadSafePtr<LLVMBuilderRef>, param_a: ThreadSafePtr<LLVMValueRef>, param_b: ThreadSafePtr<LLVMValueRef>, name: &str) -> ThreadSafePtr<LLVMValueRef>;
-//     fn build_icmp_gt(&self, builder: ThreadSafePtr<LLVMBuilderRef>, param_a: ThreadSafePtr<LLVMValueRef>, param_b: ThreadSafePtr<LLVMValueRef>, name: &str) -> ThreadSafePtr<LLVMValueRef>;
-//     fn build_icmp_lt(&self, builder: ThreadSafePtr<LLVMBuilderRef>, param_a: ThreadSafePtr<LLVMValueRef>, param_b: ThreadSafePtr<LLVMValueRef>, name: &str) -> ThreadSafePtr<LLVMValueRef>;
-//     fn build_icmp_eq(&self, builder: ThreadSafePtr<LLVMBuilderRef>, param_a: ThreadSafePtr<LLVMValueRef>, param_b: ThreadSafePtr<LLVMValueRef>, name: &str) -> ThreadSafePtr<LLVMValueRef>;
-//     fn build_negation(&self, builder: ThreadSafePtr<LLVMBuilderRef>, operand_ir: ThreadSafePtr<LLVMValueRef>, name: &str) -> ThreadSafePtr<LLVMValueRef>;
-//     fn build_bitwise_not(&self, builder: ThreadSafePtr<LLVMBuilderRef>, operand_ir: ThreadSafePtr<LLVMValueRef>, name: &str) -> ThreadSafePtr<LLVMValueRef>;
-//     fn build_logical_not(&self, builder: ThreadSafePtr<LLVMBuilderRef>, context: ThreadSafePtr<LLVMContextRef>, operand_ir: ThreadSafePtr<LLVMValueRef>, name: &str) -> ThreadSafePtr<LLVMValueRef>;
+//     fn build_add(&self, builder: CPointer<LLVMBuilderRef>, param_a: CPointer<LLVMValueRef>, param_b: CPointer<LLVMValueRef>, sum: &str) -> CPointer<LLVMValueRef>;
+//     fn build_sub(&self, builder: CPointer<LLVMBuilderRef>, param_a: CPointer<LLVMValueRef>, param_b: CPointer<LLVMValueRef>, name: &str) -> CPointer<LLVMValueRef>;
+//     fn build_mul(&self, builder: CPointer<LLVMBuilderRef>, param_a: CPointer<LLVMValueRef>, param_b: CPointer<LLVMValueRef>, name: &str) -> CPointer<LLVMValueRef>;
+//     fn build_div(&self, builder: CPointer<LLVMBuilderRef>, param_a: CPointer<LLVMValueRef>, param_b: CPointer<LLVMValueRef>, name: &str) -> CPointer<LLVMValueRef>;
+//     fn build_rem(&self, builder: CPointer<LLVMBuilderRef>, param_a: CPointer<LLVMValueRef>, param_b: CPointer<LLVMValueRef>, name: &str) -> CPointer<LLVMValueRef>;
+//     fn build_and(&self, builder: CPointer<LLVMBuilderRef>, param_a: CPointer<LLVMValueRef>, param_b: CPointer<LLVMValueRef>, name: &str) -> CPointer<LLVMValueRef>;
+//     fn build_or(&self, builder: CPointer<LLVMBuilderRef>, param_a: CPointer<LLVMValueRef>, param_b: CPointer<LLVMValueRef>, name: &str) -> CPointer<LLVMValueRef>;
+//     fn build_xor(&self, builder: CPointer<LLVMBuilderRef>, param_a: CPointer<LLVMValueRef>, param_b: CPointer<LLVMValueRef>, name: &str) -> CPointer<LLVMValueRef>;
+//     fn build_shl(&self, builder: CPointer<LLVMBuilderRef>, param_a: CPointer<LLVMValueRef>, param_b: CPointer<LLVMValueRef>, name: &str) -> CPointer<LLVMValueRef>;
+//     fn build_shr(&self, builder: CPointer<LLVMBuilderRef>, param_a: CPointer<LLVMValueRef>, param_b: CPointer<LLVMValueRef>, name: &str) -> CPointer<LLVMValueRef>;
+//     fn build_icmp_gt(&self, builder: CPointer<LLVMBuilderRef>, param_a: CPointer<LLVMValueRef>, param_b: CPointer<LLVMValueRef>, name: &str) -> CPointer<LLVMValueRef>;
+//     fn build_icmp_lt(&self, builder: CPointer<LLVMBuilderRef>, param_a: CPointer<LLVMValueRef>, param_b: CPointer<LLVMValueRef>, name: &str) -> CPointer<LLVMValueRef>;
+//     fn build_icmp_eq(&self, builder: CPointer<LLVMBuilderRef>, param_a: CPointer<LLVMValueRef>, param_b: CPointer<LLVMValueRef>, name: &str) -> CPointer<LLVMValueRef>;
+//     fn build_negation(&self, builder: CPointer<LLVMBuilderRef>, operand_ir: CPointer<LLVMValueRef>, name: &str) -> CPointer<LLVMValueRef>;
+//     fn build_bitwise_not(&self, builder: CPointer<LLVMBuilderRef>, operand_ir: CPointer<LLVMValueRef>, name: &str) -> CPointer<LLVMValueRef>;
+//     fn build_logical_not(&self, builder: CPointer<LLVMBuilderRef>, context: CPointer<LLVMContextRef>, operand_ir: CPointer<LLVMValueRef>, name: &str) -> CPointer<LLVMValueRef>;
 
 //     /// --- TOP LEVEL EXPRESSIONS --- ///
-//     fn get_param(&self, function: ThreadSafePtr<LLVMValueRef>, index: u32) -> ThreadSafePtr<LLVMValueRef>;
-//     fn add_function_to_module(&self, module: ThreadSafePtr<LLVMModuleRef>, function_name: &str, function_type: ThreadSafePtr<LLVMTypeRef>) -> ThreadSafePtr<LLVMValueRef>;
+//     fn get_param(&self, function: CPointer<LLVMValueRef>, index: u32) -> CPointer<LLVMValueRef>;
+//     fn add_function_to_module(&self, module: CPointer<LLVMModuleRef>, function_name: &str, function_type: CPointer<LLVMTypeRef>) -> CPointer<LLVMValueRef>;
 
 //     /// --- TYPES --- ///    
-//     fn void_type(&self, context: ThreadSafePtr<LLVMContextRef>) -> ThreadSafePtr<LLVMTypeRef>;
-//     fn int_type(&self, context: ThreadSafePtr<LLVMContextRef>) -> ThreadSafePtr<LLVMTypeRef>;
-//     fn float_type(&self, context: ThreadSafePtr<LLVMContextRef>) -> ThreadSafePtr<LLVMTypeRef>;
-//     fn boolean_type(&self, context: ThreadSafePtr<LLVMContextRef>) -> ThreadSafePtr<LLVMTypeRef>;
-//     fn pointer_type(&self, element_type: ThreadSafePtr<LLVMTypeRef>) -> ThreadSafePtr<LLVMTypeRef>;
-//     fn array_type(&self, element_type: ThreadSafePtr<LLVMTypeRef>, num_elements: u64) -> ThreadSafePtr<LLVMTypeRef>;
-//     fn struct_type(&self, context: ThreadSafePtr<LLVMContextRef>, element_types: &[ThreadSafePtr<LLVMTypeRef>], packed: bool) -> ThreadSafePtr<LLVMTypeRef>;
-//     fn void_return(&self, builder: ThreadSafePtr<LLVMBuilderRef>) -> ThreadSafePtr<LLVMValueRef>;
-//     fn nonvoid_return(&self, builder: ThreadSafePtr<LLVMBuilderRef>, value: ThreadSafePtr<LLVMValueRef>) -> ThreadSafePtr<LLVMValueRef>;
+//     fn void_type(&self, context: CPointer<LLVMContextRef>) -> CPointer<LLVMTypeRef>;
+//     fn int_type(&self, context: CPointer<LLVMContextRef>) -> CPointer<LLVMTypeRef>;
+//     fn float_type(&self, context: CPointer<LLVMContextRef>) -> CPointer<LLVMTypeRef>;
+//     fn boolean_type(&self, context: CPointer<LLVMContextRef>) -> CPointer<LLVMTypeRef>;
+//     fn pointer_type(&self, element_type: CPointer<LLVMTypeRef>) -> CPointer<LLVMTypeRef>;
+//     fn array_type(&self, element_type: CPointer<LLVMTypeRef>, num_elements: u64) -> CPointer<LLVMTypeRef>;
+//     fn struct_type(&self, context: CPointer<LLVMContextRef>, element_types: &[CPointer<LLVMTypeRef>], packed: bool) -> CPointer<LLVMTypeRef>;
+//     fn void_return(&self, builder: CPointer<LLVMBuilderRef>) -> CPointer<LLVMValueRef>;
+//     fn nonvoid_return(&self, builder: CPointer<LLVMBuilderRef>, value: CPointer<LLVMValueRef>) -> CPointer<LLVMValueRef>;
 
 //     /// --- VALUES --- ///
-//     fn create_integer(&self, val: i64, context: ThreadSafePtr<LLVMContextRef>) -> ThreadSafePtr<LLVMValueRef>;
-//     fn create_float(&self, val: f64, context: ThreadSafePtr<LLVMContextRef>) -> ThreadSafePtr<LLVMValueRef>;
-//     fn create_boolean(&self, val: bool, context: ThreadSafePtr<LLVMContextRef>) -> ThreadSafePtr<LLVMValueRef>;
-//     fn create_function(&self, return_type: Option<ThreadSafePtr<LLVMTypeRef>>, param_types: &[ThreadSafePtr<LLVMTypeRef>], is_var_arg: bool, context: ThreadSafePtr<LLVMContextRef>) -> Option<ThreadSafePtr<LLVMTypeRef>>;
-//     fn create_array(&self, value: ThreadSafePtr<LLVMValueRef>, num_elements: u64) -> ThreadSafePtr<LLVMValueRef>;
-//     fn create_pointer(&self, value: ThreadSafePtr<LLVMTypeRef>) -> ThreadSafePtr<LLVMValueRef>;
-//     fn create_struct(&self, values: &[ThreadSafePtr<LLVMValueRef>], context: ThreadSafePtr<LLVMContextRef>, packed: bool) -> ThreadSafePtr<LLVMValueRef>;
-//     fn create_global_variable(&self, module: ThreadSafePtr<LLVMModuleRef>, initializer: ThreadSafePtr<LLVMValueRef>, name: &str) -> ThreadSafePtr<LLVMValueRef>;
-//     fn create_string(&self, val: &str, builder: ThreadSafePtr<LLVMBuilderRef>) -> ThreadSafePtr<LLVMValueRef>;
-//     fn create_mut_string(&self, val: &str, context: ThreadSafePtr<LLVMContextRef>, builder: ThreadSafePtr<LLVMBuilderRef>) -> ThreadSafePtr<LLVMValueRef>;
-//     fn create_null_pointer(&self, ty: ThreadSafePtr<LLVMTypeRef>) -> ThreadSafePtr<LLVMValueRef>;
-//     fn create_continue_statement(&self, builder: ThreadSafePtr<LLVMBuilderRef>, continue_block: ThreadSafePtr<LLVMBasicBlockRef>) -> ThreadSafePtr<LLVMValueRef>;
-//     fn create_break_statement(&self, builder: ThreadSafePtr<LLVMBuilderRef>, break_block: ThreadSafePtr<LLVMBasicBlockRef>) -> ThreadSafePtr<LLVMValueRef>;
+//     fn create_integer(&self, val: i64, context: CPointer<LLVMContextRef>) -> CPointer<LLVMValueRef>;
+//     fn create_float(&self, val: f64, context: CPointer<LLVMContextRef>) -> CPointer<LLVMValueRef>;
+//     fn create_boolean(&self, val: bool, context: CPointer<LLVMContextRef>) -> CPointer<LLVMValueRef>;
+//     fn create_function(&self, return_type: Option<CPointer<LLVMTypeRef>>, param_types: &[CPointer<LLVMTypeRef>], is_var_arg: bool, context: CPointer<LLVMContextRef>) -> Option<CPointer<LLVMTypeRef>>;
+//     fn create_array(&self, value: CPointer<LLVMValueRef>, num_elements: u64) -> CPointer<LLVMValueRef>;
+//     fn create_pointer(&self, value: CPointer<LLVMTypeRef>) -> CPointer<LLVMValueRef>;
+//     fn create_struct(&self, values: &[CPointer<LLVMValueRef>], context: CPointer<LLVMContextRef>, packed: bool) -> CPointer<LLVMValueRef>;
+//     fn create_global_variable(&self, module: CPointer<LLVMModuleRef>, initializer: CPointer<LLVMValueRef>, name: &str) -> CPointer<LLVMValueRef>;
+//     fn create_string(&self, val: &str, builder: CPointer<LLVMBuilderRef>) -> CPointer<LLVMValueRef>;
+//     fn create_mut_string(&self, val: &str, context: CPointer<LLVMContextRef>, builder: CPointer<LLVMBuilderRef>) -> CPointer<LLVMValueRef>;
+//     fn create_null_pointer(&self, ty: CPointer<LLVMTypeRef>) -> CPointer<LLVMValueRef>;
+//     fn create_continue_statement(&self, builder: CPointer<LLVMBuilderRef>, continue_block: CPointer<LLVMBasicBlockRef>) -> CPointer<LLVMValueRef>;
+//     fn create_break_statement(&self, builder: CPointer<LLVMBuilderRef>, break_block: CPointer<LLVMBasicBlockRef>) -> CPointer<LLVMValueRef>;
 
 //     /// --- VARIABLES --- ///
-//     fn init_var(&self, builder: ThreadSafePtr<LLVMBuilderRef>, var_name: &str, data_type: ThreadSafePtr<LLVMTypeRef>, initial_value: Option<ThreadSafePtr<LLVMValueRef>>) -> ThreadSafePtr<LLVMValueRef>;
-//     fn reassign_var(&self, builder: ThreadSafePtr<LLVMBuilderRef>, variable_alloc: ThreadSafePtr<LLVMValueRef>, new_value: ThreadSafePtr<LLVMValueRef>);
-//     fn get_var(&self, builder: ThreadSafePtr<LLVMBuilderRef>, variable_type: ThreadSafePtr<LLVMTypeRef>, variable_alloc: ThreadSafePtr<LLVMValueRef>) -> ThreadSafePtr<LLVMValueRef>;
+//     fn init_var(&self, builder: CPointer<LLVMBuilderRef>, var_name: &str, data_type: CPointer<LLVMTypeRef>, initial_value: Option<CPointer<LLVMValueRef>>) -> CPointer<LLVMValueRef>;
+//     fn reassign_var(&self, builder: CPointer<LLVMBuilderRef>, variable_alloc: CPointer<LLVMValueRef>, new_value: CPointer<LLVMValueRef>);
+//     fn get_var(&self, builder: CPointer<LLVMBuilderRef>, variable_type: CPointer<LLVMTypeRef>, variable_alloc: CPointer<LLVMValueRef>) -> CPointer<LLVMValueRef>;
 // }

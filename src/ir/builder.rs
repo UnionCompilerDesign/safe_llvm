@@ -1,63 +1,91 @@
 extern crate llvm_sys as llvm;
 
-use llvm::{core, prelude::*, LLVMBasicBlock, LLVMBuilder, LLVMContext, LLVMModule, LLVMType, LLVMValue};
+use llvm::{core, prelude::{LLVMBuilderRef, LLVMTypeRef}};
 
-use std::sync::{Arc, Mutex};
+use crate::memory_management::{resource_pools::{ResourcePools, ContextHandle, BuilderHandle, TypeHandle}, pointer::{LLVMRef, LLVMRefType}};
 
-use crate::memory_management::resource_pools::{ResourcePools, Handle};
+impl ResourcePools {
+    /// Allocates a builder in a specified context and stores it in the resource pool.
+    pub fn allocate_builder(&mut self, context_handle: ContextHandle) -> Option<BuilderHandle> {
+        let context_arc_rwlock = self.get_context(context_handle)?;
 
-pub fn create_builder(pool: &Arc<Mutex<ResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, context_handle: Handle) -> Option<Handle> {
-    let pool_guard = pool.lock().expect("Failed to lock pool");
-    let context_lock = pool_guard.get_context(context_handle)?;
-    drop(pool_guard); 
+        let builder_ptr: LLVMBuilderRef = unsafe {
+            let context_rwlock = context_arc_rwlock.read().expect("Failed to lock context for reading");
+            let context_ptr = context_rwlock.read(LLVMRefType::Context, |context_ref| {
+                if let LLVMRef::Context(ptr) = context_ref {
+                    Some(*ptr)
+                } else {
+                    None
+                }
+            })?;
 
-    let builder_ptr = context_lock.read().expect("Failed to lock context").use_ref(|context_ptr| {
-        unsafe { core::LLVMCreateBuilderInContext(context_ptr) }
-    });
+            core::LLVMCreateBuilderInContext(context_ptr)
+        };
 
-    let mut pool_guard = pool.lock().expect("Failed to re-lock pool");
-    pool_guard.create_builder(builder_ptr)
-}
+        if builder_ptr.is_null() {
+            return None;
+        }
 
-pub fn create_function(
-    pool: &Arc<Mutex<ResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>,
-    return_type_handle: Option<Handle>,
-    param_type_handles: &[Handle],
-    is_var_arg: bool,
-    context_handle: Handle,
-) -> Option<Handle> {
-    let pool_locked = pool.lock().expect("Failed to lock pool");
-
-    let context_lock = pool_locked.get_context(context_handle)?;
-    let context_ptr: LLVMContextRef = context_lock.read().unwrap().use_ref(|context| context);
-
-    let llvm_return_type = match return_type_handle {
-        Some(handle) => {
-            let type_lock = pool_locked.get_type(handle)?;
-            let ptr = type_lock.read().unwrap().use_ref(|type_ptr| type_ptr); 
-            ptr
-        },
-        None => unsafe { core::LLVMVoidTypeInContext(context_ptr) },
-    };
-
-    let mut llvm_param_types: Vec<LLVMTypeRef> = Vec::new();
-    for handle in param_type_handles {
-        let type_lock = pool_locked.get_type(*handle)?;
-        let type_ref: LLVMTypeRef = type_lock.read().unwrap().use_ref(|type_ptr| type_ptr);
-        llvm_param_types.push(type_ref);
+        self.store_builder(builder_ptr)
     }
 
-    let param_ptr = if llvm_param_types.is_empty() {
-        std::ptr::null_mut()
-    } else {
-        llvm_param_types.as_mut_ptr()
-    };
-    let param_count = llvm_param_types.len() as u32;
+    /// Allocates a function with specified return and parameter types in a given context, then stores it in the resource pool.
+    pub fn allocate_function(
+        &mut self,
+        return_type_handle: Option<TypeHandle>,
+        param_type_handles: &[TypeHandle],
+        is_var_arg: bool,
+        context_handle: ContextHandle,
+    ) -> Option<TypeHandle> {
+        let context_arc_rwlock = self.get_context(context_handle)?;
 
-    let function_type = unsafe {
-        core::LLVMFunctionType(llvm_return_type, param_ptr, param_count, is_var_arg as i32)
-    };
+        let context_ptr = context_arc_rwlock.read().expect("Failed to lock context for reading").read(LLVMRefType::Context, |context_ref| {
+            if let LLVMRef::Context(ptr) = context_ref {
+                Some(*ptr)
+            } else {
+                None
+            }
+        })?;
 
-    let mut pool_locked = pool.lock().expect("Failed to re-lock pool");
-    pool_locked.create_type(function_type)
+        let llvm_return_type = return_type_handle.map_or_else(|| unsafe { core::LLVMVoidTypeInContext(context_ptr) }, |handle| {
+            let type_arc_rwlock = self.get_type(handle).expect("Failed to get type");
+            let ptr = type_arc_rwlock.read().expect("Failed to lock type for reading").read(LLVMRefType::Type, |type_ref| {
+                if let LLVMRef::Type(ptr) = type_ref {
+                    Some(*ptr)
+                } else {
+                    None
+                }
+            }).expect("Failed to get return type"); 
+            ptr
+        });
+
+        let mut llvm_param_types: Vec<LLVMTypeRef> = Vec::new();
+        for handle in param_type_handles {
+            let type_arc_rwlock = self.get_type(*handle)?;
+            let type_ptr = type_arc_rwlock.read().expect("Failed to lock type for reading").read(LLVMRefType::Type, |type_ref| {
+                if let LLVMRef::Type(ptr) = type_ref {
+                    Some(*ptr)
+                } else {
+                    None
+                }
+            })?;
+            llvm_param_types.push(type_ptr);
+        }
+
+        let param_ptr = if llvm_param_types.is_empty() {
+            std::ptr::null_mut()
+        } else {
+            llvm_param_types.as_mut_ptr()
+        };
+
+        let function_type = unsafe {
+            core::LLVMFunctionType(llvm_return_type, param_ptr, llvm_param_types.len() as u32, is_var_arg as i32)
+        };
+
+        if function_type.is_null() {
+            return None;
+        }
+
+        self.store_type(function_type)
+    }
 }

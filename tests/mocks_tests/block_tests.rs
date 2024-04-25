@@ -5,55 +5,55 @@
 
 // use safe_llvm::{
 //     interface::LLVMApi, 
-//     memory_management::ir_pointer::ThreadSafePtr
+//     memory_management::ir_pointer::CPointer
 // };
 // mockall::mock! {
 //     BlockLLVMApi {}
 //     impl LLVMApi for BlockLLVMApi {
-//         fn create_basic_block(&self, context: LLVMContextRef, function: LLVMValueRef, name: &str) -> ThreadSafePtr<LLVMBasicBlockRef>;
-//         fn get_current_block(&self, builder: *mut llvm::LLVMBuilder) -> ThreadSafePtr<LLVMBasicBlockRef>;
-//         fn create_cond_br(&self, builder: LLVMBuilderRef, condition: LLVMValueRef, then_bb: LLVMBasicBlockRef, else_bb: LLVMBasicBlockRef) -> ThreadSafePtr<LLVMValueRef>;
-//         fn create_br(&self, builder: LLVMBuilderRef, target_bb: LLVMBasicBlockRef) -> ThreadSafePtr<LLVMValueRef>;
-//         fn insert_before_basic_block(&self, context: LLVMContextRef, before_target: LLVMBasicBlockRef, name: &str) -> ThreadSafePtr<LLVMBasicBlockRef>;
+//         fn create_basic_block(&self, context: LLVMContextRef, function: LLVMValueRef, name: &str) -> CPointer<LLVMBasicBlockRef>;
+//         fn get_current_block(&self, builder: *mut llvm::LLVMBuilder) -> CPointer<LLVMBasicBlockRef>;
+//         fn create_cond_br(&self, builder: LLVMBuilderRef, condition: LLVMValueRef, then_bb: LLVMBasicBlockRef, else_bb: LLVMBasicBlockRef) -> CPointer<LLVMValueRef>;
+//         fn create_br(&self, builder: LLVMBuilderRef, target_bb: LLVMBasicBlockRef) -> CPointer<LLVMValueRef>;
+//         fn insert_before_basic_block(&self, context: LLVMContextRef, before_target: LLVMBasicBlockRef, name: &str) -> CPointer<LLVMBasicBlockRef>;
 //         fn position_builder(&self, builder: *mut llvm::LLVMBuilder, bb: *mut llvm::LLVMBasicBlock);
 //         fn delete_basic_block(&self, bb: LLVMBasicBlockRef);
-//         fn get_first_instruction(&self, bb: LLVMBasicBlockRef) -> ThreadSafePtr<LLVMValueRef>;
-//         fn get_last_instruction(&self, bb: LLVMBasicBlockRef) -> ThreadSafePtr<LLVMValueRef>;   
-//         fn create_phi(&self, builder: LLVMBuilderRef, possible_values: &[(LLVMValueRef, LLVMBasicBlockRef)], name: &str) -> ThreadSafePtr<LLVMValueRef>; 
+//         fn get_first_instruction(&self, bb: LLVMBasicBlockRef) -> CPointer<LLVMValueRef>;
+//         fn get_last_instruction(&self, bb: LLVMBasicBlockRef) -> CPointer<LLVMValueRef>;   
+//         fn create_phi(&self, builder: LLVMBuilderRef, possible_values: &[(LLVMValueRef, LLVMBasicBlockRef)], name: &str) -> CPointer<LLVMValueRef>; 
 //     }
 // }
 
 // #[test]
 // fn test_create_basic_block() {
 //     let mut mock_api: MockBlockLLVMApi = MockBlockLLVMApi::new();
-//     let raw_ptr: ThreadSafePtr<LLVMBasicBlockRef> = ThreadSafePtr::new(Some(std::ptr::null_mut()));
+//     let raw_ptr: CPointer<LLVMBasicBlockRef> = CPointer::new(Some(std::ptr::null_mut()));
 
 //     mock_api.expect_create_basic_block()
 //             .returning( move |_, _, _| raw_ptr.clone()); 
 
 //     let context: LLVMContextRef = std::ptr::null_mut();
 //     let function: LLVMValueRef = std::ptr::null_mut();
-//     let bb: ThreadSafePtr<LLVMBasicBlockRef> = (&mock_api).create_basic_block(context, function, "test");
+//     let bb: CPointer<LLVMBasicBlockRef> = (&mock_api).create_basic_block(context, function, "test");
 //     assert!(bb.is_null(), "Expected null pointer return for basic block");
 // }
 
 // #[test]
 // fn test_get_current_block() {
 //     let mut mock_api: MockBlockLLVMApi = MockBlockLLVMApi::new();
-//     let raw_ptr: ThreadSafePtr<LLVMBasicBlockRef> = ThreadSafePtr::new(Some(std::ptr::null_mut()));
+//     let raw_ptr: CPointer<LLVMBasicBlockRef> = CPointer::new(Some(std::ptr::null_mut()));
 
 //     mock_api.expect_get_current_block()
 //             .returning(move |_| raw_ptr.clone());
 
 //     let builder: *mut llvm::LLVMBuilder = std::ptr::null_mut();
-//     let bb: ThreadSafePtr<LLVMBasicBlockRef> = (&mock_api).get_current_block(builder);
+//     let bb: CPointer<LLVMBasicBlockRef> = (&mock_api).get_current_block(builder);
 //     assert!(bb.is_null(), "Expected null pointer return for current block");
 // }
 
 // #[test]
 // fn test_create_cond_br() {
 //     let mut mock_api: MockBlockLLVMApi = MockBlockLLVMApi::new();
-//     let raw_ptr: ThreadSafePtr<LLVMValueRef> = ThreadSafePtr::new(Some(std::ptr::null_mut()));
+//     let raw_ptr: CPointer<LLVMValueRef> = CPointer::new(Some(std::ptr::null_mut()));
 
 //     mock_api.expect_create_cond_br()
 //             .returning(move |_, _, _, _| raw_ptr.clone());
@@ -62,14 +62,14 @@
 //     let condition: LLVMValueRef = std::ptr::null_mut();
 //     let then_bb: LLVMBasicBlockRef = std::ptr::null_mut();
 //     let else_bb: LLVMBasicBlockRef = std::ptr::null_mut();
-//     let bb: ThreadSafePtr<LLVMValueRef> = (&mock_api).create_cond_br(builder, condition, then_bb, else_bb);
+//     let bb: CPointer<LLVMValueRef> = (&mock_api).create_cond_br(builder, condition, then_bb, else_bb);
 //     assert!(bb.is_null(), "Expected null pointer return for conditional branch");
 // }
 
 // #[test]
 // fn test_create_br() {
 //     let mut mock_api = MockBlockLLVMApi::new();
-//     let raw_ptr = ThreadSafePtr::new(Some(std::ptr::null_mut()));
+//     let raw_ptr = CPointer::new(Some(std::ptr::null_mut()));
 
 //     mock_api.expect_create_br()
 //             .returning(move |_, _| raw_ptr.clone());
@@ -83,7 +83,7 @@
 // #[test]
 // fn test_insert_before_basic_block() {
 //     let mut mock_api = MockBlockLLVMApi::new();
-//     let raw_ptr = ThreadSafePtr::new(Some(std::ptr::null_mut()));
+//     let raw_ptr = CPointer::new(Some(std::ptr::null_mut()));
 
 //     mock_api.expect_insert_before_basic_block()
 //             .returning(move |_, _, _| raw_ptr.clone());
@@ -120,7 +120,7 @@
 // #[test]
 // fn test_get_first_instruction() {
 //     let mut mock_api = MockBlockLLVMApi::new();
-//     let raw_ptr = ThreadSafePtr::new(Some(std::ptr::null_mut()));
+//     let raw_ptr = CPointer::new(Some(std::ptr::null_mut()));
 
 //     mock_api.expect_get_first_instruction()
 //             .returning(move |_| raw_ptr.clone());
@@ -133,7 +133,7 @@
 // #[test]
 // fn test_get_last_instruction() {
 //     let mut mock_api = MockBlockLLVMApi::new();
-//     let raw_ptr = ThreadSafePtr::new(Some(std::ptr::null_mut()));
+//     let raw_ptr = CPointer::new(Some(std::ptr::null_mut()));
 
 //     mock_api.expect_get_last_instruction()
 //             .returning(move |_| raw_ptr.clone());
@@ -146,7 +146,7 @@
 // #[test]
 // fn test_create_phi() {
 //     let mut mock_api = MockBlockLLVMApi::new();
-//     let raw_ptr = ThreadSafePtr::new(Some(std::ptr::null_mut()));
+//     let raw_ptr = CPointer::new(Some(std::ptr::null_mut()));
 
 //     let values = &[];
 
