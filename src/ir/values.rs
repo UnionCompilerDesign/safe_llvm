@@ -1,294 +1,384 @@
-// extern crate llvm_sys as llvm;
+extern crate llvm_sys as llvm;
 
-// use llvm::{core, prelude::LLVMValueRef, LLVMBasicBlock, LLVMBuilder, LLVMContext, LLVMModule, LLVMType, LLVMValue};
+use llvm::{core, prelude::LLVMValueRef};
 
-// use std::{ffi::CString, sync::{Arc, Mutex}};
+use std::ffi::CString;
 
-// use crate::memory_management::{pointer::{LLVMRef, LLVMRefType}, resource_pools::{ContextHandle, ResourcePools, ValueHandle}};
+use crate::memory_management::{pointer::{LLVMRef, LLVMRefType}, resource_pools::{BuilderHandle, ContextHandle, ModuleHandle, ResourcePools, TypeHandle, ValueHandle}};
 
-// impl ResourcePools {
-//     /// Creates an integer constant of 64 bits in the specified context.
-//     pub fn create_integer(&mut self, context_handle: ContextHandle, val: i64) -> Option<ValueHandle> {
-//         let context_arc_rwlock = self.get_context(context_handle)?;
-//         let integer_value = {
-//             let context_rwlock = context_arc_rwlock.read().expect("Failed to lock context for reading");
-//             let context_ptr = context_rwlock.read(LLVMRefType::Context, |context_ref| {
-//                 if let LLVMRef::Context(ptr) = context_ref {
-//                     Some(unsafe {
-//                         core::LLVMConstInt(core::LLVMInt64TypeInContext(*ptr), val as u64, 0)
-//                     })
-//                 } else {
-//                     None
-//                 }
-//             })?;
-//             context_ptr
-//         };
+impl ResourcePools {
+    /// Creates an integer constant of 64 bits in the specified context.
+    pub fn create_integer(&mut self, context_handle: ContextHandle, val: i64) -> Option<ValueHandle> {
+        let context_arc_rwlock = self.get_context(context_handle)?;
+        let integer_value = {
+            let context_rwlock = context_arc_rwlock.read().expect("Failed to lock context for reading");
+            let context_ptr = context_rwlock.read(LLVMRefType::Context, |context_ref| {
+                if let LLVMRef::Context(ptr) = context_ref {
+                    Some(unsafe {
+                        core::LLVMConstInt(core::LLVMInt64TypeInContext(*ptr), val as u64, 0)
+                    })
+                } else {
+                    None
+                }
+            })?;
+            context_ptr
+        };
 
-//         if integer_value.is_null() {
-//             None
-//         } else {
-//             self.store_value(integer_value)
-//         }
-//     }
+        if integer_value.is_null() {
+            None
+        } else {
+            self.store_value(integer_value)
+        }
+    }
 
-//     /// Creates a floating-point constant in the specified context.
-//     pub fn create_float(&mut self, context_handle: ContextHandle, val: f64) -> Option<ValueHandle> {
-//         let context_arc_rwlock = self.get_context(context_handle)?;
-//         let float_value = {
-//             let context_rwlock = context_arc_rwlock.read().expect("Failed to lock context for reading");
-//             let context_ptr = context_rwlock.read(LLVMRefType::Context, |context_ref| {
-//                 if let LLVMRef::Context(ptr) = context_ref {
-//                     Some(unsafe { core::LLVMConstReal(core::LLVMDoubleTypeInContext(*ptr), val) })
-//                 } else {
-//                     None
-//                 }
-//             })?;
-//             context_ptr
-//         };
+    /// Creates a floating-point constant in the specified context.
+    pub fn create_float(&mut self, context_handle: ContextHandle, val: f64) -> Option<ValueHandle> {
+        let context_arc_rwlock = self.get_context(context_handle)?;
+        let float_value = {
+            let context_rwlock = context_arc_rwlock.read().expect("Failed to lock context for reading");
+            let context_ptr = context_rwlock.read(LLVMRefType::Context, |context_ref| {
+                if let LLVMRef::Context(ptr) = context_ref {
+                    Some(unsafe { core::LLVMConstReal(core::LLVMDoubleTypeInContext(*ptr), val) })
+                } else {
+                    None
+                }
+            })?;
+            context_ptr
+        };
 
-//         if float_value.is_null() {
-//             None
-//         } else {
-//             self.store_value(float_value)
-//         }
-//     }
+        if float_value.is_null() {
+            None
+        } else {
+            self.store_value(float_value)
+        }
+    }
 
-//     /// Creates a boolean
-//     pub fn create_boolean(&mut self, context_handle: ContextHandle, val: bool) -> Option<ValueHandle> {
-//         let context_arc_rwlock = self.get_context(context_handle)?;
-//         let boolean_value = {
-//             let context_rwlock = context_arc_rwlock.read().expect("Failed to lock context for reading");
-//             let context_ptr = context_rwlock.read(LLVMRefType::Context, |context_ref| {
-//                 if let LLVMRef::Context(ptr) = context_ref {
-//                     Some(unsafe { core::LLVMConstInt(core::LLVMInt1TypeInContext(*ptr), val as u64, 0) })
-//                 } else {
-//                     None
-//                 }
-//             })?;
-//             context_ptr
-//         };
+    /// Creates a boolean
+    pub fn create_boolean(&mut self, context_handle: ContextHandle, val: bool) -> Option<ValueHandle> {
+        let context_arc_rwlock = self.get_context(context_handle)?;
+        let boolean_value = {
+            let context_rwlock = context_arc_rwlock.read().expect("Failed to lock context for reading");
+            let context_ptr = context_rwlock.read(LLVMRefType::Context, |context_ref| {
+                if let LLVMRef::Context(ptr) = context_ref {
+                    Some(unsafe { core::LLVMConstInt(core::LLVMInt1TypeInContext(*ptr), val as u64, 0) })
+                } else {
+                    None
+                }
+            })?;
+            context_ptr
+        };
 
-//         if boolean_value.is_null() {
-//             None
-//         } else {
-//             self.store_value(boolean_value)
-//         }
-//     }
+        if boolean_value.is_null() {
+            None
+        } else {
+            self.store_value(boolean_value)
+        }
+    }
 
+    /// Creates an array
+    pub fn create_array(&mut self, value_handle: ValueHandle, num_elements: u64) -> Option<ValueHandle> {
+        let value_arc_rwlock = self.get_value(value_handle)?;
+        
+        let array_type = unsafe {
+            let value_ptr = value_arc_rwlock.read().expect("Failed to lock value for reading").read(LLVMRefType::Value, |value_ref| {
+                if let LLVMRef::Value(ptr) = value_ref {
+                    Some(*ptr)
+                } else {
+                    None
+                }
+            })?;
 
-//     /// Creates an array
-//     pub fn create_array(pool: &Arc<Mutex<ResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, value_handle: Handle, num_elements: u64) -> Option<Handle> {
-//         let pool_guard = pool.lock().unwrap();
-//         let value = pool_guard.get_value(value_handle)?;
-//         drop(pool_guard);
+            let element_type = core::LLVMTypeOf(value_ptr);
+            let mut values = vec![value_ptr; num_elements as usize];
+            core::LLVMConstArray2(element_type, values.as_mut_ptr(), values.len() as u64)
+        };
 
-//         let array_type = unsafe {
-//             value.read().unwrap().use_ref(|value_ptr| {
-//                 let values = vec![value_ptr; num_elements as usize];
-//                 core::LLVMConstArray2(core::LLVMTypeOf(value_ptr), values.as_ptr() as *mut _, num_elements)
-//             })
-//         };
+        if array_type.is_null() {
+            None
+        } else {
+            self.store_value(array_type)
+        }
+    }
 
-//         if array_type.is_null() {
-//             None
-//         } else {
-//             let mut pool_guard = pool.lock().unwrap();
-//             pool_guard.create_value(array_type)
-//         }
-//     }
+    /// Creates a pointer
+    pub fn create_pointer(&mut self, element_type_handle: TypeHandle) -> Option<ValueHandle> {
+        let element_type_arc_rwlock = self.get_type(element_type_handle)?;
 
-//     /// Creates a pointer
-//     pub fn create_pointer(pool: &Arc<Mutex<ResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, element_type_handle: Handle) -> Option<Handle> {
-//         let pool_guard = pool.lock().unwrap();
-//         let element_type = pool_guard.get_type(element_type_handle)?;
-//         drop(pool_guard);
+        let pointer_type = unsafe {
+            let element_type_ptr = element_type_arc_rwlock.read().expect("Failed to lock type for reading").read(LLVMRefType::Type, |element_type_ref| {
+                if let LLVMRef::Type(ptr) = element_type_ref {
+                    Some(*ptr)
+                } else {
+                    None
+                }
+            })?;
 
-//         let pointer_type = unsafe {
-//             element_type.read().unwrap().use_ref(|element_type_ptr| {
-//                 core::LLVMConstPointerNull(core::LLVMPointerType(element_type_ptr, 0))
-//             })
-//         };
+            core::LLVMConstPointerNull(core::LLVMPointerType(element_type_ptr, 0))
+        };
 
-//         if pointer_type.is_null() {
-//             None
-//         } else {
-//             let mut pool_guard = pool.lock().unwrap();
-//             pool_guard.create_value(pointer_type)
-//         }
-//     }
+        if pointer_type.is_null() {
+            None
+        } else {
+            self.store_value(pointer_type)
+        }
+    }
 
-//     /// Creates a struct
-//     pub fn create_struct(pool: Arc<Mutex<ResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, values: &[Handle], context_handle: Handle, packed: bool) -> Option<Handle> {
-//         let pool_guard = pool.lock().unwrap();
-//         let context = pool_guard.get_context(context_handle)?;
-//         let value_ptrs: Vec<LLVMValueRef> = values.iter().map(|&handle| pool_guard.get_value(handle).unwrap().read().unwrap().use_ref(|ptr| ptr)).collect();
-//         drop(pool_guard);
+    /// Creates a struct
+    pub fn create_struct(
+        &mut self,
+        values: &[ValueHandle],
+        context_handle: ContextHandle,
+        packed: bool
+    ) -> Option<ValueHandle> {
+        let context_arc_rwlock = self.get_context(context_handle)?;
+        let mut value_ptrs: Vec<LLVMValueRef> = values.iter().map(|&handle| {
+            self.get_value(handle).and_then(|value_arc_rwlock| {
+                value_arc_rwlock.read().expect("Failed to lock value for reading").read(LLVMRefType::Value, |value_ref| {
+                if let LLVMRef::Value(ptr) = value_ref {
+                    Some(*ptr)
+                } else {
+                    None
+                }
+            })
+            }).expect("Failed to retrieve value pointer")
+        }).collect();
 
-//         let struct_type = unsafe {
-//             context.read().unwrap().use_ref(|context_ptr| {
-//                 core::LLVMConstStructInContext(context_ptr, value_ptrs.as_ptr() as *mut _, value_ptrs.len() as u32, packed as i32)
-//             })
-//         };
+        let struct_type = unsafe {
+            let context_ptr = context_arc_rwlock.read().expect("Failed to lock context for reading").read(LLVMRefType::Context, |context_ref| {
+                if let LLVMRef::Context(ptr) = context_ref {
+                    Some(*ptr)
+                } else {
+                    None
+                }
+            })?;
+    
+            core::LLVMConstStructInContext(context_ptr, value_ptrs.as_mut_ptr(), value_ptrs.len() as u32, packed as i32)
+        };
+    
+        if struct_type.is_null() {
+            None
+        } else {
+            self.store_value(struct_type)
+        }
+    }
+    
+    /// Creates a global variable
+    pub fn create_global_variable(
+        &mut self,
+        module_handle: ModuleHandle,
+        initializer_handle: ValueHandle,
+        name: &str
+    ) -> Option<ValueHandle> {
+        let module_arc_rwlock = self.get_module(module_handle)?;
+        let initializer_arc_rwlock = self.get_value(initializer_handle)?;
 
-//         if struct_type.is_null() {
-//             None
-//         } else {
-//             let mut pool_guard = pool.lock().unwrap();
-//             pool_guard.create_value(struct_type)
-//         }
-//     }
+        let c_name = CString::new(name).expect("Failed to create CString for global variable name");
 
+        let global_var = unsafe {
+            let module_ptr = module_arc_rwlock.read().expect("Failed to lock module for reading").read(LLVMRefType::Module, |module_ref| {
+                if let LLVMRef::Module(ptr) = module_ref {
+                    Some(*ptr)
+                } else {
+                    None
+                }
+            })?;
 
-//     /// Creates a global variable
-//     pub fn create_global_variable(pool: &Arc<Mutex<ResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, module_handle: Handle, initializer_handle: Handle, name: &str) -> Option<Handle> {
-//         let pool_guard = pool.lock().unwrap();
-//         let module = pool_guard.get_module(module_handle)?;
-//         let initializer = pool_guard.get_value(initializer_handle)?;
-//         drop(pool_guard);
+            let initializer_ptr = initializer_arc_rwlock.read().expect("Failed to lock initializer for reading").read(LLVMRefType::Value, |initializer_ref| {
+                if let LLVMRef::Value(ptr) = initializer_ref {
+                    Some(*ptr)
+                } else {
+                    None
+                }
+            })?;
 
-//         let c_name = CString::new(name).expect("Failed to create global variable name");
+            let global_var = core::LLVMAddGlobal(module_ptr, core::LLVMTypeOf(initializer_ptr), c_name.as_ptr());
+            core::LLVMSetInitializer(global_var, initializer_ptr);
+            global_var
+        };
 
-//         let global_var = unsafe {
-//             module.read().unwrap().use_ref(|module_ptr| {
-//                 initializer.read().unwrap().use_ref(|initializer_ptr| {
-//                     let global_var = core::LLVMAddGlobal(module_ptr, core::LLVMTypeOf(initializer_ptr), c_name.as_ptr());
-//                     core::LLVMSetInitializer(global_var, initializer_ptr);
-//                     global_var
-//                 })
-//             })
-//         };
+        if global_var.is_null() {
+            None
+        } else {
+            self.store_value(global_var)
+        }
+    }
 
-//         if global_var.is_null() {
-//             None
-//         } else {
-//             let mut pool_guard = pool.lock().unwrap();
-//             pool_guard.create_value(global_var)
-//         }
-//     }
+    /// Creates an immutable (global) string
+    pub fn create_string(
+        &mut self,
+        val: &str,
+        builder_handle: BuilderHandle
+    ) -> Option<ValueHandle> {
+        let builder_arc_rwlock = self.get_builder(builder_handle)?;
 
+        let c_val = CString::new(val).expect("Failed to create CString for string value");
+        let c_str_name = CString::new("const_str").expect("Failed to create CString for string name");
 
-//     /// Creates an immutable (global) string
-//     pub fn create_string(pool: &Arc<Mutex<ResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, val: &str, builder_handle: Handle) -> Option<Handle> {
-//         let pool_guard = pool.lock().unwrap();
-//         let builder = pool_guard.get_builder(builder_handle)?;
-//         drop(pool_guard);
+        let builder_ptr_option = builder_arc_rwlock.read()
+            .expect("Failed to lock builder for reading")
+            .read(LLVMRefType::Builder, |builder_ref| {
+                if let LLVMRef::Builder(ptr) = builder_ref {
+                    Some(*ptr) 
+                } else {
+                    None 
+                }
+            });
 
-//         let c_val = CString::new(val).expect("Failed to create string");
-//         let c_str_name = CString::new("const_str").expect("Failed to create string name");
+        if let Some(builder_ptr) = builder_ptr_option {
+            let str_pointer = unsafe {
+                core::LLVMBuildGlobalStringPtr(builder_ptr, c_val.as_ptr(), c_str_name.as_ptr())
+            };
 
-//         let str_pointer = unsafe {
-//             builder.read().unwrap().use_ref(|builder_ptr| {
-//                 core::LLVMBuildGlobalStringPtr(builder_ptr, c_val.as_ptr(), c_str_name.as_ptr())
-//             })
-//         };
+            if !str_pointer.is_null() {
+                return self.store_value(str_pointer);
+            }
+        }
+        
+        None
+    }
 
-//         if str_pointer.is_null() {
-//             None
-//         } else {
-//             let mut pool_guard = pool.lock().unwrap();
-//             pool_guard.create_value(str_pointer)
-//         }
-//     }
+    /// Creates a mutable (local) string
+    pub fn create_mut_string(
+        &mut self,
+        val: &str,
+        context_handle: ContextHandle,
+        builder_handle: BuilderHandle
+    ) -> Option<ValueHandle> {
+        let context_arc_rwlock = self.get_context(context_handle)?;
+        let builder_arc_rwlock = self.get_builder(builder_handle)?;
 
-//     /// Creates a mutable (local) string
-//     pub fn create_mut_string(pool: &Arc<Mutex<ResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, val: &str, context_handle: Handle, builder_handle: Handle) -> Option<Handle> {
-//         let pool_guard = pool.lock().unwrap();
-//         let context = pool_guard.get_context(context_handle)?;
-//         let builder = pool_guard.get_builder(builder_handle)?;
-//         drop(pool_guard);
+        let c_str_name = CString::new("local_str").expect("Failed to create CString for string name");
 
-//         let c_str_name = CString::new("local_str").expect("Failed to create string name");
+        let local_str = unsafe {
+            let context_ptr = context_arc_rwlock.read().expect("Failed to lock context for reading").read(LLVMRefType::Context, |context_ref| {
+                if let LLVMRef::Context(ptr) = context_ref {
+                    Some(*ptr)
+                } else {
+                    None
+                }
+            })?;
 
-//         let local_str = unsafe {
-//             context.read().unwrap().use_ref(|context_ptr| {
-//                 builder.read().unwrap().use_ref(|builder_ptr| {
-//                     let i8_type = core::LLVMInt8TypeInContext(context_ptr);
-//                     let str_type = core::LLVMArrayType2(i8_type, val.len() as u64);
-//                     let local_str = core::LLVMBuildAlloca(builder_ptr, str_type, c_str_name.as_ptr());
+            let builder_ptr = builder_arc_rwlock.read().expect("Failed to lock builder for reading").read(LLVMRefType::Builder, |builder_ref| {
+                if let LLVMRef::Builder(ptr) = builder_ref {
+                    Some(*ptr)
+                } else {
+                    None
+                }
+            })?;
 
-//                     for (i, &byte) in val.as_bytes().iter().enumerate() {
-//                         let index = core::LLVMConstInt(core::LLVMInt32TypeInContext(context_ptr), i as u64, 0);
-//                         let mut indices: [LLVMValueRef; 1] = [index];
-//                         let gep = core::LLVMBuildGEP2(builder_ptr, str_type, local_str, indices.as_mut_ptr(), indices.len() as u32, c_str_name.as_ptr());
-//                         core::LLVMBuildStore(builder_ptr, core::LLVMConstInt(i8_type, byte as u64, 0), gep);
-//                     }
+            let i8_type = core::LLVMInt8TypeInContext(context_ptr);
+            let str_type = core::LLVMArrayType2(i8_type, val.len() as u64);
+            let local_str = core::LLVMBuildAlloca(builder_ptr.clone(), str_type, c_str_name.as_ptr());
 
-//                     local_str
-//                 })
-//             })
-//         };
+            for (i, &byte) in val.as_bytes().iter().enumerate() {
+                let index = core::LLVMConstInt(core::LLVMInt32TypeInContext(context_ptr), i as u64, 0);
+                let mut indices = [index];
+                let gep = core::LLVMBuildGEP2(builder_ptr.clone(), str_type, local_str, indices.as_mut_ptr(), indices.len() as u32, c_str_name.as_ptr());
+                core::LLVMBuildStore(builder_ptr.clone(), core::LLVMConstInt(i8_type, byte as u64, 0), gep);
+            }
 
-//         if local_str.is_null() {
-//             None
-//         } else {
-//             let mut pool_guard = pool.lock().unwrap();
-//             pool_guard.create_value(local_str)
-//         }
-//     }
+            local_str
+        };
 
-//     /// Creates a null pointer
-//     pub fn create_null_pointer(pool: &Arc<Mutex<ResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, ty_handle: Handle) -> Option<Handle> {
-//         let pool_guard = pool.lock().unwrap();
-//         let ty = pool_guard.get_type(ty_handle)?;
-//         drop(pool_guard);
+        if local_str.is_null() {
+            None
+        } else {
+            self.store_value(local_str)
+        }
+    }
 
-//         let null_pointer = unsafe {
-//             ty.read().unwrap().use_ref(|ty_ptr| {
-//                 core::LLVMConstPointerNull(ty_ptr)
-//             })
-//         };
+    /// Creates a null pointer
+    pub fn create_null_pointer(&mut self, ty_handle: TypeHandle) -> Option<ValueHandle> {
+        let ty_arc_rwlock = self.get_type(ty_handle)?;
 
-//         if null_pointer.is_null() {
-//             None
-//         } else {
-//             let mut pool_guard = pool.lock().unwrap();
-//             pool_guard.create_value(null_pointer)
-//         }
-//     }
+        let null_pointer = unsafe {
+            let ty_ptr = ty_arc_rwlock.read().expect("Failed to lock type for reading").read(LLVMRefType::Type, |ty_ref| {
+                if let LLVMRef::Type(ptr) = ty_ref {
+                    Some(*ptr)
+                } else {
+                    None
+                }
+            })?;
 
-//     /// Creates a continue statement
-//     pub fn create_continue_statement(pool: &Arc<Mutex<ResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, builder_handle: Handle, continue_block_handle: Handle) -> Option<Handle> {
-//         let pool_guard = pool.lock().unwrap();
-//         let builder = pool_guard.get_builder(builder_handle)?;
-//         let continue_block = pool_guard.get_basic_block(continue_block_handle)?;
-//         drop(pool_guard);
+            core::LLVMConstPointerNull(ty_ptr)
+        };
 
-//         let continue_statement = unsafe {
-//             builder.read().unwrap().use_ref(|builder_ptr| {
-//                 continue_block.read().unwrap().use_ref(|continue_block_ptr| {
-//                     core::LLVMBuildBr(builder_ptr, continue_block_ptr)
-//                 })
-//             })
-//         };
+        if null_pointer.is_null() {
+            None
+        } else {
+            self.store_value(null_pointer)
+        }
+    }
 
-//         if continue_statement.is_null() {
-//             None
-//         } else {
-//             let mut pool_guard = pool.lock().unwrap();
-//             pool_guard.create_value(continue_statement)
-//         }
-//     }
+    /// Creates a continue statement
+    pub fn create_continue_statement(
+        &mut self,
+        builder_handle: BuilderHandle,
+        continue_block_handle: ValueHandle
+    ) -> Option<ValueHandle> {
+        let builder_arc_rwlock = self.get_builder(builder_handle)?;
+        let continue_block_arc_rwlock = self.get_value(continue_block_handle)?;
 
-//     /// Creates a break statement
-//     pub fn create_break_statement(pool: &Arc<Mutex<ResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>>, builder_handle: Handle, break_block_handle: Handle) -> Option<Handle> {
-//         let pool_guard = pool.lock().unwrap();
-//         let builder = pool_guard.get_builder(builder_handle)?;
-//         let break_block = pool_guard.get_basic_block(break_block_handle)?;
-//         drop(pool_guard);
+        let continue_statement = unsafe {
+            let builder_ptr = builder_arc_rwlock.read().expect("Failed to lock builder for reading").read(LLVMRefType::Builder, |builder_ref| {
+                if let LLVMRef::Builder(ptr) = builder_ref {
+                    Some(*ptr)
+                } else {
+                    None
+                }
+            })?;
 
-//         let break_statement = unsafe {
-//             builder.read().unwrap().use_ref(|builder_ptr| {
-//                 break_block.read().unwrap().use_ref(|break_block_ptr| {
-//                     core::LLVMBuildBr(builder_ptr, break_block_ptr)
-//                 })
-//             })
-//         };
+            let continue_block_ptr = continue_block_arc_rwlock.read().expect("Failed to lock continue block for reading").read(LLVMRefType::Value, |continue_block_ref| {
+                if let LLVMRef::BasicBlock(ptr) = continue_block_ref {
+                    Some(*ptr)
+                } else {
+                    None
+                }
+            })?;
 
-//         if break_statement.is_null() {
-//             None
-//         } else {
-//             let mut pool_guard = pool.lock().unwrap();
-//             pool_guard.create_value(break_statement)
-//         }
-//     }
-// }
+            Some(core::LLVMBuildBr(builder_ptr, continue_block_ptr))
+        };
+
+        if let Some(continue_statement) = continue_statement {
+            self.store_value(continue_statement)
+        } else {
+            None
+        }
+    }
+
+    /// Creates a break statement
+    pub fn create_break_statement(
+        &mut self,
+        builder_handle: BuilderHandle,
+        break_block_handle: ValueHandle
+    ) -> Option<ValueHandle> {
+        let builder_arc_rwlock = self.get_builder(builder_handle)?;
+        let break_block_arc_rwlock = self.get_value(break_block_handle)?;
+
+        let break_statement = unsafe {
+            let builder_ptr = builder_arc_rwlock.read().expect("Failed to lock builder for reading").read(LLVMRefType::Builder, |builder_ref| {
+                if let LLVMRef::Builder(ptr) = builder_ref {
+                    Some(*ptr)
+                } else {
+                    None
+                }
+            })?;
+
+            let break_block_ptr = break_block_arc_rwlock.read().expect("Failed to lock break block for reading").read(LLVMRefType::Value, |break_block_ref| {
+                if let LLVMRef::BasicBlock(ptr) = break_block_ref {
+                    Some(*ptr)
+                } else {
+                    None
+                }
+            })?;
+
+            Some(core::LLVMBuildBr(builder_ptr, break_block_ptr))
+        };
+
+        if let Some(break_statement) = break_statement {
+            self.store_value(break_statement)
+        } else {
+            None
+        }
+    }
+}
