@@ -2,12 +2,12 @@ extern crate llvm_sys as llvm;
 
 use llvm::{core, prelude::{LLVMBuilderRef, LLVMTypeRef}};
 
-use crate::memory_management::{resource_pools::{ResourcePools, ContextHandle, BuilderHandle, TypeHandle}, pointer::{LLVMRef, LLVMRefType}};
+use crate::memory_management::{resource_pools::{ResourcePools, ContextTag, BuilderTag, TypeTag}, pointer::{LLVMRef, LLVMRefType}};
 
 impl ResourcePools {
     /// Allocates a builder in a specified context and stores it in the resource pool.
-    pub fn allocate_builder(&mut self, context_handle: ContextHandle) -> Option<BuilderHandle> {
-        let context_arc_rwlock = self.get_context(context_handle)?;
+    pub fn allocate_builder(&mut self, context_tag: ContextTag) -> Option<BuilderTag> {
+        let context_arc_rwlock = self.get_context(context_tag)?;
 
         let builder_ptr: LLVMBuilderRef = unsafe {
             let context_rwlock = context_arc_rwlock.read().expect("Failed to lock context for reading");
@@ -32,12 +32,12 @@ impl ResourcePools {
     /// Allocates a function with specified return and parameter types in a given context, then stores it in the resource pool.
     pub fn allocate_function(
         &mut self,
-        return_type_handle: Option<TypeHandle>,
-        param_type_handles: &[TypeHandle],
+        return_type_tag: Option<TypeTag>,
+        param_type_tags: &[TypeTag],
         is_var_arg: bool,
-        context_handle: ContextHandle,
-    ) -> Option<TypeHandle> {
-        let context_arc_rwlock = self.get_context(context_handle)?;
+        context_tag: ContextTag,
+    ) -> Option<TypeTag> {
+        let context_arc_rwlock = self.get_context(context_tag)?;
 
         let context_ptr = context_arc_rwlock.read().expect("Failed to lock context for reading").read(LLVMRefType::Context, |context_ref| {
             if let LLVMRef::Context(ptr) = context_ref {
@@ -47,8 +47,8 @@ impl ResourcePools {
             }
         })?;
 
-        let llvm_return_type = return_type_handle.map_or_else(|| unsafe { core::LLVMVoidTypeInContext(context_ptr) }, |handle| {
-            let type_arc_rwlock = self.get_type(handle).expect("Failed to get type");
+        let llvm_return_type = return_type_tag.map_or_else(|| unsafe { core::LLVMVoidTypeInContext(context_ptr) }, |tag| {
+            let type_arc_rwlock = self.get_type(tag).expect("Failed to get type");
             let ptr = type_arc_rwlock.read().expect("Failed to lock type for reading").read(LLVMRefType::Type, |type_ref| {
                 if let LLVMRef::Type(ptr) = type_ref {
                     Some(*ptr)
@@ -60,8 +60,8 @@ impl ResourcePools {
         });
 
         let mut llvm_param_types: Vec<LLVMTypeRef> = Vec::new();
-        for handle in param_type_handles {
-            let type_arc_rwlock = self.get_type(*handle)?;
+        for tag in param_type_tags {
+            let type_arc_rwlock = self.get_type(*tag)?;
             let type_ptr = type_arc_rwlock.read().expect("Failed to lock type for reading").read(LLVMRefType::Type, |type_ref| {
                 if let LLVMRef::Type(ptr) = type_ref {
                     Some(*ptr)

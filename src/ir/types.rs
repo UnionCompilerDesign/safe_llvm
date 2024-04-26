@@ -2,12 +2,12 @@ extern crate llvm_sys as llvm;
 
 use llvm::core;
 
-use crate::memory_management::{pointer::{LLVMRef, LLVMRefType}, resource_pools::{BuilderHandle, ContextHandle, ResourcePools, TypeHandle, ValueHandle}};
+use crate::memory_management::{pointer::{LLVMRef, LLVMRefType}, resource_pools::{BuilderTag, ContextTag, ResourcePools, TypeTag, ValueTag}};
 
 impl ResourcePools {
     /// Returns the LLVM type for void in a given context.
-    pub fn void_type(&mut self, context_handle: ContextHandle) -> Option<TypeHandle> {
-        let context_arc_rwlock = self.get_context(context_handle)?;
+    pub fn void_type(&mut self, context_tag: ContextTag) -> Option<TypeTag> {
+        let context_arc_rwlock = self.get_context(context_tag)?;
         let void_type = {
             let context_rwlock = context_arc_rwlock.read().expect("Failed to lock context for reading");
             let context_ptr = context_rwlock.read(LLVMRefType::Context, |context_ref| {
@@ -28,8 +28,8 @@ impl ResourcePools {
     }
 
     /// Returns the LLVM type for integers of specified bit width in a given context.
-    pub fn int_type(&mut self, context_handle: ContextHandle, bits: u32) -> Option<TypeHandle> {
-        let context_arc_rwlock = self.get_context(context_handle)?;
+    pub fn int_type(&mut self, context_tag: ContextTag, bits: u32) -> Option<TypeTag> {
+        let context_arc_rwlock = self.get_context(context_tag)?;
         let int_type = {
             let context_rwlock = context_arc_rwlock.read().expect("Failed to lock context for reading");
             let context_ptr = context_rwlock.read(LLVMRefType::Context, |context_ref| {
@@ -50,8 +50,8 @@ impl ResourcePools {
     }
 
     /// Returns the LLVM type for float in a given context.
-    pub fn float_type(&mut self, context_handle: ContextHandle) -> Option<TypeHandle> {
-        let context_arc_rwlock = self.get_context(context_handle)?;
+    pub fn float_type(&mut self, context_tag: ContextTag) -> Option<TypeTag> {
+        let context_arc_rwlock = self.get_context(context_tag)?;
         let float_type = {
             let context_rwlock = context_arc_rwlock.read().expect("Failed to lock context for reading");
             let context_ptr = context_rwlock.read(LLVMRefType::Context, |context_ref| {
@@ -72,8 +72,8 @@ impl ResourcePools {
     }
 
     /// Returns the LLVM type for boolean in a given context.
-    pub fn boolean_type(&mut self, context_handle: ContextHandle) -> Option<TypeHandle> {
-        let context_arc_rwlock = self.get_context(context_handle)?;
+    pub fn boolean_type(&mut self, context_tag: ContextTag) -> Option<TypeTag> {
+        let context_arc_rwlock = self.get_context(context_tag)?;
         let boolean_type = {
             let context_rwlock = context_arc_rwlock.read().expect("Failed to lock context for reading");
             let context_ptr = context_rwlock.read(LLVMRefType::Context, |context_ref| {
@@ -94,8 +94,8 @@ impl ResourcePools {
     }
 
     /// Returns the LLVM pointer type for a given element type.
-    pub fn pointer_type(&mut self, element_type_handle: TypeHandle) -> Option<TypeHandle> {
-        let element_type_arc_rwlock = self.get_type(element_type_handle)?;
+    pub fn pointer_type(&mut self, element_type_tag: TypeTag) -> Option<TypeTag> {
+        let element_type_arc_rwlock = self.get_type(element_type_tag)?;
         let pointer_type = {
             let element_type_rwlock = element_type_arc_rwlock.read().expect("Failed to lock type for reading");
             let element_type_ptr = element_type_rwlock.read(LLVMRefType::Type, |type_ref| {
@@ -116,8 +116,8 @@ impl ResourcePools {
     }
 
     /// Returns the LLVM array type for a given element type and number of elements.
-    pub fn array_type(&mut self, element_type_handle: TypeHandle, num_elements: u64) -> Option<TypeHandle> {
-        let element_type_arc_rwlock = self.get_type(element_type_handle)?;
+    pub fn array_type(&mut self, element_type_tag: TypeTag, num_elements: u64) -> Option<TypeTag> {
+        let element_type_arc_rwlock = self.get_type(element_type_tag)?;
         let array_type = {
             let element_type_rwlock = element_type_arc_rwlock.read().expect("Failed to lock type for reading");
             let element_type_ptr = element_type_rwlock.read(LLVMRefType::Type, |type_ref| {
@@ -138,12 +138,12 @@ impl ResourcePools {
     }
 
     /// Returns the LLVM struct type for a given set of element types.
-    pub fn struct_type(&mut self, context_handle: ContextHandle, element_type_handles: &[TypeHandle], packed: bool) -> Option<TypeHandle> {
-        let context_arc_rwlock = self.get_context(context_handle)?;
+    pub fn struct_type(&mut self, context_tag: ContextTag, element_type_tags: &[TypeTag], packed: bool) -> Option<TypeTag> {
+        let context_arc_rwlock = self.get_context(context_tag)?;
         let mut element_types = {
             let mut types = Vec::new();
-            for &handle in element_type_handles {
-                let element_type_arc_rwlock = self.get_type(handle)?;
+            for &tag in element_type_tags {
+                let element_type_arc_rwlock = self.get_type(tag)?;
                 let element_type = {
                     let element_type_rwlock = element_type_arc_rwlock.read().expect("Failed to lock element type for reading");
                     element_type_rwlock.read(LLVMRefType::Type, |type_ref| {
@@ -179,8 +179,8 @@ impl ResourcePools {
     }
 
     /// Builds a void return instruction in the current function.
-    pub fn void_return(&mut self, builder_handle: BuilderHandle) -> Option<ValueHandle> {
-        let builder_arc_rwlock = self.get_builder(builder_handle)?;
+    pub fn void_return(&mut self, builder_tag: BuilderTag) -> Option<ValueTag> {
+        let builder_arc_rwlock = self.get_builder(builder_tag)?;
         let void_return_inst = {
             let builder_rwlock = builder_arc_rwlock.read().expect("Failed to lock builder for reading");
             let builder_ptr = builder_rwlock.read(LLVMRefType::Builder, |builder_ref| {
@@ -201,9 +201,9 @@ impl ResourcePools {
     }
 
     /// Builds a return instruction with a specified value.
-    pub fn nonvoid_return(&mut self, builder_handle: BuilderHandle, value_handle: ValueHandle) -> Option<ValueHandle> {
-        let builder_arc_rwlock = self.get_builder(builder_handle)?;
-        let value_arc_rwlock = self.get_value(value_handle)?;
+    pub fn nonvoid_return(&mut self, builder_tag: BuilderTag, value_tag: ValueTag) -> Option<ValueTag> {
+        let builder_arc_rwlock = self.get_builder(builder_tag)?;
+        let value_arc_rwlock = self.get_value(value_tag)?;
 
         let nonvoid_return_inst = {
             let builder_rwlock = builder_arc_rwlock.read().expect("Failed to lock builder for reading");

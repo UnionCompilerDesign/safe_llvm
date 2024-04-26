@@ -6,20 +6,20 @@ use std::ffi::CString;
 
 use crate::memory_management::{
     pointer::{LLVMRef, LLVMRefType}, 
-    resource_pools::{BuilderHandle, ResourcePools, TypeHandle, ValueHandle}
+    resource_pools::{BuilderTag, ResourcePools, TypeTag, ValueTag}
 };
 
 impl ResourcePools {
     /// Initializes a variable
     pub fn init_var(
         &mut self,
-        builder_handle: BuilderHandle, 
+        builder_tag: BuilderTag, 
         var_name: &str, 
-        data_type_handle: TypeHandle, 
-        initial_value_handle: Option<ValueHandle>
-    ) -> Option<ValueHandle> {
-        let builder_arc_rwlock = self.get_builder(builder_handle)?;
-        let data_type_arc_rwlock = self.get_type(data_type_handle)?;
+        data_type_tag: TypeTag, 
+        initial_value_tag: Option<ValueTag>
+    ) -> Option<ValueTag> {
+        let builder_arc_rwlock = self.get_builder(builder_tag)?;
+        let data_type_arc_rwlock = self.get_type(data_type_tag)?;
 
         let var_name_cstr = CString::new(var_name).expect("Failed to create CString from var_name");
 
@@ -46,10 +46,10 @@ impl ResourcePools {
         if alloca.is_null() {
             None
         } else {
-            let alloca_handle = self.store_value(alloca)?;
+            let alloca_tag = self.store_value(alloca)?;
 
-            if let Some(value_handle) = initial_value_handle {
-                let value_arc_rwlock = self.get_value(value_handle)?;
+            if let Some(value_tag) = initial_value_tag {
+                let value_arc_rwlock = self.get_value(value_tag)?;
                 unsafe {
                     let value_ptr = value_arc_rwlock.read().expect("Failed to lock value for reading").read(LLVMRefType::Value, |value_ref| {
                         if let LLVMRef::Value(ptr) = value_ref {
@@ -70,20 +70,20 @@ impl ResourcePools {
                 }
             }
 
-            Some(alloca_handle)
+            Some(alloca_tag)
         }
     }
 
     /// Reassigns a variable
     pub fn reassign_var(
         &mut self,
-        builder_handle: BuilderHandle, 
-        variable_alloc_handle: ValueHandle, 
-        new_value_handle: ValueHandle
+        builder_tag: BuilderTag, 
+        variable_alloc_tag: ValueTag, 
+        new_value_tag: ValueTag
     ) -> Option<()> {
-        let builder_arc_rwlock = self.get_builder(builder_handle)?;
-        let variable_alloc_arc_rwlock = self.get_value(variable_alloc_handle)?;
-        let new_value_arc_rwlock = self.get_value(new_value_handle)?;
+        let builder_arc_rwlock = self.get_builder(builder_tag)?;
+        let variable_alloc_arc_rwlock = self.get_value(variable_alloc_tag)?;
+        let new_value_arc_rwlock = self.get_value(new_value_tag)?;
 
         unsafe {
             let builder_ptr = builder_arc_rwlock.read().expect("Failed to lock builder for reading").read(LLVMRefType::Builder, |builder_ref| {
@@ -119,13 +119,13 @@ impl ResourcePools {
     /// Gets a variable
     pub fn get_var(
         &mut self,
-        builder_handle: BuilderHandle, 
-        variable_type_handle: TypeHandle, 
-        variable_alloc_handle: ValueHandle
-    ) -> Option<ValueHandle> {
-        let builder_arc_rwlock = self.get_builder(builder_handle)?;
-        let variable_type_arc_rwlock = self.get_type(variable_type_handle)?;
-        let variable_alloc_arc_rwlock = self.get_value(variable_alloc_handle)?;
+        builder_tag: BuilderTag, 
+        variable_type_tag: TypeTag, 
+        variable_alloc_tag: ValueTag
+    ) -> Option<ValueTag> {
+        let builder_arc_rwlock = self.get_builder(builder_tag)?;
+        let variable_type_arc_rwlock = self.get_type(variable_type_tag)?;
+        let variable_alloc_arc_rwlock = self.get_value(variable_alloc_tag)?;
 
         let tmp_load_cstr = CString::new("tmpload").expect("Failed to create CString for tmpload");
 
