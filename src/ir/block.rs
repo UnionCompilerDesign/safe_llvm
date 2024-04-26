@@ -6,9 +6,55 @@ use std::ffi::CString;
 
 use crate::memory_management::{ 
     pointer::{LLVMRef, LLVMRefType}, 
-    resource_pools::{BasicBlockTag, BuilderTag, ContextTag, ResourcePools, ValueTag}};
+    resource_pools::{BasicBlockTag, BuilderTag, ContextTag, ResourcePools, ValueTag}
+};
 
 impl ResourcePools {
+    /// Creates a basic block in the specified function and context.
+    pub fn create_basic_block(
+        &mut self,
+        context_tag: ContextTag,
+        function_tag: ValueTag,
+        name: &str
+    ) -> Option<BasicBlockTag> {
+        let context_arc_rwlock = self.get_context(context_tag)?;
+        let function_arc_rwlock = self.get_value(function_tag)?;
+
+        let context_ptr: LLVMContextRef = {
+            let context_rwlock = context_arc_rwlock.read().expect("Failed to lock context for reading");
+            let context_ref = context_rwlock.read(LLVMRefType::Context, |context_ref| {
+                match context_ref {
+                    LLVMRef::Context(ptr) => Some(*ptr),
+                    _ => None
+                }
+            })?;
+            context_ref
+        };
+    
+        let function_ptr: LLVMValueRef = {
+            let function_rwlock = function_arc_rwlock.read().expect("Failed to lock function for reading");
+            let function_ref = function_rwlock.read(LLVMRefType::Value, |function_ref| {
+                match function_ref {
+                    LLVMRef::Value(ptr) => Some(*ptr),
+                    _ => None
+                }
+            })?;
+            function_ref
+        };
+    
+        // Create the basic block
+        let c_name = CString::new(name).expect("Failed to create CString");
+        let basic_block = unsafe {
+            core::LLVMAppendBasicBlockInContext(context_ptr, function_ptr, c_name.as_ptr())
+        };
+    
+        if !basic_block.is_null() {
+            self.store_basic_block(basic_block)
+        } else {
+            None
+        }
+    }
+
     /// Inserts a basic block before the specified target block in the given context.
     pub fn insert_before_basic_block(&mut self, context_tag: ContextTag, before_target_tag: BasicBlockTag, name: &str) -> Option<BasicBlockTag> {
         let context_arc_rwlock = self.get_context(context_tag)?;
