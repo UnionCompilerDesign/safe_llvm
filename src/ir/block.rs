@@ -6,13 +6,13 @@ use std::ffi::CString;
 
 use crate::memory_management::{ 
     pointer::{LLVMRef, LLVMRefType}, 
-    resource_pools::{BasicBlockHandle, BuilderHandle, ContextHandle, ResourcePools, ValueHandle}};
+    resource_pools::{BasicBlockTag, BuilderTag, ContextTag, ResourcePools, ValueTag}};
 
 impl ResourcePools {
     /// Inserts a basic block before the specified target block in the given context.
-    pub fn insert_before_basic_block(&mut self, context_handle: ContextHandle, before_target_handle: BasicBlockHandle, name: &str) -> Option<BasicBlockHandle> {
-        let context_arc_rwlock = self.get_context(context_handle)?;
-        let before_target_arc_rwlock = self.get_basic_block(before_target_handle)?;
+    pub fn insert_before_basic_block(&mut self, context_tag: ContextTag, before_target_tag: BasicBlockTag, name: &str) -> Option<BasicBlockTag> {
+        let context_arc_rwlock = self.get_context(context_tag)?;
+        let before_target_arc_rwlock = self.get_basic_block(before_target_tag)?;
 
         let context_ptr: LLVMContextRef = {
             let context_rwlock = context_arc_rwlock.read().expect("Failed to lock context for reading");
@@ -50,8 +50,8 @@ impl ResourcePools {
     }
 
     /// Retrieves the current insertion block. 
-    pub fn get_current_block(&mut self, builder_handle: BuilderHandle) -> Option<BasicBlockHandle> {
-        let builder_arc_rwlock = self.get_builder(builder_handle)?;
+    pub fn get_current_block(&mut self, builder_tag: BuilderTag) -> Option<BasicBlockTag> {
+        let builder_arc_rwlock = self.get_builder(builder_tag)?;
 
         let builder_ptr: LLVMBuilderRef = {
             let builder_rwlock = builder_arc_rwlock.read().expect("Failed to lock builder for reading");
@@ -76,11 +76,11 @@ impl ResourcePools {
     }
     
     /// Creates a conditional branch to two different blocks. 
-    pub fn create_cond_br(&mut self, builder_handle: BuilderHandle, condition_handle: ValueHandle, then_bb_handle: BasicBlockHandle, else_bb_handle: BasicBlockHandle) -> Option<ValueHandle> {
-        let builder_arc_rwlock = self.get_builder(builder_handle)?;
-        let condition_arc_rwlock = self.get_value(condition_handle)?;
-        let then_bb_arc_rwlock = self.get_basic_block(then_bb_handle)?;
-        let else_bb_arc_rwlock = self.get_basic_block(else_bb_handle)?;
+    pub fn create_cond_br(&mut self, builder_tag: BuilderTag, condition_tag: ValueTag, then_bb_tag: BasicBlockTag, else_bb_tag: BasicBlockTag) -> Option<ValueTag> {
+        let builder_arc_rwlock = self.get_builder(builder_tag)?;
+        let condition_arc_rwlock = self.get_value(condition_tag)?;
+        let then_bb_arc_rwlock = self.get_basic_block(then_bb_tag)?;
+        let else_bb_arc_rwlock = self.get_basic_block(else_bb_tag)?;
 
         let builder_ptr: LLVMBuilderRef = {
             let builder_rwlock = builder_arc_rwlock.read().expect("Failed to lock builder for reading");
@@ -138,9 +138,9 @@ impl ResourcePools {
     }
 
     /// Creates an unconditional branch instruction to a target block. 
-    pub fn create_br(&mut self, builder_handle: BuilderHandle, target_bb_handle: BasicBlockHandle) -> Option<ValueHandle> {
-        let builder_arc_rwlock = self.get_builder(builder_handle)?;
-        let target_bb_arc_rwlock = self.get_basic_block(target_bb_handle)?;
+    pub fn create_br(&mut self, builder_tag: BuilderTag, target_bb_tag: BasicBlockTag) -> Option<ValueTag> {
+        let builder_arc_rwlock = self.get_builder(builder_tag)?;
+        let target_bb_arc_rwlock = self.get_basic_block(target_bb_tag)?;
 
         let builder_ptr: LLVMBuilderRef = {
             let builder_rwlock = builder_arc_rwlock.read().expect("Failed to lock builder for reading");
@@ -176,9 +176,9 @@ impl ResourcePools {
     }
     
     /// Positions the builder at the end of a block
-    pub fn position_builder(&mut self, builder_handle: BuilderHandle, bb_handle: BasicBlockHandle) -> Option<()> {
-        let builder_arc_rwlock = self.get_builder(builder_handle)?;
-        let bb_arc_rwlock = self.get_basic_block(bb_handle)?;
+    pub fn position_builder(&mut self, builder_tag: BuilderTag, bb_tag: BasicBlockTag) -> Option<()> {
+        let builder_arc_rwlock = self.get_builder(builder_tag)?;
+        let bb_arc_rwlock = self.get_basic_block(bb_tag)?;
 
         let builder_ptr: LLVMBuilderRef = {
             let builder_rwlock = builder_arc_rwlock.read().expect("Failed to lock builder for reading");
@@ -210,8 +210,8 @@ impl ResourcePools {
     }
 
     /// Deletes a specified block.
-    pub fn delete_basic_block(&mut self, bb_handle: BasicBlockHandle) -> Option<()> {
-        let bb_arc_rwlock = self.get_basic_block(bb_handle)?;
+    pub fn delete_basic_block(&mut self, bb_tag: BasicBlockTag) -> Option<()> {
+        let bb_arc_rwlock = self.get_basic_block(bb_tag)?;
 
         let bb_ptr: LLVMBasicBlockRef = {
             let bb_rwlock = bb_arc_rwlock.read().expect("Failed to lock basic block for reading");
@@ -232,8 +232,8 @@ impl ResourcePools {
     }
 
     /// Retrieves the first instruction in a target block. 
-    pub fn get_first_instruction(&mut self, bb_handle: BasicBlockHandle) -> Option<ValueHandle> {
-        let bb_arc_rwlock = self.get_basic_block(bb_handle)?;
+    pub fn get_first_instruction(&mut self, bb_tag: BasicBlockTag) -> Option<ValueTag> {
+        let bb_arc_rwlock = self.get_basic_block(bb_tag)?;
 
         let bb_ptr: LLVMBasicBlockRef = {
             let bb_rwlock = bb_arc_rwlock.read().expect("Failed to lock basic block for reading");
@@ -258,8 +258,8 @@ impl ResourcePools {
     }
 
     /// Retrieves the last instruction in a target block. 
-    pub fn get_last_instruction(&mut self, bb_handle: BasicBlockHandle) -> Option<ValueHandle> {
-        let bb_arc_rwlock = self.get_basic_block(bb_handle)?;
+    pub fn get_last_instruction(&mut self, bb_tag: BasicBlockTag) -> Option<ValueTag> {
+        let bb_arc_rwlock = self.get_basic_block(bb_tag)?;
 
         let bb_ptr: LLVMBasicBlockRef = {
             let bb_rwlock = bb_arc_rwlock.read().expect("Failed to lock basic block for reading");
@@ -284,8 +284,8 @@ impl ResourcePools {
     }
 
     // /// Creates a PHI node in the specified basic block
-    // pub fn create_phi(&mut self, builder_handle: BuilderHandle, possible_values: &[(ValueHandle, BasicBlockHandle)], name: &str) -> Option<ValueHandle> {
-    //     let builder_arc_rwlock = self.get_builder(builder_handle)?;
+    // pub fn create_phi(&mut self, builder_tag: BuilderTag, possible_values: &[(ValueTag, BasicBlockTag)], name: &str) -> Option<ValueTag> {
+    //     let builder_arc_rwlock = self.get_builder(builder_tag)?;
     //     let builder_ptr: LLVMBuilderRef = unsafe {
     //         let builder_rwlock = builder_arc_rwlock.read().expect("Failed to lock builder for reading");
     //         let builder_ref = builder_rwlock.read(LLVMRefType::Builder, |builder_ref| {
@@ -298,8 +298,8 @@ impl ResourcePools {
     //         builder_ref
     //     };
 
-    //     let first_value_handle = possible_values.get(0).map(|(val_handle, _)| *val_handle).expect("No values provided for PHI node");
-    //     let first_value_arc_rwlock = self.get_value(first_value_handle)?;
+    //     let first_value_tag = possible_values.get(0).map(|(val_tag, _)| *val_tag).expect("No values provided for PHI node");
+    //     let first_value_arc_rwlock = self.get_value(first_value_tag)?;
     //     let phi_type = unsafe {
     //         let first_value_rwlock = first_value_arc_rwlock.read().expect("Failed to lock value for reading");
     //         let first_value_ref = first_value_rwlock.read(LLVMRefType::Value, |value_ref| {
@@ -323,8 +323,8 @@ impl ResourcePools {
     //     } else {
     //         let mut values = Vec::new();
     //         let mut blocks = Vec::new();
-    //         for &(val_handle, block_handle) in possible_values {
-    //             let value_ptr = self.get_value(val_handle)?.read(LLVMRefType::Value, |value_ref| {
+    //         for &(val_tag, block_tag) in possible_values {
+    //             let value_ptr = self.get_value(val_tag)?.read(LLVMRefType::Value, |value_ref| {
     //                 if let LLVMRef::Value(ptr) = value_ref {
     //                     Some(unsafe { *ptr })
     //                 } else {
@@ -332,7 +332,7 @@ impl ResourcePools {
     //                 }
     //             })?;
 
-    //             let block_ptr = self.get_basic_block(block_handle)?.read(LLVMRefType::BasicBlock, |block_ref| {
+    //             let block_ptr = self.get_basic_block(block_tag)?.read(LLVMRefType::BasicBlock, |block_ref| {
     //                 if let LLVMRef::BasicBlock(ptr) = block_ref {
     //                     Some(unsafe { *ptr })
     //                 } else {

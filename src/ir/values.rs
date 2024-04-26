@@ -4,12 +4,12 @@ use llvm::{core, prelude::LLVMValueRef};
 
 use std::ffi::CString;
 
-use crate::memory_management::{pointer::{LLVMRef, LLVMRefType}, resource_pools::{BuilderHandle, ContextHandle, ModuleHandle, ResourcePools, TypeHandle, ValueHandle}};
+use crate::memory_management::{pointer::{LLVMRef, LLVMRefType}, resource_pools::{BuilderTag, ContextTag, ModuleTag, ResourcePools, TypeTag, ValueTag}};
 
 impl ResourcePools {
     /// Creates an integer constant of 64 bits in the specified context.
-    pub fn create_integer(&mut self, context_handle: ContextHandle, val: i64) -> Option<ValueHandle> {
-        let context_arc_rwlock = self.get_context(context_handle)?;
+    pub fn create_integer(&mut self, context_tag: ContextTag, val: i64) -> Option<ValueTag> {
+        let context_arc_rwlock = self.get_context(context_tag)?;
         let integer_value = {
             let context_rwlock = context_arc_rwlock.read().expect("Failed to lock context for reading");
             let context_ptr = context_rwlock.read(LLVMRefType::Context, |context_ref| {
@@ -32,8 +32,8 @@ impl ResourcePools {
     }
 
     /// Creates a floating-point constant in the specified context.
-    pub fn create_float(&mut self, context_handle: ContextHandle, val: f64) -> Option<ValueHandle> {
-        let context_arc_rwlock = self.get_context(context_handle)?;
+    pub fn create_float(&mut self, context_tag: ContextTag, val: f64) -> Option<ValueTag> {
+        let context_arc_rwlock = self.get_context(context_tag)?;
         let float_value = {
             let context_rwlock = context_arc_rwlock.read().expect("Failed to lock context for reading");
             let context_ptr = context_rwlock.read(LLVMRefType::Context, |context_ref| {
@@ -54,8 +54,8 @@ impl ResourcePools {
     }
 
     /// Creates a boolean
-    pub fn create_boolean(&mut self, context_handle: ContextHandle, val: bool) -> Option<ValueHandle> {
-        let context_arc_rwlock = self.get_context(context_handle)?;
+    pub fn create_boolean(&mut self, context_tag: ContextTag, val: bool) -> Option<ValueTag> {
+        let context_arc_rwlock = self.get_context(context_tag)?;
         let boolean_value = {
             let context_rwlock = context_arc_rwlock.read().expect("Failed to lock context for reading");
             let context_ptr = context_rwlock.read(LLVMRefType::Context, |context_ref| {
@@ -76,8 +76,8 @@ impl ResourcePools {
     }
 
     /// Creates an array
-    pub fn create_array(&mut self, value_handle: ValueHandle, num_elements: u64) -> Option<ValueHandle> {
-        let value_arc_rwlock = self.get_value(value_handle)?;
+    pub fn create_array(&mut self, value_tag: ValueTag, num_elements: u64) -> Option<ValueTag> {
+        let value_arc_rwlock = self.get_value(value_tag)?;
         
         let array_type = unsafe {
             let value_ptr = value_arc_rwlock.read().expect("Failed to lock value for reading").read(LLVMRefType::Value, |value_ref| {
@@ -101,8 +101,8 @@ impl ResourcePools {
     }
 
     /// Creates a pointer
-    pub fn create_pointer(&mut self, element_type_handle: TypeHandle) -> Option<ValueHandle> {
-        let element_type_arc_rwlock = self.get_type(element_type_handle)?;
+    pub fn create_pointer(&mut self, element_type_tag: TypeTag) -> Option<ValueTag> {
+        let element_type_arc_rwlock = self.get_type(element_type_tag)?;
 
         let pointer_type = unsafe {
             let element_type_ptr = element_type_arc_rwlock.read().expect("Failed to lock type for reading").read(LLVMRefType::Type, |element_type_ref| {
@@ -126,13 +126,13 @@ impl ResourcePools {
     /// Creates a struct
     pub fn create_struct(
         &mut self,
-        values: &[ValueHandle],
-        context_handle: ContextHandle,
+        values: &[ValueTag],
+        context_tag: ContextTag,
         packed: bool
-    ) -> Option<ValueHandle> {
-        let context_arc_rwlock = self.get_context(context_handle)?;
-        let mut value_ptrs: Vec<LLVMValueRef> = values.iter().map(|&handle| {
-            self.get_value(handle).and_then(|value_arc_rwlock| {
+    ) -> Option<ValueTag> {
+        let context_arc_rwlock = self.get_context(context_tag)?;
+        let mut value_ptrs: Vec<LLVMValueRef> = values.iter().map(|&tag| {
+            self.get_value(tag).and_then(|value_arc_rwlock| {
                 value_arc_rwlock.read().expect("Failed to lock value for reading").read(LLVMRefType::Value, |value_ref| {
                 if let LLVMRef::Value(ptr) = value_ref {
                     Some(*ptr)
@@ -165,12 +165,12 @@ impl ResourcePools {
     /// Creates a global variable
     pub fn create_global_variable(
         &mut self,
-        module_handle: ModuleHandle,
-        initializer_handle: ValueHandle,
+        module_tag: ModuleTag,
+        initializer_tag: ValueTag,
         name: &str
-    ) -> Option<ValueHandle> {
-        let module_arc_rwlock = self.get_module(module_handle)?;
-        let initializer_arc_rwlock = self.get_value(initializer_handle)?;
+    ) -> Option<ValueTag> {
+        let module_arc_rwlock = self.get_module(module_tag)?;
+        let initializer_arc_rwlock = self.get_value(initializer_tag)?;
 
         let c_name = CString::new(name).expect("Failed to create CString for global variable name");
 
@@ -207,9 +207,9 @@ impl ResourcePools {
     pub fn create_string(
         &mut self,
         val: &str,
-        builder_handle: BuilderHandle
-    ) -> Option<ValueHandle> {
-        let builder_arc_rwlock = self.get_builder(builder_handle)?;
+        builder_tag: BuilderTag
+    ) -> Option<ValueTag> {
+        let builder_arc_rwlock = self.get_builder(builder_tag)?;
 
         let c_val = CString::new(val).expect("Failed to create CString for string value");
         let c_str_name = CString::new("const_str").expect("Failed to create CString for string name");
@@ -241,11 +241,11 @@ impl ResourcePools {
     pub fn create_mut_string(
         &mut self,
         val: &str,
-        context_handle: ContextHandle,
-        builder_handle: BuilderHandle
-    ) -> Option<ValueHandle> {
-        let context_arc_rwlock = self.get_context(context_handle)?;
-        let builder_arc_rwlock = self.get_builder(builder_handle)?;
+        context_tag: ContextTag,
+        builder_tag: BuilderTag
+    ) -> Option<ValueTag> {
+        let context_arc_rwlock = self.get_context(context_tag)?;
+        let builder_arc_rwlock = self.get_builder(builder_tag)?;
 
         let c_str_name = CString::new("local_str").expect("Failed to create CString for string name");
 
@@ -288,8 +288,8 @@ impl ResourcePools {
     }
 
     /// Creates a null pointer
-    pub fn create_null_pointer(&mut self, ty_handle: TypeHandle) -> Option<ValueHandle> {
-        let ty_arc_rwlock = self.get_type(ty_handle)?;
+    pub fn create_null_pointer(&mut self, ty_tag: TypeTag) -> Option<ValueTag> {
+        let ty_arc_rwlock = self.get_type(ty_tag)?;
 
         let null_pointer = unsafe {
             let ty_ptr = ty_arc_rwlock.read().expect("Failed to lock type for reading").read(LLVMRefType::Type, |ty_ref| {
@@ -313,11 +313,11 @@ impl ResourcePools {
     /// Creates a continue statement
     pub fn create_continue_statement(
         &mut self,
-        builder_handle: BuilderHandle,
-        continue_block_handle: ValueHandle
-    ) -> Option<ValueHandle> {
-        let builder_arc_rwlock = self.get_builder(builder_handle)?;
-        let continue_block_arc_rwlock = self.get_value(continue_block_handle)?;
+        builder_tag: BuilderTag,
+        continue_block_tag: ValueTag
+    ) -> Option<ValueTag> {
+        let builder_arc_rwlock = self.get_builder(builder_tag)?;
+        let continue_block_arc_rwlock = self.get_value(continue_block_tag)?;
 
         let continue_statement = unsafe {
             let builder_ptr = builder_arc_rwlock.read().expect("Failed to lock builder for reading").read(LLVMRefType::Builder, |builder_ref| {
@@ -349,11 +349,11 @@ impl ResourcePools {
     /// Creates a break statement
     pub fn create_break_statement(
         &mut self,
-        builder_handle: BuilderHandle,
-        break_block_handle: ValueHandle
-    ) -> Option<ValueHandle> {
-        let builder_arc_rwlock = self.get_builder(builder_handle)?;
-        let break_block_arc_rwlock = self.get_value(break_block_handle)?;
+        builder_tag: BuilderTag,
+        break_block_tag: ValueTag
+    ) -> Option<ValueTag> {
+        let builder_arc_rwlock = self.get_builder(builder_tag)?;
+        let break_block_arc_rwlock = self.get_value(break_block_tag)?;
 
         let break_statement = unsafe {
             let builder_ptr = builder_arc_rwlock.read().expect("Failed to lock builder for reading").read(LLVMRefType::Builder, |builder_ref| {

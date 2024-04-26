@@ -6,21 +6,21 @@ use std::ffi::CString;
 
 use crate::memory_management::{
     pointer::{LLVMRef, LLVMRefType}, 
-    resource_pools::{BuilderHandle, ContextHandle, ResourcePools, ValueHandle}
+    resource_pools::{BuilderTag, ContextTag, ResourcePools, ValueTag}
 };
 
 impl ResourcePools {
     /// Basic addition
     pub fn build_add(
         &mut self,
-        builder_handle: BuilderHandle,
-        param_a_handle: ValueHandle,
-        param_b_handle: ValueHandle,
+        builder_tag: BuilderTag,
+        param_a_tag: ValueTag,
+        param_b_tag: ValueTag,
         name: &str
-    ) -> Option<ValueHandle> {
-        let builder_arc_rwlock = self.get_builder(builder_handle)?;
-        let param_a_arc_rwlock = self.get_value(param_a_handle)?;
-        let param_b_arc_rwlock = self.get_value(param_b_handle)?;
+    ) -> Option<ValueTag> {
+        let builder_arc_rwlock = self.get_builder(builder_tag)?;
+        let param_a_arc_rwlock = self.get_value(param_a_tag)?;
+        let param_b_arc_rwlock = self.get_value(param_b_tag)?;
 
         let c_name = CString::new(name).expect("Failed to create CString");
 
@@ -62,14 +62,14 @@ impl ResourcePools {
     /// Basic subtraction
     pub fn build_sub(
         &mut self,
-        builder_handle: BuilderHandle,
-        param_a_handle: ValueHandle,
-        param_b_handle: ValueHandle,
+        builder_tag: BuilderTag,
+        param_a_tag: ValueTag,
+        param_b_tag: ValueTag,
         name: &str
-    ) -> Option<ValueHandle> {
-        let builder_arc_rwlock = self.get_builder(builder_handle)?;
-        let param_a_arc_rwlock = self.get_value(param_a_handle)?;
-        let param_b_arc_rwlock = self.get_value(param_b_handle)?;
+    ) -> Option<ValueTag> {
+        let builder_arc_rwlock = self.get_builder(builder_tag)?;
+        let param_a_arc_rwlock = self.get_value(param_a_tag)?;
+        let param_b_arc_rwlock = self.get_value(param_b_tag)?;
 
         let c_name = CString::new(name).expect("Failed to create CString");
 
@@ -111,14 +111,14 @@ impl ResourcePools {
     /// Basic multiplication
     pub fn build_mul(
         &mut self,
-        builder_handle: BuilderHandle,
-        param_a_handle: ValueHandle,
-        param_b_handle: ValueHandle,
+        builder_tag: BuilderTag,
+        param_a_tag: ValueTag,
+        param_b_tag: ValueTag,
         name: &str
-    ) -> Option<ValueHandle> {
-        let builder_arc_rwlock = self.get_builder(builder_handle)?;
-        let param_a_arc_rwlock = self.get_value(param_a_handle)?;
-        let param_b_arc_rwlock = self.get_value(param_b_handle)?;
+    ) -> Option<ValueTag> {
+        let builder_arc_rwlock = self.get_builder(builder_tag)?;
+        let param_a_arc_rwlock = self.get_value(param_a_tag)?;
+        let param_b_arc_rwlock = self.get_value(param_b_tag)?;
 
         let c_name = CString::new(name).expect("Failed to create CString");
 
@@ -160,14 +160,14 @@ impl ResourcePools {
     /// Basic division
     pub fn build_div(
         &mut self,
-        builder_handle: BuilderHandle,
-        param_a_handle: ValueHandle,
-        param_b_handle: ValueHandle,
+        builder_tag: BuilderTag,
+        param_a_tag: ValueTag,
+        param_b_tag: ValueTag,
         name: &str
-    ) -> Option<ValueHandle> {
-        let builder_arc_rwlock = self.get_builder(builder_handle)?;
-        let param_a_arc_rwlock = self.get_value(param_a_handle)?;
-        let param_b_arc_rwlock = self.get_value(param_b_handle)?;
+    ) -> Option<ValueTag> {
+        let builder_arc_rwlock = self.get_builder(builder_tag)?;
+        let param_a_arc_rwlock = self.get_value(param_a_tag)?;
+        let param_b_arc_rwlock = self.get_value(param_b_tag)?;
 
         let c_name = CString::new(name).expect("Failed to create CString");
 
@@ -209,14 +209,14 @@ impl ResourcePools {
     /// Modular arithmetic (remainder)
     pub fn build_rem(
         &mut self,
-        builder_handle: BuilderHandle,
-        param_a_handle: ValueHandle,
-        param_b_handle: ValueHandle,
+        builder_tag: BuilderTag,
+        param_a_tag: ValueTag,
+        param_b_tag: ValueTag,
         name: &str
-    ) -> Option<ValueHandle> {
-        let builder_arc_rwlock = self.get_builder(builder_handle)?;
-        let param_a_arc_rwlock = self.get_value(param_a_handle)?;
-        let param_b_arc_rwlock = self.get_value(param_b_handle)?;
+    ) -> Option<ValueTag> {
+        let builder_arc_rwlock = self.get_builder(builder_tag)?;
+        let param_a_arc_rwlock = self.get_value(param_a_tag)?;
+        let param_b_arc_rwlock = self.get_value(param_b_tag)?;
 
         let c_name = CString::new(name).expect("Failed to create CString");
 
@@ -258,14 +258,14 @@ impl ResourcePools {
     /// Logical and
     pub fn build_and(
         &mut self,
-        builder_handle: BuilderHandle,
-        param_a_handle: ValueHandle,
-        param_b_handle: ValueHandle,
+        builder_tag: BuilderTag,
+        param_a_tag: ValueTag,
+        param_b_tag: ValueTag,
         name: &str
-    ) -> Option<ValueHandle> {
-        let builder_arc_rwlock = self.get_builder(builder_handle)?;
-        let param_a_arc_rwlock = self.get_value(param_a_handle)?;
-        let param_b_arc_rwlock = self.get_value(param_b_handle)?;
+    ) -> Option<ValueTag> {
+        let builder_arc_rwlock = self.get_builder(builder_tag)?;
+        let param_a_arc_rwlock = self.get_value(param_a_tag)?;
+        let param_b_arc_rwlock = self.get_value(param_b_tag)?;
 
         let c_name = CString::new(name).expect("Failed to create CString");
 
@@ -307,14 +307,14 @@ impl ResourcePools {
     /// Logical or
     pub fn build_or(
         &mut self,
-        builder_handle: BuilderHandle,
-        param_a_handle: ValueHandle,
-        param_b_handle: ValueHandle,
+        builder_tag: BuilderTag,
+        param_a_tag: ValueTag,
+        param_b_tag: ValueTag,
         name: &str
-    ) -> Option<ValueHandle> {
-        let builder_arc_rwlock = self.get_builder(builder_handle)?;
-        let param_a_arc_rwlock = self.get_value(param_a_handle)?;
-        let param_b_arc_rwlock = self.get_value(param_b_handle)?;
+    ) -> Option<ValueTag> {
+        let builder_arc_rwlock = self.get_builder(builder_tag)?;
+        let param_a_arc_rwlock = self.get_value(param_a_tag)?;
+        let param_b_arc_rwlock = self.get_value(param_b_tag)?;
 
         let c_name = CString::new(name).expect("Failed to create CString");
 
@@ -356,14 +356,14 @@ impl ResourcePools {
     /// Logical xor
     pub fn build_xor(
         &mut self,
-        builder_handle: BuilderHandle,
-        param_a_handle: ValueHandle,
-        param_b_handle: ValueHandle,
+        builder_tag: BuilderTag,
+        param_a_tag: ValueTag,
+        param_b_tag: ValueTag,
         name: &str
-    ) -> Option<ValueHandle> {
-        let builder_arc_rwlock = self.get_builder(builder_handle)?;
-        let param_a_arc_rwlock = self.get_value(param_a_handle)?;
-        let param_b_arc_rwlock = self.get_value(param_b_handle)?;
+    ) -> Option<ValueTag> {
+        let builder_arc_rwlock = self.get_builder(builder_tag)?;
+        let param_a_arc_rwlock = self.get_value(param_a_tag)?;
+        let param_b_arc_rwlock = self.get_value(param_b_tag)?;
 
         let c_name = CString::new(name).expect("Failed to create CString");
 
@@ -405,14 +405,14 @@ impl ResourcePools {
     /// Logical left shift
     pub fn build_shl(
         &mut self,
-        builder_handle: BuilderHandle,
-        param_a_handle: ValueHandle,
-        param_b_handle: ValueHandle,
+        builder_tag: BuilderTag,
+        param_a_tag: ValueTag,
+        param_b_tag: ValueTag,
         name: &str
-    ) -> Option<ValueHandle> {
-        let builder_arc_rwlock = self.get_builder(builder_handle)?;
-        let param_a_arc_rwlock = self.get_value(param_a_handle)?;
-        let param_b_arc_rwlock = self.get_value(param_b_handle)?;
+    ) -> Option<ValueTag> {
+        let builder_arc_rwlock = self.get_builder(builder_tag)?;
+        let param_a_arc_rwlock = self.get_value(param_a_tag)?;
+        let param_b_arc_rwlock = self.get_value(param_b_tag)?;
 
         let c_name = CString::new(name).expect("Failed to create CString");
 
@@ -454,14 +454,14 @@ impl ResourcePools {
     /// Logical right shift
     pub fn build_shr(
         &mut self,
-        builder_handle: BuilderHandle,
-        param_a_handle: ValueHandle,
-        param_b_handle: ValueHandle,
+        builder_tag: BuilderTag,
+        param_a_tag: ValueTag,
+        param_b_tag: ValueTag,
         name: &str
-    ) -> Option<ValueHandle> {
-        let builder_arc_rwlock = self.get_builder(builder_handle)?;
-        let param_a_arc_rwlock = self.get_value(param_a_handle)?;
-        let param_b_arc_rwlock = self.get_value(param_b_handle)?;
+    ) -> Option<ValueTag> {
+        let builder_arc_rwlock = self.get_builder(builder_tag)?;
+        let param_a_arc_rwlock = self.get_value(param_a_tag)?;
+        let param_b_arc_rwlock = self.get_value(param_b_tag)?;
 
         let c_name = CString::new(name).expect("Failed to create CString");
 
@@ -503,14 +503,14 @@ impl ResourcePools {
     /// Greater than comparison
     pub fn build_icmp_gt(
         &mut self,
-        builder_handle: BuilderHandle,
-        param_a_handle: ValueHandle,
-        param_b_handle: ValueHandle,
+        builder_tag: BuilderTag,
+        param_a_tag: ValueTag,
+        param_b_tag: ValueTag,
         name: &str
-    ) -> Option<ValueHandle> {
-        let builder_arc_rwlock = self.get_builder(builder_handle)?;
-        let param_a_arc_rwlock = self.get_value(param_a_handle)?;
-        let param_b_arc_rwlock = self.get_value(param_b_handle)?;
+    ) -> Option<ValueTag> {
+        let builder_arc_rwlock = self.get_builder(builder_tag)?;
+        let param_a_arc_rwlock = self.get_value(param_a_tag)?;
+        let param_b_arc_rwlock = self.get_value(param_b_tag)?;
 
         let c_name = CString::new(name).expect("Failed to create CString");
 
@@ -552,14 +552,14 @@ impl ResourcePools {
     /// Less than comparison
     pub fn build_icmp_lt(
         &mut self,
-        builder_handle: BuilderHandle,
-        param_a_handle: ValueHandle,
-        param_b_handle: ValueHandle,
+        builder_tag: BuilderTag,
+        param_a_tag: ValueTag,
+        param_b_tag: ValueTag,
         name: &str
-    ) -> Option<ValueHandle> {
-        let builder_arc_rwlock = self.get_builder(builder_handle)?;
-        let param_a_arc_rwlock = self.get_value(param_a_handle)?;
-        let param_b_arc_rwlock = self.get_value(param_b_handle)?;
+    ) -> Option<ValueTag> {
+        let builder_arc_rwlock = self.get_builder(builder_tag)?;
+        let param_a_arc_rwlock = self.get_value(param_a_tag)?;
+        let param_b_arc_rwlock = self.get_value(param_b_tag)?;
 
         let c_name = CString::new(name).expect("Failed to create CString");
 
@@ -601,14 +601,14 @@ impl ResourcePools {
     /// Equal comparison
     pub fn build_icmp_eq(
         &mut self,
-        builder_handle: BuilderHandle,
-        param_a_handle: ValueHandle,
-        param_b_handle: ValueHandle,
+        builder_tag: BuilderTag,
+        param_a_tag: ValueTag,
+        param_b_tag: ValueTag,
         name: &str
-    ) -> Option<ValueHandle> {
-        let builder_arc_rwlock = self.get_builder(builder_handle)?;
-        let param_a_arc_rwlock = self.get_value(param_a_handle)?;
-        let param_b_arc_rwlock = self.get_value(param_b_handle)?;
+    ) -> Option<ValueTag> {
+        let builder_arc_rwlock = self.get_builder(builder_tag)?;
+        let param_a_arc_rwlock = self.get_value(param_a_tag)?;
+        let param_b_arc_rwlock = self.get_value(param_b_tag)?;
 
         let c_name = CString::new(name).expect("Failed to create CString");
 
@@ -650,12 +650,12 @@ impl ResourcePools {
     /// Negation
     pub fn build_negation(
         &mut self,
-        builder_handle: BuilderHandle,
-        operand_handle: ValueHandle,
+        builder_tag: BuilderTag,
+        operand_tag: ValueTag,
         name: &str
-    ) -> Option<ValueHandle> {
-        let builder_arc_rwlock = self.get_builder(builder_handle)?;
-        let operand_arc_rwlock = self.get_value(operand_handle)?;
+    ) -> Option<ValueTag> {
+        let builder_arc_rwlock = self.get_builder(builder_tag)?;
+        let operand_arc_rwlock = self.get_value(operand_tag)?;
 
         let c_name = CString::new(name).expect("Failed to create CString");
 
@@ -689,12 +689,12 @@ impl ResourcePools {
     /// Bitwise not
     pub fn build_bitwise_not(
         &mut self,
-        builder_handle: BuilderHandle,
-        operand_handle: ValueHandle,
+        builder_tag: BuilderTag,
+        operand_tag: ValueTag,
         name: &str
-    ) -> Option<ValueHandle> {
-        let builder_arc_rwlock = self.get_builder(builder_handle)?;
-        let operand_arc_rwlock = self.get_value(operand_handle)?;
+    ) -> Option<ValueTag> {
+        let builder_arc_rwlock = self.get_builder(builder_tag)?;
+        let operand_arc_rwlock = self.get_value(operand_tag)?;
 
         let c_name = CString::new(name).expect("Failed to create CString");
 
@@ -728,14 +728,14 @@ impl ResourcePools {
     /// Logical not
     pub fn build_logical_not(
         &mut self,
-        builder_handle: BuilderHandle,
-        context_handle: ContextHandle,
-        operand_handle: ValueHandle,
+        builder_tag: BuilderTag,
+        context_tag: ContextTag,
+        operand_tag: ValueTag,
         name: &str
-    ) -> Option<ValueHandle> {
-        let builder_arc_rwlock = self.get_builder(builder_handle)?;
-        let context_arc_rwlock = self.get_context(context_handle)?;
-        let operand_arc_rwlock = self.get_value(operand_handle)?;
+    ) -> Option<ValueTag> {
+        let builder_arc_rwlock = self.get_builder(builder_tag)?;
+        let context_arc_rwlock = self.get_context(context_tag)?;
+        let operand_arc_rwlock = self.get_value(operand_tag)?;
 
         let zero = unsafe { 
             let context_ptr = context_arc_rwlock.read().expect("Failed to lock context for reading").read(LLVMRefType::Context, |context_ref| {

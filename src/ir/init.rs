@@ -6,12 +6,12 @@ use llvm::{core, prelude::{LLVMContextRef, LLVMModuleRef}};
 
 use crate::memory_management::{
     pointer::{LLVMRef, LLVMRefType}, 
-    resource_pools::{ContextHandle, ModuleHandle, ResourcePools}
+    resource_pools::{ContextTag, ModuleTag, ResourcePools}
 };
 
 impl ResourcePools {
     /// Allocates a new LLVM context and stores it in the resource pool.
-    pub fn allocate_context(&mut self) -> Option<ContextHandle> {
+    pub fn allocate_context(&mut self) -> Option<ContextTag> {
         let raw_ptr: LLVMContextRef = unsafe { core::LLVMContextCreate() };
 
         if raw_ptr.is_null() {
@@ -22,10 +22,10 @@ impl ResourcePools {
     }
 
     /// Allocates a new LLVM module in a specified context and stores it in the resource pool.
-    pub fn allocate_module(&mut self, module_name: &str, context_handle: ContextHandle) -> Option<ModuleHandle> {
+    pub fn allocate_module(&mut self, module_name: &str, context_tag: ContextTag) -> Option<ModuleTag> {
         let c_module_name: CString = CString::new(module_name).expect("Failed to create CString from module name");
 
-        let context_arc_rwlock = self.get_context(context_handle)?;
+        let context_arc_rwlock = self.get_context(context_tag)?;
         
         let context_rwlock = context_arc_rwlock.read().expect("Failed to lock context for reading");
 

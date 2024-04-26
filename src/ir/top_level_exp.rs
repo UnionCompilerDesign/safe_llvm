@@ -4,12 +4,12 @@ use llvm::core;
 
 use std::ffi::CString;
 
-use crate::memory_management::{pointer::{LLVMRef, LLVMRefType}, resource_pools::{ModuleHandle, ResourcePools, TypeHandle, ValueHandle}};
+use crate::memory_management::{pointer::{LLVMRef, LLVMRefType}, resource_pools::{ModuleTag, ResourcePools, TypeTag, ValueTag}};
 
 impl ResourcePools {
     /// Gets a parameter from a function by its index.
-    pub fn get_param(&mut self, function_handle: ValueHandle, index: u32) -> Option<ValueHandle> {
-        let function_arc_rwlock = self.get_value(function_handle)?;
+    pub fn get_param(&mut self, function_tag: ValueTag, index: u32) -> Option<ValueTag> {
+        let function_arc_rwlock = self.get_value(function_tag)?;
         
         let param = {
             let function_rwlock = function_arc_rwlock.read().expect("Failed to lock function for reading");
@@ -32,9 +32,9 @@ impl ResourcePools {
     }
 
     /// Adds a function to a module. 
-    pub fn add_function_to_module(&mut self, module_handle: ModuleHandle, function_name: &str, function_type_handle: TypeHandle) -> Option<ValueHandle> {
-        let module_arc_rwlock = self.get_module(module_handle)?;
-        let function_type_arc_rwlock = self.get_type(function_type_handle)?;
+    pub fn add_function_to_module(&mut self, module_tag: ModuleTag, function_name: &str, function_type_tag: TypeTag) -> Option<ValueTag> {
+        let module_arc_rwlock = self.get_module(module_tag)?;
+        let function_type_arc_rwlock = self.get_type(function_type_tag)?;
 
         let c_name = CString::new(function_name).expect("Failed to create CString for function name");
 
