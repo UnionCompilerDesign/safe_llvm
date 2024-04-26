@@ -34,7 +34,6 @@ pub mod interface;
 
 // pub mod analysis;  // TODO analysis tools based on LLVM's analysis capabilities.
 
-/// High-level API module to allow for mock testing.
-pub mod api;
+pub mod router;
 
-// pub use api::SafeLLVM;  // Exports the public api.
+pub use router::SafeLLVM;  // Exports the public api.

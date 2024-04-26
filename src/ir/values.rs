@@ -4,7 +4,7 @@ use llvm::{core, prelude::LLVMValueRef};
 
 use std::ffi::CString;
 
-use crate::memory_management::{pointer::{LLVMRef, LLVMRefType}, resource_pools::{BuilderTag, ContextTag, ModuleTag, ResourcePools, TypeTag, ValueTag}};
+use crate::memory_management::{pointer::{LLVMRef, LLVMRefType}, resource_pools::{BasicBlockTag, BuilderTag, ContextTag, ModuleTag, ResourcePools, TypeTag, ValueTag}};
 
 impl ResourcePools {
     /// Creates an integer constant of 64 bits in the specified context.
@@ -314,10 +314,10 @@ impl ResourcePools {
     pub fn create_continue_statement(
         &mut self,
         builder_tag: BuilderTag,
-        continue_block_tag: ValueTag
+        continue_block_tag: BasicBlockTag
     ) -> Option<ValueTag> {
         let builder_arc_rwlock = self.get_builder(builder_tag)?;
-        let continue_block_arc_rwlock = self.get_value(continue_block_tag)?;
+        let continue_block_arc_rwlock = self.get_basic_block(continue_block_tag)?;
 
         let continue_statement = unsafe {
             let builder_ptr = builder_arc_rwlock.read().expect("Failed to lock builder for reading").read(LLVMRefType::Builder, |builder_ref| {
@@ -350,10 +350,10 @@ impl ResourcePools {
     pub fn create_break_statement(
         &mut self,
         builder_tag: BuilderTag,
-        break_block_tag: ValueTag
+        break_block_tag: BasicBlockTag
     ) -> Option<ValueTag> {
         let builder_arc_rwlock = self.get_builder(builder_tag)?;
-        let break_block_arc_rwlock = self.get_value(break_block_tag)?;
+        let break_block_arc_rwlock = self.get_basic_block(break_block_tag)?;
 
         let break_statement = unsafe {
             let builder_ptr = builder_arc_rwlock.read().expect("Failed to lock builder for reading").read(LLVMRefType::Builder, |builder_ref| {

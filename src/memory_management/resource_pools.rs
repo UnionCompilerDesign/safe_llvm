@@ -1,6 +1,6 @@
 /*  
     A struct for managing resource pools for LLVM pointers using multi-threaded pointers.
-    This struct provides controlled, mutable access to LLVM pointers. 
+    This struct provides controlled, mutable access to LLVM pointers through the usage of a tag system. 
 */
 
 extern crate llvm_sys as llvm;
