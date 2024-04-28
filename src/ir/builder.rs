@@ -1,71 +1,91 @@
-// extern crate llvm_sys as llvm;
+extern crate llvm_sys as llvm;
 
-// use std::ptr;
+use llvm::{core, prelude::{LLVMBuilderRef, LLVMTypeRef}};
 
-// use llvm::{core::{self, LLVMFunctionType, LLVMVoidTypeInContext}, prelude::{LLVMBuilderRef, LLVMContextRef, LLVMTypeRef}};
+use crate::memory_management::{resource_pools::{ResourcePools, ContextTag, BuilderTag, TypeTag}, pointer::{LLVMRef, LLVMRefType}};
 
-// use crate::memory_management::pointer::CPointer; 
+impl ResourcePools {
+    /// Allocates a builder in a specified context and stores it in the resource pool.
+    pub fn create_builder(&mut self, context_tag: ContextTag) -> Option<BuilderTag> {
+        let context_arc_rwlock = self.get_context(context_tag)?;
 
-// /// Creates a builder in the specified LLVM context
-// // pub fn create_builder(context: CPointer<LLVMContextRef>) -> CPointer<LLVMBuilderRef> {
-// //     let context_ptr: *mut LLVMContextRef = context.get_ref();
+        let builder_ptr: LLVMBuilderRef = unsafe {
+            let context_rwlock = context_arc_rwlock.read().expect("Failed to lock context for reading");
+            let context_ptr = context_rwlock.read(LLVMRefType::Context, |context_ref| {
+                if let LLVMRef::Context(ptr) = context_ref {
+                    Some(*ptr)
+                } else {
+                    None
+                }
+            })?;
 
-// //     let raw_ptr = unsafe {
-// //         core::LLVMCreateBuilderInContext(*context_ptr)
-// //     };
+            core::LLVMCreateBuilderInContext(context_ptr)
+        };
 
-// //     let c_pointer = CPointer::new(raw_ptr as *mut _);
-// //     if c_pointer.is_some() {
-// //         return c_pointer.unwrap();
-// //     }
-// //     panic!("Missing c_pointer")
-// // }
+        if builder_ptr.is_null() {
+            return None;
+        }
 
-// /// Creates a new function type within the given LLVM context.
-// pub fn create_function(
-//     return_type: Option<CPointer<LLVMTypeRef>>,
-//     param_types: &[CPointer<LLVMTypeRef>],
-//     is_var_arg: bool,
-//     context: CPointer<LLVMContextRef>,
-// ) -> Option<CPointer<LLVMTypeRef>> {
-//     unsafe {
-//         if context.is_null() {
-//             panic!("Context pointer is null or uninitialized");
-//         }
+        self.store_builder(builder_ptr)
+    }
 
-//         let llvm_return_type = match return_type {
-//             Some(ref_type) => {
-//                 if ref_type.is_null() {
-//                     panic!("Return type pointer is null or uninitialized");
-//                 }
-//                 *ref_type.get_ref()
-//             },
-//             None => LLVMVoidTypeInContext(*context.get_ref()),
-//         };
+    /// Allocates a function with specified return and parameter types in a given context, then stores it in the resource pool.
+    pub fn create_function(
+        &mut self,
+        return_type_tag: Option<TypeTag>,
+        param_type_tags: &[TypeTag],
+        is_var_arg: bool,
+        context_tag: ContextTag,
+    ) -> Option<TypeTag> {
+        let context_arc_rwlock = self.get_context(context_tag)?;
 
-//         let llvm_param_types: Vec<LLVMTypeRef> = param_types
-//             .iter()
-//             .map(|ty| {
-//                 if ty.is_null() {
-//                     panic!("Parameter type pointer is null or uninitialized");
-//                 }
-//                 *ty.get_ref()
-//             })
-//             .collect();
+        let context_ptr = context_arc_rwlock.read().expect("Failed to lock context for reading").read(LLVMRefType::Context, |context_ref| {
+            if let LLVMRef::Context(ptr) = context_ref {
+                Some(*ptr)
+            } else {
+                None
+            }
+        })?;
 
-//         let param_ptr = if llvm_param_types.is_empty() {
-//             ptr::null_mut()
-//         } else {
-//             llvm_param_types.as_ptr() as *mut LLVMTypeRef
-//         };
+        let llvm_return_type = return_type_tag.map_or_else(|| unsafe { core::LLVMVoidTypeInContext(context_ptr) }, |tag| {
+            let type_arc_rwlock = self.get_type(tag).expect("Failed to get type");
+            let ptr = type_arc_rwlock.read().expect("Failed to lock type for reading").read(LLVMRefType::Type, |type_ref| {
+                if let LLVMRef::Type(ptr) = type_ref {
+                    Some(*ptr)
+                } else {
+                    None
+                }
+            }).expect("Failed to get return type"); 
+            ptr
+        });
 
-//         let param_count = llvm_param_types.len() as u32;
+        let mut llvm_param_types: Vec<LLVMTypeRef> = Vec::new();
+        for tag in param_type_tags {
+            let type_arc_rwlock = self.get_type(*tag)?;
+            let type_ptr = type_arc_rwlock.read().expect("Failed to lock type for reading").read(LLVMRefType::Type, |type_ref| {
+                if let LLVMRef::Type(ptr) = type_ref {
+                    Some(*ptr)
+                } else {
+                    None
+                }
+            })?;
+            llvm_param_types.push(type_ptr);
+        }
 
-//         let function_type = LLVMFunctionType(llvm_return_type, param_ptr, param_count, is_var_arg as i32);
-//         if function_type.is_null() {
-//             panic!("Failed to create LLVM function type");
-//         }
+        let param_ptr = if llvm_param_types.is_empty() {
+            std::ptr::null_mut()
+        } else {
+            llvm_param_types.as_mut_ptr()
+        };
 
-//         CPointer::new(function_type as *mut LLVMTypeRef)
-//     }
-// }
+        let function_type = unsafe {
+            core::LLVMFunctionType(llvm_return_type, param_ptr, llvm_param_types.len() as u32, is_var_arg as i32)
+        };
+
+        if function_type.is_null() {
+            return None;
+        }
+
+        self.store_type(function_type)
+    }
+}

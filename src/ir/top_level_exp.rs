@@ -1,57 +1,71 @@
-// extern crate llvm_sys as llvm;
+extern crate llvm_sys as llvm;
 
-// use std::ffi::CString;
+use llvm::core;
 
-// use llvm::{core, prelude::{LLVMModuleRef, LLVMTypeRef, LLVMValueRef}};
+use std::ffi::CString;
 
-// use crate::memory_management::pointer::CPointer;
+use crate::memory_management::{pointer::{LLVMRef, LLVMRefType}, resource_pools::{ModuleTag, ResourcePools, TypeTag, ValueTag}};
 
-// /// Gets the parameter of a function
-// pub fn get_param(function: CPointer<LLVMValueRef>, index: u32) -> CPointer<LLVMValueRef> {
-//     let function_ptr = function.get_ref();
-//     let raw_ptr = unsafe {
-//         core::LLVMGetParam(*function_ptr, index)
-//     };
-//     let c_pointer = CPointer::new(raw_ptr as *mut _);
-//     if c_pointer.is_some() {
-//         return c_pointer.unwrap();
-//     }
-//     panic!("Missing c_pointer")}
+impl ResourcePools {
+    /// Gets a parameter from a function by its index.
+    pub fn get_param(&mut self, function_tag: ValueTag, index: u32) -> Option<ValueTag> {
+        let function_arc_rwlock = self.get_value(function_tag)?;
+        
+        let param = {
+            let function_rwlock = function_arc_rwlock.read().expect("Failed to lock function for reading");
+            let function_ptr = function_rwlock.read(LLVMRefType::Value, |value_ref| {
+                if let LLVMRef::Value(ptr) = value_ref {
+                    Some(*ptr)
+                } else {
+                    None
+                }
+            })?;
 
-// /// Adds a function to a module
-// pub fn add_function_to_module(
-//     module: CPointer<LLVMModuleRef>,
-//     function_name: &str,
-//     function_type: CPointer<LLVMTypeRef>,
-// ) -> CPointer<LLVMValueRef> {
-//     let module_ptr = module.get_ref();
-//     if module_ptr.is_null() {
-//         panic!("Module pointer is null");
-//     }
+            unsafe { core::LLVMGetParam(function_ptr, index) }
+        };
 
-//     if function_name.is_empty() {
-//         panic!("Function name is empty");
-//     }
+        if param.is_null() {
+            None
+        } else {
+            self.store_value(param)
+        }
+    }
 
-//     let function_type_ptr = function_type.get_ref();
-//     if function_type_ptr.is_null() {
-//         panic!("Function type pointer is null");
-//     }
+    /// Adds a function to a module. 
+    pub fn add_function_to_module(&mut self, module_tag: ModuleTag, function_name: &str, function_type_tag: TypeTag) -> Option<ValueTag> {
+        let module_arc_rwlock = self.get_module(module_tag)?;
+        let function_type_arc_rwlock = self.get_type(function_type_tag)?;
 
-//     let c_name = CString::new(function_name).expect("Failed to create CString for function name");
+        let c_name = CString::new(function_name).expect("Failed to create CString for function name");
 
-//     let raw_ptr = unsafe {
-//         core::LLVMAddFunction(*module_ptr, c_name.as_ptr(), *function_type_ptr)
-//     };
+        let function = {
+            let module_rwlock = module_arc_rwlock.read().expect("Failed to lock module for reading");
+            let module_ptr = module_rwlock.read(LLVMRefType::Module, |module_ref| {
+                if let LLVMRef::Module(ptr) = module_ref {
+                    Some(*ptr)
+                } else {
+                    None
+                }
+            })?;
 
-//     if raw_ptr.is_null() {
-//         panic!("Failed to add function to LLVM module");
-//     }
+            let function_type_ptr = {
+                let function_type_rwlock = function_type_arc_rwlock.read().expect("Failed to lock function type for reading");
+                function_type_rwlock.read(LLVMRefType::Type, |type_ref| {
+                    if let LLVMRef::Type(ptr) = type_ref {
+                        Some(*ptr)
+                    } else {
+                        None
+                    }
+                })?
+            };
 
-//     let c_pointer = CPointer::new(raw_ptr as *mut _);
-//     if c_pointer.is_some() {
-//         return c_pointer.unwrap();
-//     }
-    
-//     panic!("Failed to create CPointer for the function");
-// }
+            unsafe { core::LLVMAddFunction(module_ptr, c_name.as_ptr(), function_type_ptr) }
+        };
+
+        if function.is_null() {
+            None
+        } else {
+            self.store_value(function)
+        }
+    }
+}

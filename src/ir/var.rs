@@ -1,76 +1,166 @@
-// extern crate llvm_sys as llvm;
+extern crate llvm_sys as llvm;
 
-// use std::ffi::CString;
+use llvm::core;
 
-// use llvm::{
-//         core::{
-//             LLVMBuildAlloca, LLVMBuildStore, LLVMBuildLoad2,
-//         }, 
-//         prelude::{
-//             LLVMBuilderRef, LLVMTypeRef, LLVMValueRef,
-//         }
-// };
-// use crate::memory_management::pointer::CPointer;
+use std::ffi::CString;
 
-// /// Initializes a variable
-// pub fn init_var(
-//     builder: CPointer<LLVMBuilderRef>, 
-//     var_name: &str, 
-//     data_type: CPointer<LLVMTypeRef>, 
-//     initial_value: Option<CPointer<LLVMValueRef>>
-// ) -> CPointer<LLVMValueRef> {
-//     let var_name_cstr = CString::new(var_name).expect("Failed to create CString from var_name");
-//     let builder_ptr = builder.get_ref();
-//     let data_type_ptr = data_type.get_ref();
+use crate::memory_management::{
+    pointer::{LLVMRef, LLVMRefType}, 
+    resource_pools::{BuilderTag, ResourcePools, TypeTag, ValueTag}
+};
 
-//     let alloca = unsafe {
-//         LLVMBuildAlloca(*builder_ptr, *data_type_ptr, var_name_cstr.as_ptr())
-//     };
+impl ResourcePools {
+    /// Initializes a variable
+    pub fn init_var(
+        &mut self,
+        builder_tag: BuilderTag, 
+        var_name: &str, 
+        data_type_tag: TypeTag, 
+        initial_value_tag: Option<ValueTag>
+    ) -> Option<ValueTag> {
+        let builder_arc_rwlock = self.get_builder(builder_tag)?;
+        let data_type_arc_rwlock = self.get_type(data_type_tag)?;
 
-//     if let Some(value) = initial_value {
-//         let value_ptr = value.get_ref();
-//         unsafe {
-//             LLVMBuildStore(*builder_ptr, *value_ptr, alloca);
-//         }
-//     }
-//     let c_pointer = CPointer::new(alloca as *mut _);
-//     if c_pointer.is_some() {
-//         return c_pointer.unwrap();
-//     }
-//     panic!("Missing c_pointer")
-// }
+        let var_name_cstr = CString::new(var_name).expect("Failed to create CString from var_name");
 
-// /// Reassigns a variable
-// pub fn reassign_var(
-//     builder: CPointer<LLVMBuilderRef>, 
-//     variable_alloc: CPointer<LLVMValueRef>, 
-//     new_value: CPointer<LLVMValueRef>
-// ) {
-//     let builder_ptr = builder.get_ref();
-//     let variable_alloc_ptr = variable_alloc.get_ref();
-//     let new_value_ptr = new_value.get_ref();
+        let alloca = unsafe {
+            let builder_ptr = builder_arc_rwlock.read().expect("Failed to lock builder for reading").read(LLVMRefType::Builder, |builder_ref| {
+                if let LLVMRef::Builder(ptr) = builder_ref {
+                    Some(*ptr)
+                } else {
+                    None
+                }
+            })?;
 
-//     unsafe {
-//         LLVMBuildStore(*builder_ptr, *new_value_ptr, *variable_alloc_ptr);
-//     }
-// }
+            let data_type_ptr = data_type_arc_rwlock.read().expect("Failed to lock data type for reading").read(LLVMRefType::Type, |data_type_ref| {
+                if let LLVMRef::Type(ptr) = data_type_ref {
+                    Some(*ptr)
+                } else {
+                    None
+                }
+            })?;
 
-// /// Gets a variable
-// pub fn get_var(
-//     builder: CPointer<LLVMBuilderRef>, 
-//     variable_type: CPointer<LLVMTypeRef>, 
-//     variable_alloc: CPointer<LLVMValueRef>
-// ) -> CPointer<LLVMValueRef> {
-//     let builder_ptr = builder.get_ref();
-//     let variable_type_ptr = variable_type.get_ref();
-//     let variable_alloc_ptr = variable_alloc.get_ref();
+            core::LLVMBuildAlloca(builder_ptr, data_type_ptr, var_name_cstr.as_ptr())
+        };
 
-//     let raw_ptr = unsafe {
-//         LLVMBuildLoad2(*builder_ptr, *variable_type_ptr, *variable_alloc_ptr, CString::new("tmpload").expect("Failed to create CString for tmpload").as_ptr())
-//     };
-//     let c_pointer = CPointer::new(raw_ptr as *mut _);
-//     if c_pointer.is_some() {
-//         return c_pointer.unwrap();
-//     }
-//     panic!("Missing c_pointer")
-// }
+        if alloca.is_null() {
+            None
+        } else {
+            let alloca_tag = self.store_value(alloca)?;
+
+            if let Some(value_tag) = initial_value_tag {
+                let value_arc_rwlock = self.get_value(value_tag)?;
+                unsafe {
+                    let value_ptr = value_arc_rwlock.read().expect("Failed to lock value for reading").read(LLVMRefType::Value, |value_ref| {
+                        if let LLVMRef::Value(ptr) = value_ref {
+                            Some(*ptr)
+                        } else {
+                            None
+                        }
+                    })?;
+                    let builder_ptr = builder_arc_rwlock.read().expect("Failed to lock builder for reading").read(LLVMRefType::Builder, |builder_ref| {
+                        if let LLVMRef::Builder(ptr) = builder_ref {
+                            Some(*ptr)
+                        } else {
+                            None
+                        }
+                    })?;
+
+                    core::LLVMBuildStore(builder_ptr, value_ptr, alloca);
+                }
+            }
+
+            Some(alloca_tag)
+        }
+    }
+
+    /// Reassigns a variable
+    pub fn reassign_var(
+        &mut self,
+        builder_tag: BuilderTag, 
+        variable_alloc_tag: ValueTag, 
+        new_value_tag: ValueTag
+    ) -> Option<()> {
+        let builder_arc_rwlock = self.get_builder(builder_tag)?;
+        let variable_alloc_arc_rwlock = self.get_value(variable_alloc_tag)?;
+        let new_value_arc_rwlock = self.get_value(new_value_tag)?;
+
+        unsafe {
+            let builder_ptr = builder_arc_rwlock.read().expect("Failed to lock builder for reading").read(LLVMRefType::Builder, |builder_ref| {
+                if let LLVMRef::Builder(ptr) = builder_ref {
+                    Some(*ptr)
+                } else {
+                    None
+                }
+            })?;
+
+            let variable_alloc_ptr = variable_alloc_arc_rwlock.read().expect("Failed to lock variable alloc for reading").read(LLVMRefType::Value, |variable_alloc_ref| {
+                if let LLVMRef::Value(ptr) = variable_alloc_ref {
+                    Some(*ptr)
+                } else {
+                    None
+                }
+            })?;
+
+            let new_value_ptr = new_value_arc_rwlock.read().expect("Failed to lock new value for reading").read(LLVMRefType::Value, |new_value_ref| {
+                if let LLVMRef::Value(ptr) = new_value_ref {
+                    Some(*ptr)
+                } else {
+                    None
+                }
+            })?;
+
+            core::LLVMBuildStore(builder_ptr, new_value_ptr, variable_alloc_ptr);
+        }
+
+        Some(())
+    }
+
+    /// Gets a variable
+    pub fn get_var(
+        &mut self,
+        builder_tag: BuilderTag, 
+        variable_type_tag: TypeTag, 
+        variable_alloc_tag: ValueTag
+    ) -> Option<ValueTag> {
+        let builder_arc_rwlock = self.get_builder(builder_tag)?;
+        let variable_type_arc_rwlock = self.get_type(variable_type_tag)?;
+        let variable_alloc_arc_rwlock = self.get_value(variable_alloc_tag)?;
+
+        let tmp_load_cstr = CString::new("tmpload").expect("Failed to create CString for tmpload");
+
+        let raw_ptr = unsafe {
+            let builder_ptr = builder_arc_rwlock.read().expect("Failed to lock builder for reading").read(LLVMRefType::Builder, |builder_ref| {
+                if let LLVMRef::Builder(ptr) = builder_ref {
+                    Some(*ptr)
+                } else {
+                    None
+                }
+            })?;
+
+            let variable_type_ptr = variable_type_arc_rwlock.read().expect("Failed to lock variable type for reading").read(LLVMRefType::Type, |variable_type_ref| {
+                if let LLVMRef::Type(ptr) = variable_type_ref {
+                    Some(*ptr)
+                } else {
+                    None
+                }
+            })?;
+
+            let variable_alloc_ptr = variable_alloc_arc_rwlock.read().expect("Failed to lock variable alloc for reading").read(LLVMRefType::Value, |variable_alloc_ref| {
+                if let LLVMRef::Value(ptr) = variable_alloc_ref {
+                    Some(*ptr)
+                } else {
+                    None
+                }
+            })?;
+
+            core::LLVMBuildLoad2(builder_ptr, variable_type_ptr, variable_alloc_ptr, tmp_load_cstr.as_ptr())
+        };
+
+        if raw_ptr.is_null() {
+            None
+        } else {
+            self.store_value(raw_ptr)
+        }
+    }
+}

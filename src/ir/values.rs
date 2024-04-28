@@ -1,179 +1,384 @@
-// extern crate llvm_sys as llvm;
+extern crate llvm_sys as llvm;
 
-// use llvm::{core, prelude::*};
-// use std::ffi::CString;
-// use crate::memory_management::pointer::CPointer;
+use llvm::{core, prelude::LLVMValueRef};
 
-// /// Creates an integer
-// pub fn create_integer(val: i64, context: CPointer<LLVMContextRef>) -> CPointer<LLVMValueRef> {
-//     let context_ptr = context.get_ref();
-//     let raw_ptr = unsafe {
-//         core::LLVMConstInt(
-//             core::LLVMInt64TypeInContext(*context_ptr),
-//             val as u64,
-//             0 // isSigned flag
-//         )
-//     };
-//     let c_pointer = CPointer::new(raw_ptr as *mut _);
-//     if c_pointer.is_some() {
-//         return c_pointer.unwrap();
-//     }
-//     panic!("Missing c_pointer")}
+use std::ffi::CString;
 
-// /// Creates a float
-// pub fn create_float(val: f64, context: CPointer<LLVMContextRef>) -> CPointer<LLVMValueRef> {
-//     let context_ptr = context.get_ref();
-//     let raw_ptr = unsafe {
-//         core::LLVMConstReal(core::LLVMDoubleTypeInContext(*context_ptr), val)
-//     };
-//     let c_pointer = CPointer::new(raw_ptr as *mut _);
-//     if c_pointer.is_some() {
-//         return c_pointer.unwrap();
-//     }
-//     panic!("Missing c_pointer")}
+use crate::memory_management::{pointer::{LLVMRef, LLVMRefType}, resource_pools::{BasicBlockTag, BuilderTag, ContextTag, ModuleTag, ResourcePools, TypeTag, ValueTag}};
 
-// /// Creates a boolean
-// pub fn create_boolean(val: bool, context: CPointer<LLVMContextRef>) -> CPointer<LLVMValueRef> {
-//     let context_ptr = context.get_ref();
-//     let raw_ptr = unsafe {
-//         core::LLVMConstInt(core::LLVMInt1TypeInContext(*context_ptr), val as u64, 0)
-//     };
-//     let c_pointer = CPointer::new(raw_ptr as *mut _);
-//     if c_pointer.is_some() {
-//         return c_pointer.unwrap();
-//     }
-//     panic!("Missing c_pointer")}
+impl ResourcePools {
+    /// Creates an integer constant of 64 bits in the specified context.
+    pub fn create_integer(&mut self, context_tag: ContextTag, val: i64) -> Option<ValueTag> {
+        let context_arc_rwlock = self.get_context(context_tag)?;
+        let integer_value = {
+            let context_rwlock = context_arc_rwlock.read().expect("Failed to lock context for reading");
+            let context_ptr = context_rwlock.read(LLVMRefType::Context, |context_ref| {
+                if let LLVMRef::Context(ptr) = context_ref {
+                    Some(unsafe {
+                        core::LLVMConstInt(core::LLVMInt64TypeInContext(*ptr), val as u64, 0)
+                    })
+                } else {
+                    None
+                }
+            })?;
+            context_ptr
+        };
 
+        if integer_value.is_null() {
+            None
+        } else {
+            self.store_value(integer_value)
+        }
+    }
 
-// /// Creates an array
-// pub fn create_array(value: CPointer<LLVMValueRef>, num_elements: u64) -> CPointer<LLVMValueRef> {
-//     let value_ptr = value.get_ref();
-//     let values = unsafe { vec![*value_ptr; num_elements as usize] };
-//     let raw_ptr = unsafe {
-//         core::LLVMConstArray2(core::LLVMTypeOf(*value_ptr), values.as_ptr() as *mut _, num_elements)
-//     };
-//     let c_pointer = CPointer::new(raw_ptr as *mut _);
-//     if c_pointer.is_some() {
-//         return c_pointer.unwrap();
-//     }
-//     panic!("Missing c_pointer")}
+    /// Creates a floating-point constant in the specified context.
+    pub fn create_float(&mut self, context_tag: ContextTag, val: f64) -> Option<ValueTag> {
+        let context_arc_rwlock = self.get_context(context_tag)?;
+        let float_value = {
+            let context_rwlock = context_arc_rwlock.read().expect("Failed to lock context for reading");
+            let context_ptr = context_rwlock.read(LLVMRefType::Context, |context_ref| {
+                if let LLVMRef::Context(ptr) = context_ref {
+                    Some(unsafe { core::LLVMConstReal(core::LLVMDoubleTypeInContext(*ptr), val) })
+                } else {
+                    None
+                }
+            })?;
+            context_ptr
+        };
 
-// /// Creates a pointer
-// pub fn create_pointer(value: CPointer<LLVMTypeRef>) -> CPointer<LLVMValueRef> {
-//     let value_ptr = value.get_ref();
-//     let raw_ptr = unsafe {
-//         core::LLVMConstPointerNull(core::LLVMPointerType(*value_ptr, 0))
-//     };
-//     let c_pointer = CPointer::new(raw_ptr as *mut _);
-//     if c_pointer.is_some() {
-//         return c_pointer.unwrap();
-//     }
-//     panic!("Missing c_pointer")}
+        if float_value.is_null() {
+            None
+        } else {
+            self.store_value(float_value)
+        }
+    }
 
-// // /// Creates a struct
-// // pub fn create_struct(values: &[CPointer<LLVMValueRef>], context: CPointer<LLVMContextRef>, packed: bool) -> CPointer<LLVMValueRef> {
-// //     let context_ptr = context.get_ref();
-// //     let value_ptrs: Vec<*mut LLVMValueRef> = values.iter().map(|v| v.get_ref()).collect();
-// //     let raw_ptr = unsafe {
-// //         core::LLVMConstStructInContext(*context_ptr, value_ptrs.as_ptr() as *mut _, value_ptrs.len() as u32, packed as i32)
-// //     };
-// //     let c_pointer = CPointer::new(raw_ptr as *mut _);
-// //     if c_pointer.is_some() {
-// //         return c_pointer.unwrap();
-// //     }
-// //     panic!("Missing c_pointer")
-// // }
+    /// Creates a boolean
+    pub fn create_boolean(&mut self, context_tag: ContextTag, val: bool) -> Option<ValueTag> {
+        let context_arc_rwlock = self.get_context(context_tag)?;
+        let boolean_value = {
+            let context_rwlock = context_arc_rwlock.read().expect("Failed to lock context for reading");
+            let context_ptr = context_rwlock.read(LLVMRefType::Context, |context_ref| {
+                if let LLVMRef::Context(ptr) = context_ref {
+                    Some(unsafe { core::LLVMConstInt(core::LLVMInt1TypeInContext(*ptr), val as u64, 0) })
+                } else {
+                    None
+                }
+            })?;
+            context_ptr
+        };
 
-// /// Creates a global variable
-// pub fn create_global_variable(module: CPointer<LLVMModuleRef>, initializer: CPointer<LLVMValueRef>, name: &str) -> CPointer<LLVMValueRef> {
-//     let module_ptr = module.get_ref();
-//     let initializer_ptr = initializer.get_ref();
-//     let c_name = CString::new(name).expect("Failed to create global variable name");
-//     let raw_ptr = unsafe {
-//         let global_var = core::LLVMAddGlobal(*module_ptr, core::LLVMTypeOf(*initializer_ptr), c_name.as_ptr());
-//         core::LLVMSetInitializer(global_var, *initializer_ptr);
-//         global_var
-//     };
-//     let c_pointer = CPointer::new(raw_ptr as *mut _);
-//     if c_pointer.is_some() {
-//         return c_pointer.unwrap();
-//     }
-//     panic!("Missing c_pointer")}
+        if boolean_value.is_null() {
+            None
+        } else {
+            self.store_value(boolean_value)
+        }
+    }
 
-// /// Creates an immutable (global) string
-// pub fn create_string(val: &str, builder: CPointer<LLVMBuilderRef>) -> CPointer<LLVMValueRef> {
-//     let builder_ptr = builder.get_ref();
-//     let c_val = CString::new(val).expect("Failed to create string");
-//     let c_str_name = CString::new("const_str").expect("Failed to create string name");
-//     let raw_ptr = unsafe {
-//         core::LLVMBuildGlobalStringPtr(*builder_ptr, c_val.as_ptr(), c_str_name.as_ptr())
-//     };
-//     let c_pointer = CPointer::new(raw_ptr as *mut _);
-//     if c_pointer.is_some() {
-//         return c_pointer.unwrap();
-//     }
-//     panic!("Missing c_pointer")}
+    /// Creates an array
+    pub fn create_array(&mut self, value_tag: ValueTag, num_elements: u64) -> Option<ValueTag> {
+        let value_arc_rwlock = self.get_value(value_tag)?;
+        
+        let array_type = unsafe {
+            let value_ptr = value_arc_rwlock.read().expect("Failed to lock value for reading").read(LLVMRefType::Value, |value_ref| {
+                if let LLVMRef::Value(ptr) = value_ref {
+                    Some(*ptr)
+                } else {
+                    None
+                }
+            })?;
 
-// /// Creates a mutable (local) string
-// pub fn create_mut_string(val: &str, context: CPointer<LLVMContextRef>, builder: CPointer<LLVMBuilderRef>) -> CPointer<LLVMValueRef> {
-//     let context_ptr = context.get_ref();
-//     let builder_ptr = builder.get_ref();
-//     let c_str_name: CString = CString::new("local_str").expect("Failed to create string name");
-//     let raw_ptr = unsafe {
-//         let i8_type: LLVMTypeRef = core::LLVMInt8TypeInContext(*context_ptr);
-//         let str_type: LLVMTypeRef = core::LLVMArrayType2(i8_type, val.len() as u64);
-//         let local_str: LLVMValueRef = core::LLVMBuildAlloca(*builder_ptr, str_type, c_str_name.as_ptr());
+            let element_type = core::LLVMTypeOf(value_ptr);
+            let mut values = vec![value_ptr; num_elements as usize];
+            core::LLVMConstArray2(element_type, values.as_mut_ptr(), values.len() as u64)
+        };
 
-//         for (i, &byte) in val.as_bytes().iter().enumerate() {
-//             let index: LLVMValueRef = core::LLVMConstInt(core::LLVMInt32TypeInContext(*context_ptr), i as u64, 0);
-//             let mut indices: [LLVMValueRef; 1] = [index];
-//             let gep: LLVMValueRef = core::LLVMBuildGEP2(*builder_ptr, str_type, local_str, indices.as_mut_ptr(), indices.len() as u32, c_str_name.as_ptr());
-//             core::LLVMBuildStore(*builder_ptr, core::LLVMConstInt(i8_type, byte as u64, 0), gep);
-//         }
+        if array_type.is_null() {
+            None
+        } else {
+            self.store_value(array_type)
+        }
+    }
 
-//         local_str
-//     };
-//     let c_pointer = CPointer::new(raw_ptr as *mut _);
-//     if c_pointer.is_some() {
-//         return c_pointer.unwrap();
-//     }
-//     panic!("Missing c_pointer")}
+    /// Creates a pointer
+    pub fn create_pointer(&mut self, element_type_tag: TypeTag) -> Option<ValueTag> {
+        let element_type_arc_rwlock = self.get_type(element_type_tag)?;
 
-// /// Creates a null pointer
-// pub fn create_null_pointer(ty: CPointer<LLVMTypeRef>) -> CPointer<LLVMValueRef> {
-//     let type_ptr = ty.get_ref();
-//     let raw_ptr = unsafe {
-//         core::LLVMConstPointerNull(*type_ptr)
-//     };
-//     let c_pointer = CPointer::new(raw_ptr as *mut _);
-//     if c_pointer.is_some() {
-//         return c_pointer.unwrap();
-//     }
-//     panic!("Missing c_pointer")}
+        let pointer_type = unsafe {
+            let element_type_ptr = element_type_arc_rwlock.read().expect("Failed to lock type for reading").read(LLVMRefType::Type, |element_type_ref| {
+                if let LLVMRef::Type(ptr) = element_type_ref {
+                    Some(*ptr)
+                } else {
+                    None
+                }
+            })?;
 
-// /// Creates a continue statement
-// pub fn create_continue_statement(builder: CPointer<LLVMBuilderRef>, continue_block: CPointer<LLVMBasicBlockRef>) -> CPointer<LLVMValueRef> {
-//     let builder_ptr = builder.get_ref();
-//     let continue_block_ptr = continue_block.get_ref();
-//     let raw_ptr = unsafe {
-//         core::LLVMBuildBr(*builder_ptr, *continue_block_ptr)
-//     };
-//     let c_pointer = CPointer::new(raw_ptr as *mut _);
-//     if c_pointer.is_some() {
-//         return c_pointer.unwrap();
-//     }
-//     panic!("Missing c_pointer")}
+            core::LLVMConstPointerNull(core::LLVMPointerType(element_type_ptr, 0))
+        };
 
-// /// Creates a break statement
-// pub fn create_break_statement(builder: CPointer<LLVMBuilderRef>, break_block: CPointer<LLVMBasicBlockRef>) -> CPointer<LLVMValueRef> {
-//     let builder_ptr = builder.get_ref();
-//     let break_block_ptr = break_block.get_ref();
-//     let raw_ptr = unsafe {
-//         core::LLVMBuildBr(*builder_ptr, *break_block_ptr)
-//     };
-//     let c_pointer = CPointer::new(raw_ptr as *mut _);
-//     if c_pointer.is_some() {
-//         return c_pointer.unwrap();
-//     }
-//     panic!("Missing c_pointer")
-// }
+        if pointer_type.is_null() {
+            None
+        } else {
+            self.store_value(pointer_type)
+        }
+    }
+
+    /// Creates a struct
+    pub fn create_struct(
+        &mut self,
+        values: &[ValueTag],
+        context_tag: ContextTag,
+        packed: bool
+    ) -> Option<ValueTag> {
+        let context_arc_rwlock = self.get_context(context_tag)?;
+        let mut value_ptrs: Vec<LLVMValueRef> = values.iter().map(|&tag| {
+            self.get_value(tag).and_then(|value_arc_rwlock| {
+                value_arc_rwlock.read().expect("Failed to lock value for reading").read(LLVMRefType::Value, |value_ref| {
+                if let LLVMRef::Value(ptr) = value_ref {
+                    Some(*ptr)
+                } else {
+                    None
+                }
+            })
+            }).expect("Failed to retrieve value pointer")
+        }).collect();
+
+        let struct_type = unsafe {
+            let context_ptr = context_arc_rwlock.read().expect("Failed to lock context for reading").read(LLVMRefType::Context, |context_ref| {
+                if let LLVMRef::Context(ptr) = context_ref {
+                    Some(*ptr)
+                } else {
+                    None
+                }
+            })?;
+    
+            core::LLVMConstStructInContext(context_ptr, value_ptrs.as_mut_ptr(), value_ptrs.len() as u32, packed as i32)
+        };
+    
+        if struct_type.is_null() {
+            None
+        } else {
+            self.store_value(struct_type)
+        }
+    }
+    
+    /// Creates a global variable
+    pub fn create_global_variable(
+        &mut self,
+        module_tag: ModuleTag,
+        initializer_tag: ValueTag,
+        name: &str
+    ) -> Option<ValueTag> {
+        let module_arc_rwlock = self.get_module(module_tag)?;
+        let initializer_arc_rwlock = self.get_value(initializer_tag)?;
+
+        let c_name = CString::new(name).expect("Failed to create CString for global variable name");
+
+        let global_var = unsafe {
+            let module_ptr = module_arc_rwlock.read().expect("Failed to lock module for reading").read(LLVMRefType::Module, |module_ref| {
+                if let LLVMRef::Module(ptr) = module_ref {
+                    Some(*ptr)
+                } else {
+                    None
+                }
+            })?;
+
+            let initializer_ptr = initializer_arc_rwlock.read().expect("Failed to lock initializer for reading").read(LLVMRefType::Value, |initializer_ref| {
+                if let LLVMRef::Value(ptr) = initializer_ref {
+                    Some(*ptr)
+                } else {
+                    None
+                }
+            })?;
+
+            let global_var = core::LLVMAddGlobal(module_ptr, core::LLVMTypeOf(initializer_ptr), c_name.as_ptr());
+            core::LLVMSetInitializer(global_var, initializer_ptr);
+            global_var
+        };
+
+        if global_var.is_null() {
+            None
+        } else {
+            self.store_value(global_var)
+        }
+    }
+
+    /// Creates an immutable (global) string
+    pub fn create_string(
+        &mut self,
+        val: &str,
+        builder_tag: BuilderTag
+    ) -> Option<ValueTag> {
+        let builder_arc_rwlock = self.get_builder(builder_tag)?;
+
+        let c_val = CString::new(val).expect("Failed to create CString for string value");
+        let c_str_name = CString::new("const_str").expect("Failed to create CString for string name");
+
+        let builder_ptr_option = builder_arc_rwlock.read()
+            .expect("Failed to lock builder for reading")
+            .read(LLVMRefType::Builder, |builder_ref| {
+                if let LLVMRef::Builder(ptr) = builder_ref {
+                    Some(*ptr) 
+                } else {
+                    None 
+                }
+            });
+
+        if let Some(builder_ptr) = builder_ptr_option {
+            let str_pointer = unsafe {
+                core::LLVMBuildGlobalStringPtr(builder_ptr, c_val.as_ptr(), c_str_name.as_ptr())
+            };
+
+            if !str_pointer.is_null() {
+                return self.store_value(str_pointer);
+            }
+        }
+        
+        None
+    }
+
+    /// Creates a mutable (local) string
+    pub fn create_mut_string(
+        &mut self,
+        val: &str,
+        context_tag: ContextTag,
+        builder_tag: BuilderTag
+    ) -> Option<ValueTag> {
+        let context_arc_rwlock = self.get_context(context_tag)?;
+        let builder_arc_rwlock = self.get_builder(builder_tag)?;
+
+        let c_str_name = CString::new("local_str").expect("Failed to create CString for string name");
+
+        let local_str = unsafe {
+            let context_ptr = context_arc_rwlock.read().expect("Failed to lock context for reading").read(LLVMRefType::Context, |context_ref| {
+                if let LLVMRef::Context(ptr) = context_ref {
+                    Some(*ptr)
+                } else {
+                    None
+                }
+            })?;
+
+            let builder_ptr = builder_arc_rwlock.read().expect("Failed to lock builder for reading").read(LLVMRefType::Builder, |builder_ref| {
+                if let LLVMRef::Builder(ptr) = builder_ref {
+                    Some(*ptr)
+                } else {
+                    None
+                }
+            })?;
+
+            let i8_type = core::LLVMInt8TypeInContext(context_ptr);
+            let str_type = core::LLVMArrayType2(i8_type, val.len() as u64);
+            let local_str = core::LLVMBuildAlloca(builder_ptr.clone(), str_type, c_str_name.as_ptr());
+
+            for (i, &byte) in val.as_bytes().iter().enumerate() {
+                let index = core::LLVMConstInt(core::LLVMInt32TypeInContext(context_ptr), i as u64, 0);
+                let mut indices = [index];
+                let gep = core::LLVMBuildGEP2(builder_ptr.clone(), str_type, local_str, indices.as_mut_ptr(), indices.len() as u32, c_str_name.as_ptr());
+                core::LLVMBuildStore(builder_ptr.clone(), core::LLVMConstInt(i8_type, byte as u64, 0), gep);
+            }
+
+            local_str
+        };
+
+        if local_str.is_null() {
+            None
+        } else {
+            self.store_value(local_str)
+        }
+    }
+
+    /// Creates a null pointer
+    pub fn create_null_pointer(&mut self, ty_tag: TypeTag) -> Option<ValueTag> {
+        let ty_arc_rwlock = self.get_type(ty_tag)?;
+
+        let null_pointer = unsafe {
+            let ty_ptr = ty_arc_rwlock.read().expect("Failed to lock type for reading").read(LLVMRefType::Type, |ty_ref| {
+                if let LLVMRef::Type(ptr) = ty_ref {
+                    Some(*ptr)
+                } else {
+                    None
+                }
+            })?;
+
+            core::LLVMConstPointerNull(ty_ptr)
+        };
+
+        if null_pointer.is_null() {
+            None
+        } else {
+            self.store_value(null_pointer)
+        }
+    }
+
+    /// Creates a continue statement
+    pub fn create_continue_statement(
+        &mut self,
+        builder_tag: BuilderTag,
+        continue_block_tag: BasicBlockTag
+    ) -> Option<ValueTag> {
+        let builder_arc_rwlock = self.get_builder(builder_tag)?;
+        let continue_block_arc_rwlock = self.get_basic_block(continue_block_tag)?;
+
+        let continue_statement = unsafe {
+            let builder_ptr = builder_arc_rwlock.read().expect("Failed to lock builder for reading").read(LLVMRefType::Builder, |builder_ref| {
+                if let LLVMRef::Builder(ptr) = builder_ref {
+                    Some(*ptr)
+                } else {
+                    None
+                }
+            })?;
+
+            let continue_block_ptr = continue_block_arc_rwlock.read().expect("Failed to lock continue block for reading").read(LLVMRefType::Value, |continue_block_ref| {
+                if let LLVMRef::BasicBlock(ptr) = continue_block_ref {
+                    Some(*ptr)
+                } else {
+                    None
+                }
+            })?;
+
+            Some(core::LLVMBuildBr(builder_ptr, continue_block_ptr))
+        };
+
+        if let Some(continue_statement) = continue_statement {
+            self.store_value(continue_statement)
+        } else {
+            None
+        }
+    }
+
+    /// Creates a break statement
+    pub fn create_break_statement(
+        &mut self,
+        builder_tag: BuilderTag,
+        break_block_tag: BasicBlockTag
+    ) -> Option<ValueTag> {
+        let builder_arc_rwlock = self.get_builder(builder_tag)?;
+        let break_block_arc_rwlock = self.get_basic_block(break_block_tag)?;
+
+        let break_statement = unsafe {
+            let builder_ptr = builder_arc_rwlock.read().expect("Failed to lock builder for reading").read(LLVMRefType::Builder, |builder_ref| {
+                if let LLVMRef::Builder(ptr) = builder_ref {
+                    Some(*ptr)
+                } else {
+                    None
+                }
+            })?;
+
+            let break_block_ptr = break_block_arc_rwlock.read().expect("Failed to lock break block for reading").read(LLVMRefType::Value, |break_block_ref| {
+                if let LLVMRef::BasicBlock(ptr) = break_block_ref {
+                    Some(*ptr)
+                } else {
+                    None
+                }
+            })?;
+
+            Some(core::LLVMBuildBr(builder_ptr, break_block_ptr))
+        };
+
+        if let Some(break_statement) = break_statement {
+            self.store_value(break_statement)
+        } else {
+            None
+        }
+    }
+}

@@ -1,260 +1,779 @@
-// extern crate llvm_sys as llvm;
+extern crate llvm_sys as llvm;
 
-// use llvm::{core, prelude::*};
-// use std::ffi::CString;
-// use crate::memory_management::pointer::CPointer;
+use llvm::{core, LLVMIntPredicate};
 
-// /// Basic addition
-// pub fn build_add(builder: CPointer<LLVMBuilderRef>, param_a: CPointer<LLVMValueRef>, param_b: CPointer<LLVMValueRef>, sum: &str) -> CPointer<LLVMValueRef> {
-//     let c_sum = CString::new(sum).expect("Failed to create CString from sum");
-//     let builder_ptr = builder.get_ref();
-//     let param_a_ptr = param_a.get_ref();
-//     let param_b_ptr = param_b.get_ref();
+use std::ffi::CString;
 
-//     let raw_ptr = unsafe {
-//         core::LLVMBuildAdd(*builder_ptr, *param_a_ptr, *param_b_ptr, c_sum.as_ptr())
-//     };
-//     let c_pointer = CPointer::new(raw_ptr as *mut _);
-//     if c_pointer.is_some() {
-//         return c_pointer.unwrap();
-//     }
-//     panic!("Missing c_pointer")}
+use crate::memory_management::{
+    pointer::{LLVMRef, LLVMRefType}, 
+    resource_pools::{BuilderTag, ContextTag, ResourcePools, ValueTag}
+};
 
-// /// Basic subtraction
-// pub fn build_sub(builder: CPointer<LLVMBuilderRef>, param_a: CPointer<LLVMValueRef>, param_b: CPointer<LLVMValueRef>, name: &str) -> CPointer<LLVMValueRef> {
-//     let c_name = CString::new(name).expect("Failed to create CString from name");
-//     let builder_ptr = builder.get_ref();
-//     let param_a_ptr = param_a.get_ref();
-//     let param_b_ptr = param_b.get_ref();
+impl ResourcePools {
+    /// Basic addition
+    pub fn build_add(
+        &mut self,
+        builder_tag: BuilderTag,
+        param_a_tag: ValueTag,
+        param_b_tag: ValueTag,
+        name: &str
+    ) -> Option<ValueTag> {
+        let builder_arc_rwlock = self.get_builder(builder_tag)?;
+        let param_a_arc_rwlock = self.get_value(param_a_tag)?;
+        let param_b_arc_rwlock = self.get_value(param_b_tag)?;
 
-//     let raw_ptr = unsafe {
-//         core::LLVMBuildSub(*builder_ptr, *param_a_ptr, *param_b_ptr, c_name.as_ptr())
-//     };
-//     let c_pointer = CPointer::new(raw_ptr as *mut _);
-//     if c_pointer.is_some() {
-//         return c_pointer.unwrap();
-//     }
-//     panic!("Missing c_pointer")}
+        let c_name = CString::new(name).expect("Failed to create CString");
 
-// /// Basic multiplication
-// pub fn build_mul(builder: CPointer<LLVMBuilderRef>, param_a: CPointer<LLVMValueRef>, param_b: CPointer<LLVMValueRef>, name: &str) -> CPointer<LLVMValueRef> {
-//     let c_name = CString::new(name).expect("Failed to create CString from name");
-//     let builder_ptr = builder.get_ref();
-//     let param_a_ptr = param_a.get_ref();
-//     let param_b_ptr = param_b.get_ref();
+        let result = unsafe {
+            let builder_ptr = builder_arc_rwlock.read().expect("Failed to lock builder for reading").read(LLVMRefType::Builder, |builder_ref| {
+                if let LLVMRef::Builder(ptr) = builder_ref {
+                    Some(*ptr)
+                } else {
+                    None
+                }
+            })?;
 
-//     let raw_ptr = unsafe {
-//         core::LLVMBuildMul(*builder_ptr, *param_a_ptr, *param_b_ptr, c_name.as_ptr())
-//     };
-//     let c_pointer = CPointer::new(raw_ptr as *mut _);
-//     if c_pointer.is_some() {
-//         return c_pointer.unwrap();
-//     }
-//     panic!("Missing c_pointer")}
+            let param_a_ptr = param_a_arc_rwlock.read().expect("Failed to lock param a for reading").read(LLVMRefType::Value, |param_a_ref| {
+                if let LLVMRef::Value(ptr) = param_a_ref {
+                    Some(*ptr)
+                } else {
+                    None
+                }
+            })?;
 
-// /// Basic division
-// pub fn build_div(builder: CPointer<LLVMBuilderRef>, param_a: CPointer<LLVMValueRef>, param_b: CPointer<LLVMValueRef>, name: &str) -> CPointer<LLVMValueRef> {
-//     let c_name = CString::new(name).expect("Failed to create CString from name");
-//     let builder_ptr = builder.get_ref();
-//     let param_a_ptr = param_a.get_ref();
-//     let param_b_ptr = param_b.get_ref();
+            let param_b_ptr = param_b_arc_rwlock.read().expect("Failed to lock param b for reading").read(LLVMRefType::Value, |param_b_ref| {
+                if let LLVMRef::Value(ptr) = param_b_ref {
+                    Some(*ptr)
+                } else {
+                    None
+                }
+            })?;
 
-//     let raw_ptr = unsafe {
-//         core::LLVMBuildSDiv(*builder_ptr, *param_a_ptr, *param_b_ptr, c_name.as_ptr()) // Signed division
-//     };
-//     let c_pointer = CPointer::new(raw_ptr as *mut _);
-//     if c_pointer.is_some() {
-//         return c_pointer.unwrap();
-//     }
-//     panic!("Missing c_pointer")}
+            core::LLVMBuildAdd(builder_ptr, param_a_ptr, param_b_ptr, c_name.as_ptr())
+        };
 
-// /// Modular arithmetic
-// pub fn build_rem(builder: CPointer<LLVMBuilderRef>, param_a: CPointer<LLVMValueRef>, param_b: CPointer<LLVMValueRef>, name: &str) -> CPointer<LLVMValueRef> {
-//     let c_name = CString::new(name).expect("Failed to create CString from name");
-//     let builder_ptr = builder.get_ref();
-//     let param_a_ptr = param_a.get_ref();
-//     let param_b_ptr = param_b.get_ref();
+        if result.is_null() {
+            None
+        } else {
+            self.store_value(result)
+        }
+    }
 
-//     let raw_ptr = unsafe {
-//         core::LLVMBuildSRem(*builder_ptr, *param_a_ptr, *param_b_ptr, c_name.as_ptr()) // Signed remainder
-//     };
-//     let c_pointer = CPointer::new(raw_ptr as *mut _);
-//     if c_pointer.is_some() {
-//         return c_pointer.unwrap();
-//     }
-//     panic!("Missing c_pointer")}
+    /// Basic subtraction
+    pub fn build_sub(
+        &mut self,
+        builder_tag: BuilderTag,
+        param_a_tag: ValueTag,
+        param_b_tag: ValueTag,
+        name: &str
+    ) -> Option<ValueTag> {
+        let builder_arc_rwlock = self.get_builder(builder_tag)?;
+        let param_a_arc_rwlock = self.get_value(param_a_tag)?;
+        let param_b_arc_rwlock = self.get_value(param_b_tag)?;
 
-// /// Logical and
-// pub fn build_and(builder: CPointer<LLVMBuilderRef>, param_a: CPointer<LLVMValueRef>, param_b: CPointer<LLVMValueRef>, name: &str) -> CPointer<LLVMValueRef> {
-//     let c_name = CString::new(name).expect("Failed to create CString from name");
-//     let builder_ptr = builder.get_ref();
-//     let param_a_ptr = param_a.get_ref();
-//     let param_b_ptr = param_b.get_ref();
+        let c_name = CString::new(name).expect("Failed to create CString");
 
-//     let raw_ptr = unsafe {
-//         core::LLVMBuildAnd(*builder_ptr, *param_a_ptr, *param_b_ptr, c_name.as_ptr())
-//     };
-//     let c_pointer = CPointer::new(raw_ptr as *mut _);
-//     if c_pointer.is_some() {
-//         return c_pointer.unwrap();
-//     }
-//     panic!("Missing c_pointer")}
+        let result = unsafe {
+            let builder_ptr = builder_arc_rwlock.read().expect("Failed to lock builder for reading").read(LLVMRefType::Builder, |builder_ref| {
+                if let LLVMRef::Builder(ptr) = builder_ref {
+                    Some(*ptr)
+                } else {
+                    None
+                }
+            })?;
 
-// /// Logical or
-// pub fn build_or(builder: CPointer<LLVMBuilderRef>, param_a: CPointer<LLVMValueRef>, param_b: CPointer<LLVMValueRef>, name: &str) -> CPointer<LLVMValueRef> {
-//     let c_name = CString::new(name).expect("Failed to create CString from name");
-//     let builder_ptr = builder.get_ref();
-//     let param_a_ptr = param_a.get_ref();
-//     let param_b_ptr = param_b.get_ref();
+            let param_a_ptr = param_a_arc_rwlock.read().expect("Failed to lock param a for reading").read(LLVMRefType::Value, |param_a_ref| {
+                if let LLVMRef::Value(ptr) = param_a_ref {
+                    Some(*ptr)
+                } else {
+                    None
+                }
+            })?;
 
-//     let raw_ptr = unsafe {
-//         core::LLVMBuildOr(*builder_ptr, *param_a_ptr, *param_b_ptr, c_name.as_ptr())
-//     };
-//     let c_pointer = CPointer::new(raw_ptr as *mut _);
-//     if c_pointer.is_some() {
-//         return c_pointer.unwrap();
-//     }
-//     panic!("Missing c_pointer")}
+            let param_b_ptr = param_b_arc_rwlock.read().expect("Failed to lock param b for reading").read(LLVMRefType::Value, |param_b_ref| {
+                if let LLVMRef::Value(ptr) = param_b_ref {
+                    Some(*ptr)
+                } else {
+                    None
+                }
+            })?;
 
-// /// Logical xor
-// pub fn build_xor(builder: CPointer<LLVMBuilderRef>, param_a: CPointer<LLVMValueRef>, param_b: CPointer<LLVMValueRef>, name: &str) -> CPointer<LLVMValueRef> {
-//     let c_name = CString::new(name).expect("Failed to create CString from name");
-//     let builder_ptr = builder.get_ref();
-//     let param_a_ptr = param_a.get_ref();
-//     let param_b_ptr = param_b.get_ref();
+            core::LLVMBuildSub(builder_ptr, param_a_ptr, param_b_ptr, c_name.as_ptr())
+        };
 
-//     let raw_ptr = unsafe {
-//         core::LLVMBuildXor(*builder_ptr, *param_a_ptr, *param_b_ptr, c_name.as_ptr())
-//     };
-//     let c_pointer = CPointer::new(raw_ptr as *mut _);
-//     if c_pointer.is_some() {
-//         return c_pointer.unwrap();
-//     }
-//     panic!("Missing c_pointer")}
+        if result.is_null() {
+            None
+        } else {
+            self.store_value(result)
+        }
+    }
 
-// /// Logical left shift
-// pub fn build_shl(builder: CPointer<LLVMBuilderRef>, param_a: CPointer<LLVMValueRef>, param_b: CPointer<LLVMValueRef>, name: &str) -> CPointer<LLVMValueRef> {
-//     let c_name = CString::new(name).expect("Failed to create CString from name");
-//     let builder_ptr = builder.get_ref();
-//     let param_a_ptr = param_a.get_ref();
-//     let param_b_ptr = param_b.get_ref();
+    /// Basic multiplication
+    pub fn build_mul(
+        &mut self,
+        builder_tag: BuilderTag,
+        param_a_tag: ValueTag,
+        param_b_tag: ValueTag,
+        name: &str
+    ) -> Option<ValueTag> {
+        let builder_arc_rwlock = self.get_builder(builder_tag)?;
+        let param_a_arc_rwlock = self.get_value(param_a_tag)?;
+        let param_b_arc_rwlock = self.get_value(param_b_tag)?;
 
-//     let raw_ptr = unsafe {
-//         core::LLVMBuildShl(*builder_ptr, *param_a_ptr, *param_b_ptr, c_name.as_ptr())
-//     };
-//     let c_pointer = CPointer::new(raw_ptr as *mut _);
-//     if c_pointer.is_some() {
-//         return c_pointer.unwrap();
-//     }
-//     panic!("Missing c_pointer")}
+        let c_name = CString::new(name).expect("Failed to create CString");
 
-// /// Logical right shift
-// pub fn build_shr(builder: CPointer<LLVMBuilderRef>, param_a: CPointer<LLVMValueRef>, param_b: CPointer<LLVMValueRef>, name: &str) -> CPointer<LLVMValueRef> {
-//     let c_name = CString::new(name).expect("Failed to create CString from name");
-//     let builder_ptr = builder.get_ref();
-//     let param_a_ptr = param_a.get_ref();
-//     let param_b_ptr = param_b.get_ref();
+        let result = unsafe {
+            let builder_ptr = builder_arc_rwlock.read().expect("Failed to lock builder for reading").read(LLVMRefType::Builder, |builder_ref| {
+                if let LLVMRef::Builder(ptr) = builder_ref {
+                    Some(*ptr)
+                } else {
+                    None
+                }
+            })?;
 
-//     let raw_ptr = unsafe {
-//         core::LLVMBuildLShr(*builder_ptr, *param_a_ptr, *param_b_ptr, c_name.as_ptr())
-//     };
-//     let c_pointer = CPointer::new(raw_ptr as *mut _);
-//     if c_pointer.is_some() {
-//         return c_pointer.unwrap();
-//     }
-//     panic!("Missing c_pointer")}
+            let param_a_ptr = param_a_arc_rwlock.read().expect("Failed to lock param a for reading").read(LLVMRefType::Value, |param_a_ref| {
+                if let LLVMRef::Value(ptr) = param_a_ref {
+                    Some(*ptr)
+                } else {
+                    None
+                }
+            })?;
 
-// /// Greater than comparison
-// pub fn build_icmp_gt(builder: CPointer<LLVMBuilderRef>, param_a: CPointer<LLVMValueRef>, param_b: CPointer<LLVMValueRef>, name: &str) -> CPointer<LLVMValueRef> {
-//     let c_name = CString::new(name).expect("Failed to create CString from name");
-//     let builder_ptr = builder.get_ref();
-//     let param_a_ptr = param_a.get_ref();
-//     let param_b_ptr = param_b.get_ref();
+            let param_b_ptr = param_b_arc_rwlock.read().expect("Failed to lock param b for reading").read(LLVMRefType::Value, |param_b_ref| {
+                if let LLVMRef::Value(ptr) = param_b_ref {
+                    Some(*ptr)
+                } else {
+                    None
+                }
+            })?;
 
-//     let raw_ptr = unsafe {
-//         core::LLVMBuildICmp(*builder_ptr, llvm::LLVMIntPredicate::LLVMIntSGT, *param_a_ptr, *param_b_ptr, c_name.as_ptr())
-//     };
-//     let c_pointer = CPointer::new(raw_ptr as *mut _);
-//     if c_pointer.is_some() {
-//         return c_pointer.unwrap();
-//     }
-//     panic!("Missing c_pointer")}
+            core::LLVMBuildMul(builder_ptr, param_a_ptr, param_b_ptr, c_name.as_ptr())
+        };
 
-// /// Less than comparison
-// pub fn build_icmp_lt(builder: CPointer<LLVMBuilderRef>, param_a: CPointer<LLVMValueRef>, param_b: CPointer<LLVMValueRef>, name: &str) -> CPointer<LLVMValueRef> {
-//     let c_name = CString::new(name).expect("Failed to create CString from name");
-//     let builder_ptr = builder.get_ref();
-//     let param_a_ptr = param_a.get_ref();
-//     let param_b_ptr = param_b.get_ref();
+        if result.is_null() {
+            None
+        } else {
+            self.store_value(result)
+        }
+    }
 
-//     let raw_ptr = unsafe {
-//         core::LLVMBuildICmp(*builder_ptr, llvm::LLVMIntPredicate::LLVMIntSLT, *param_a_ptr, *param_b_ptr, c_name.as_ptr())
-//     };
-//     let c_pointer = CPointer::new(raw_ptr as *mut _);
-//     if c_pointer.is_some() {
-//         return c_pointer.unwrap();
-//     }
-//     panic!("Missing c_pointer")}
+    /// Basic division
+    pub fn build_div(
+        &mut self,
+        builder_tag: BuilderTag,
+        param_a_tag: ValueTag,
+        param_b_tag: ValueTag,
+        name: &str
+    ) -> Option<ValueTag> {
+        let builder_arc_rwlock = self.get_builder(builder_tag)?;
+        let param_a_arc_rwlock = self.get_value(param_a_tag)?;
+        let param_b_arc_rwlock = self.get_value(param_b_tag)?;
 
-// /// Equal comparison
-// pub fn build_icmp_eq(builder: CPointer<LLVMBuilderRef>, param_a: CPointer<LLVMValueRef>, param_b: CPointer<LLVMValueRef>, name: &str) -> CPointer<LLVMValueRef> {
-//     let c_name = CString::new(name).expect("Failed to create CString from name");
-//     let builder_ptr = builder.get_ref();
-//     let param_a_ptr = param_a.get_ref();
-//     let param_b_ptr = param_b.get_ref();
+        let c_name = CString::new(name).expect("Failed to create CString");
 
-//     let raw_ptr = unsafe {
-//         core::LLVMBuildICmp(*builder_ptr, llvm::LLVMIntPredicate::LLVMIntEQ, *param_a_ptr, *param_b_ptr, c_name.as_ptr())
-//     };
-//     let c_pointer = CPointer::new(raw_ptr as *mut _);
-//     if c_pointer.is_some() {
-//         return c_pointer.unwrap();
-//     }
-//     panic!("Missing c_pointer")}
+        let result = unsafe {
+            let builder_ptr = builder_arc_rwlock.read().expect("Failed to lock builder for reading").read(LLVMRefType::Builder, |builder_ref| {
+                if let LLVMRef::Builder(ptr) = builder_ref {
+                    Some(*ptr)
+                } else {
+                    None
+                }
+            })?;
 
-// /// Negation
-// pub fn build_negation(builder: CPointer<LLVMBuilderRef>, operand_ir: CPointer<LLVMValueRef>, name: &str) -> CPointer<LLVMValueRef> {
-//     let c_name = CString::new(name).expect("Failed to create CString from name");
-//     let builder_ptr = builder.get_ref();
-//     let operand_ir_ptr = operand_ir.get_ref();
+            let param_a_ptr = param_a_arc_rwlock.read().expect("Failed to lock param a for reading").read(LLVMRefType::Value, |param_a_ref| {
+                if let LLVMRef::Value(ptr) = param_a_ref {
+                    Some(*ptr)
+                } else {
+                    None
+                }
+            })?;
 
-//     let raw_ptr = unsafe {
-//         core::LLVMBuildNeg(*builder_ptr, *operand_ir_ptr, c_name.as_ptr())
-//     };
-//     let c_pointer = CPointer::new(raw_ptr as *mut _);
-//     if c_pointer.is_some() {
-//         return c_pointer.unwrap();
-//     }
-//     panic!("Missing c_pointer")}
+            let param_b_ptr = param_b_arc_rwlock.read().expect("Failed to lock param b for reading").read(LLVMRefType::Value, |param_b_ref| {
+                if let LLVMRef::Value(ptr) = param_b_ref {
+                    Some(*ptr)
+                } else {
+                    None
+                }
+            })?;
 
-// /// Bitwise not
-// pub fn build_bitwise_not(builder: CPointer<LLVMBuilderRef>, operand_ir: CPointer<LLVMValueRef>, name: &str) -> CPointer<LLVMValueRef> {
-//     let c_name = CString::new(name).expect("Failed to create CString from name");
-//     let builder_ptr = builder.get_ref();
-//     let operand_ir_ptr = operand_ir.get_ref();
+            core::LLVMBuildSDiv(builder_ptr, param_a_ptr, param_b_ptr, c_name.as_ptr())
+        };
 
-//     let raw_ptr = unsafe {
-//         core::LLVMBuildNot(*builder_ptr, *operand_ir_ptr, c_name.as_ptr())
-//     };
-//     let c_pointer = CPointer::new(raw_ptr as *mut _);
-//     if c_pointer.is_some() {
-//         return c_pointer.unwrap();
-//     }
-//     panic!("Missing c_pointer")}
+        if result.is_null() {
+            None
+        } else {
+            self.store_value(result)
+        }
+    }
 
-// /// Logical not
-// pub fn build_logical_not(builder: CPointer<LLVMBuilderRef>, context: CPointer<LLVMContextRef>, operand_ir: CPointer<LLVMValueRef>, name: &str) -> CPointer<LLVMValueRef> {
-//     let c_name = CString::new(name).expect("Failed to create CString from name");
-//     let builder_ptr = builder.get_ref();
-//     let context_ptr = context.get_ref();
-//     let operand_ir_ptr = operand_ir.get_ref();
-//     let zero = unsafe { core::LLVMConstInt(core::LLVMInt1TypeInContext(*context_ptr), 0, 0) };
+    /// Modular arithmetic (remainder)
+    pub fn build_rem(
+        &mut self,
+        builder_tag: BuilderTag,
+        param_a_tag: ValueTag,
+        param_b_tag: ValueTag,
+        name: &str
+    ) -> Option<ValueTag> {
+        let builder_arc_rwlock = self.get_builder(builder_tag)?;
+        let param_a_arc_rwlock = self.get_value(param_a_tag)?;
+        let param_b_arc_rwlock = self.get_value(param_b_tag)?;
 
-//     let raw_ptr = unsafe {
-//         core::LLVMBuildICmp(*builder_ptr, llvm::LLVMIntPredicate::LLVMIntEQ, *operand_ir_ptr, zero, c_name.as_ptr())
-//     };
-//     let c_pointer = CPointer::new(raw_ptr as *mut _);
-//     if c_pointer.is_some() {
-//         return c_pointer.unwrap();
-//     }
-//     panic!("Missing c_pointer")}
+        let c_name = CString::new(name).expect("Failed to create CString");
+
+        let result = unsafe {
+            let builder_ptr = builder_arc_rwlock.read().expect("Failed to lock builder for reading").read(LLVMRefType::Builder, |builder_ref| {
+                if let LLVMRef::Builder(ptr) = builder_ref {
+                    Some(*ptr)
+                } else {
+                    None
+                }
+            })?;
+
+            let param_a_ptr = param_a_arc_rwlock.read().expect("Failed to lock param a for reading").read(LLVMRefType::Value, |param_a_ref| {
+                if let LLVMRef::Value(ptr) = param_a_ref {
+                    Some(*ptr)
+                } else {
+                    None
+                }
+            })?;
+
+            let param_b_ptr = param_b_arc_rwlock.read().expect("Failed to lock param b for reading").read(LLVMRefType::Value, |param_b_ref| {
+                if let LLVMRef::Value(ptr) = param_b_ref {
+                    Some(*ptr)
+                } else {
+                    None
+                }
+            })?;
+
+            core::LLVMBuildSRem(builder_ptr, param_a_ptr, param_b_ptr, c_name.as_ptr())
+        };
+
+        if result.is_null() {
+            None
+        } else {
+            self.store_value(result)
+        }
+    }
+
+    /// Logical and
+    pub fn build_and(
+        &mut self,
+        builder_tag: BuilderTag,
+        param_a_tag: ValueTag,
+        param_b_tag: ValueTag,
+        name: &str
+    ) -> Option<ValueTag> {
+        let builder_arc_rwlock = self.get_builder(builder_tag)?;
+        let param_a_arc_rwlock = self.get_value(param_a_tag)?;
+        let param_b_arc_rwlock = self.get_value(param_b_tag)?;
+
+        let c_name = CString::new(name).expect("Failed to create CString");
+
+        let result = unsafe {
+            let builder_ptr = builder_arc_rwlock.read().expect("Failed to lock builder for reading").read(LLVMRefType::Builder, |builder_ref| {
+                if let LLVMRef::Builder(ptr) = builder_ref {
+                    Some(*ptr)
+                } else {
+                    None
+                }
+            })?;
+
+            let param_a_ptr = param_a_arc_rwlock.read().expect("Failed to lock param a for reading").read(LLVMRefType::Value, |param_a_ref| {
+                if let LLVMRef::Value(ptr) = param_a_ref {
+                    Some(*ptr)
+                } else {
+                    None
+                }
+            })?;
+
+            let param_b_ptr = param_b_arc_rwlock.read().expect("Failed to lock param b for reading").read(LLVMRefType::Value, |param_b_ref| {
+                if let LLVMRef::Value(ptr) = param_b_ref {
+                    Some(*ptr)
+                } else {
+                    None
+                }
+            })?;
+
+            core::LLVMBuildAnd(builder_ptr, param_a_ptr, param_b_ptr, c_name.as_ptr())
+        };
+
+        if result.is_null() {
+            None
+        } else {
+            self.store_value(result)
+        }
+    }
+
+    /// Logical or
+    pub fn build_or(
+        &mut self,
+        builder_tag: BuilderTag,
+        param_a_tag: ValueTag,
+        param_b_tag: ValueTag,
+        name: &str
+    ) -> Option<ValueTag> {
+        let builder_arc_rwlock = self.get_builder(builder_tag)?;
+        let param_a_arc_rwlock = self.get_value(param_a_tag)?;
+        let param_b_arc_rwlock = self.get_value(param_b_tag)?;
+
+        let c_name = CString::new(name).expect("Failed to create CString");
+
+        let result = unsafe {
+            let builder_ptr = builder_arc_rwlock.read().expect("Failed to lock builder for reading").read(LLVMRefType::Builder, |builder_ref| {
+                if let LLVMRef::Builder(ptr) = builder_ref {
+                    Some(*ptr)
+                } else {
+                    None
+                }
+            })?;
+
+            let param_a_ptr = param_a_arc_rwlock.read().expect("Failed to lock param a for reading").read(LLVMRefType::Value, |param_a_ref| {
+                if let LLVMRef::Value(ptr) = param_a_ref {
+                    Some(*ptr)
+                } else {
+                    None
+                }
+            })?;
+
+            let param_b_ptr = param_b_arc_rwlock.read().expect("Failed to lock param b for reading").read(LLVMRefType::Value, |param_b_ref| {
+                if let LLVMRef::Value(ptr) = param_b_ref {
+                    Some(*ptr)
+                } else {
+                    None
+                }
+            })?;
+
+            core::LLVMBuildOr(builder_ptr, param_a_ptr, param_b_ptr, c_name.as_ptr())
+        };
+
+        if result.is_null() {
+            None
+        } else {
+            self.store_value(result)
+        }
+    }
+
+    /// Logical xor
+    pub fn build_xor(
+        &mut self,
+        builder_tag: BuilderTag,
+        param_a_tag: ValueTag,
+        param_b_tag: ValueTag,
+        name: &str
+    ) -> Option<ValueTag> {
+        let builder_arc_rwlock = self.get_builder(builder_tag)?;
+        let param_a_arc_rwlock = self.get_value(param_a_tag)?;
+        let param_b_arc_rwlock = self.get_value(param_b_tag)?;
+
+        let c_name = CString::new(name).expect("Failed to create CString");
+
+        let result = unsafe {
+            let builder_ptr = builder_arc_rwlock.read().expect("Failed to lock builder for reading").read(LLVMRefType::Builder, |builder_ref| {
+                if let LLVMRef::Builder(ptr) = builder_ref {
+                    Some(*ptr)
+                } else {
+                    None
+                }
+            })?;
+
+            let param_a_ptr = param_a_arc_rwlock.read().expect("Failed to lock param a for reading").read(LLVMRefType::Value, |param_a_ref| {
+                if let LLVMRef::Value(ptr) = param_a_ref {
+                    Some(*ptr)
+                } else {
+                    None
+                }
+            })?;
+
+            let param_b_ptr = param_b_arc_rwlock.read().expect("Failed to lock param b for reading").read(LLVMRefType::Value, |param_b_ref| {
+                if let LLVMRef::Value(ptr) = param_b_ref {
+                    Some(*ptr)
+                } else {
+                    None
+                }
+            })?;
+
+            core::LLVMBuildXor(builder_ptr, param_a_ptr, param_b_ptr, c_name.as_ptr())
+        };
+
+        if result.is_null() {
+            None
+        } else {
+            self.store_value(result)
+        }
+    }
+
+    /// Logical left shift
+    pub fn build_shl(
+        &mut self,
+        builder_tag: BuilderTag,
+        param_a_tag: ValueTag,
+        param_b_tag: ValueTag,
+        name: &str
+    ) -> Option<ValueTag> {
+        let builder_arc_rwlock = self.get_builder(builder_tag)?;
+        let param_a_arc_rwlock = self.get_value(param_a_tag)?;
+        let param_b_arc_rwlock = self.get_value(param_b_tag)?;
+
+        let c_name = CString::new(name).expect("Failed to create CString");
+
+        let result = unsafe {
+            let builder_ptr = builder_arc_rwlock.read().expect("Failed to lock builder for reading").read(LLVMRefType::Builder, |builder_ref| {
+                if let LLVMRef::Builder(ptr) = builder_ref {
+                    Some(*ptr)
+                } else {
+                    None
+                }
+            })?;
+
+            let param_a_ptr = param_a_arc_rwlock.read().expect("Failed to lock param a for reading").read(LLVMRefType::Value, |param_a_ref| {
+                if let LLVMRef::Value(ptr) = param_a_ref {
+                    Some(*ptr)
+                } else {
+                    None
+                }
+            })?;
+
+            let param_b_ptr = param_b_arc_rwlock.read().expect("Failed to lock param b for reading").read(LLVMRefType::Value, |param_b_ref| {
+                if let LLVMRef::Value(ptr) = param_b_ref {
+                    Some(*ptr)
+                } else {
+                    None
+                }
+            })?;
+
+            core::LLVMBuildShl(builder_ptr, param_a_ptr, param_b_ptr, c_name.as_ptr())
+        };
+
+        if result.is_null() {
+            None
+        } else {
+            self.store_value(result)
+        }
+    }
+
+    /// Logical right shift
+    pub fn build_shr(
+        &mut self,
+        builder_tag: BuilderTag,
+        param_a_tag: ValueTag,
+        param_b_tag: ValueTag,
+        name: &str
+    ) -> Option<ValueTag> {
+        let builder_arc_rwlock = self.get_builder(builder_tag)?;
+        let param_a_arc_rwlock = self.get_value(param_a_tag)?;
+        let param_b_arc_rwlock = self.get_value(param_b_tag)?;
+
+        let c_name = CString::new(name).expect("Failed to create CString");
+
+        let result = unsafe {
+            let builder_ptr = builder_arc_rwlock.read().expect("Failed to lock builder for reading").read(LLVMRefType::Builder, |builder_ref| {
+                if let LLVMRef::Builder(ptr) = builder_ref {
+                    Some(*ptr)
+                } else {
+                    None
+                }
+            })?;
+
+            let param_a_ptr = param_a_arc_rwlock.read().expect("Failed to lock param a for reading").read(LLVMRefType::Value, |param_a_ref| {
+                if let LLVMRef::Value(ptr) = param_a_ref {
+                    Some(*ptr)
+                } else {
+                    None
+                }
+            })?;
+
+            let param_b_ptr = param_b_arc_rwlock.read().expect("Failed to lock param b for reading").read(LLVMRefType::Value, |param_b_ref| {
+                if let LLVMRef::Value(ptr) = param_b_ref {
+                    Some(*ptr)
+                } else {
+                    None
+                }
+            })?;
+
+            core::LLVMBuildLShr(builder_ptr, param_a_ptr, param_b_ptr, c_name.as_ptr())
+        };
+
+        if result.is_null() {
+            None
+        } else {
+            self.store_value(result)
+        }
+    }
+
+    /// Greater than comparison
+    pub fn build_icmp_gt(
+        &mut self,
+        builder_tag: BuilderTag,
+        param_a_tag: ValueTag,
+        param_b_tag: ValueTag,
+        name: &str
+    ) -> Option<ValueTag> {
+        let builder_arc_rwlock = self.get_builder(builder_tag)?;
+        let param_a_arc_rwlock = self.get_value(param_a_tag)?;
+        let param_b_arc_rwlock = self.get_value(param_b_tag)?;
+
+        let c_name = CString::new(name).expect("Failed to create CString");
+
+        let result = unsafe {
+            let builder_ptr = builder_arc_rwlock.read().expect("Failed to lock builder for reading").read(LLVMRefType::Builder, |builder_ref| {
+                if let LLVMRef::Builder(ptr) = builder_ref {
+                    Some(*ptr)
+                } else {
+                    None
+                }
+            })?;
+
+            let param_a_ptr = param_a_arc_rwlock.read().expect("Failed to lock param a for reading").read(LLVMRefType::Value, |param_a_ref| {
+                if let LLVMRef::Value(ptr) = param_a_ref {
+                    Some(*ptr)
+                } else {
+                    None
+                }
+            })?;
+
+            let param_b_ptr = param_b_arc_rwlock.read().expect("Failed to lock param b for reading").read(LLVMRefType::Value, |param_b_ref| {
+                if let LLVMRef::Value(ptr) = param_b_ref {
+                    Some(*ptr)
+                } else {
+                    None
+                }
+            })?;
+
+            core::LLVMBuildICmp(builder_ptr, LLVMIntPredicate::LLVMIntSGT, param_a_ptr, param_b_ptr, c_name.as_ptr())
+        };
+
+        if result.is_null() {
+            None
+        } else {
+            self.store_value(result)
+        }
+    }
+
+    /// Less than comparison
+    pub fn build_icmp_lt(
+        &mut self,
+        builder_tag: BuilderTag,
+        param_a_tag: ValueTag,
+        param_b_tag: ValueTag,
+        name: &str
+    ) -> Option<ValueTag> {
+        let builder_arc_rwlock = self.get_builder(builder_tag)?;
+        let param_a_arc_rwlock = self.get_value(param_a_tag)?;
+        let param_b_arc_rwlock = self.get_value(param_b_tag)?;
+
+        let c_name = CString::new(name).expect("Failed to create CString");
+
+        let result = unsafe {
+            let builder_ptr = builder_arc_rwlock.read().expect("Failed to lock builder for reading").read(LLVMRefType::Builder, |builder_ref| {
+                if let LLVMRef::Builder(ptr) = builder_ref {
+                    Some(*ptr)
+                } else {
+                    None
+                }
+            })?;
+
+            let param_a_ptr = param_a_arc_rwlock.read().expect("Failed to lock param a for reading").read(LLVMRefType::Value, |param_a_ref| {
+                if let LLVMRef::Value(ptr) = param_a_ref {
+                    Some(*ptr)
+                } else {
+                    None
+                }
+            })?;
+
+            let param_b_ptr = param_b_arc_rwlock.read().expect("Failed to lock param b for reading").read(LLVMRefType::Value, |param_b_ref| {
+                if let LLVMRef::Value(ptr) = param_b_ref {
+                    Some(*ptr)
+                } else {
+                    None
+                }
+            })?;
+
+            core::LLVMBuildICmp(builder_ptr, LLVMIntPredicate::LLVMIntSLT, param_a_ptr, param_b_ptr, c_name.as_ptr())
+        };
+
+        if result.is_null() {
+            None
+        } else {
+            self.store_value(result)
+        }
+    }
+
+    /// Equal comparison
+    pub fn build_icmp_eq(
+        &mut self,
+        builder_tag: BuilderTag,
+        param_a_tag: ValueTag,
+        param_b_tag: ValueTag,
+        name: &str
+    ) -> Option<ValueTag> {
+        let builder_arc_rwlock = self.get_builder(builder_tag)?;
+        let param_a_arc_rwlock = self.get_value(param_a_tag)?;
+        let param_b_arc_rwlock = self.get_value(param_b_tag)?;
+
+        let c_name = CString::new(name).expect("Failed to create CString");
+
+        let result = unsafe {
+            let builder_ptr = builder_arc_rwlock.read().expect("Failed to lock builder for reading").read(LLVMRefType::Builder, |builder_ref| {
+                if let LLVMRef::Builder(ptr) = builder_ref {
+                    Some(*ptr)
+                } else {
+                    None
+                }
+            })?;
+
+            let param_a_ptr = param_a_arc_rwlock.read().expect("Failed to lock param a for reading").read(LLVMRefType::Value, |param_a_ref| {
+                if let LLVMRef::Value(ptr) = param_a_ref {
+                    Some(*ptr)
+                } else {
+                    None
+                }
+            })?;
+
+            let param_b_ptr = param_b_arc_rwlock.read().expect("Failed to lock param b for reading").read(LLVMRefType::Value, |param_b_ref| {
+                if let LLVMRef::Value(ptr) = param_b_ref {
+                    Some(*ptr)
+                } else {
+                    None
+                }
+            })?;
+
+            core::LLVMBuildICmp(builder_ptr, LLVMIntPredicate::LLVMIntEQ, param_a_ptr, param_b_ptr, c_name.as_ptr())
+        };
+
+        if result.is_null() {
+            None
+        } else {
+            self.store_value(result)
+        }
+    }
+
+    /// Negation
+    pub fn build_negation(
+        &mut self,
+        builder_tag: BuilderTag,
+        operand_tag: ValueTag,
+        name: &str
+    ) -> Option<ValueTag> {
+        let builder_arc_rwlock = self.get_builder(builder_tag)?;
+        let operand_arc_rwlock = self.get_value(operand_tag)?;
+
+        let c_name = CString::new(name).expect("Failed to create CString");
+
+        let result = unsafe {
+            let builder_ptr = builder_arc_rwlock.read().expect("Failed to lock builder for reading").read(LLVMRefType::Builder, |builder_ref| {
+                if let LLVMRef::Builder(ptr) = builder_ref {
+                    Some(*ptr)
+                } else {
+                    None
+                }
+            })?;
+
+            let operand_ptr = operand_arc_rwlock.read().expect("Failed to lock operand for reading").read(LLVMRefType::Value, |operand_ref| {
+                if let LLVMRef::Value(ptr) = operand_ref {
+                    Some(*ptr)
+                } else {
+                    None
+                }
+            })?;
+
+            core::LLVMBuildNeg(builder_ptr, operand_ptr, c_name.as_ptr())
+        };
+
+        if result.is_null() {
+            None
+        } else {
+            self.store_value(result)
+        }
+    }
+
+    /// Bitwise not
+    pub fn build_bitwise_not(
+        &mut self,
+        builder_tag: BuilderTag,
+        operand_tag: ValueTag,
+        name: &str
+    ) -> Option<ValueTag> {
+        let builder_arc_rwlock = self.get_builder(builder_tag)?;
+        let operand_arc_rwlock = self.get_value(operand_tag)?;
+
+        let c_name = CString::new(name).expect("Failed to create CString");
+
+        let result = unsafe {
+            let builder_ptr = builder_arc_rwlock.read().expect("Failed to lock builder for reading").read(LLVMRefType::Builder, |builder_ref| {
+                if let LLVMRef::Builder(ptr) = builder_ref {
+                    Some(*ptr)
+                } else {
+                    None
+                }
+            })?;
+
+            let operand_ptr = operand_arc_rwlock.read().expect("Failed to lock operand for reading").read(LLVMRefType::Value, |operand_ref| {
+                if let LLVMRef::Value(ptr) = operand_ref {
+                    Some(*ptr)
+                } else {
+                    None
+                }
+            })?;
+
+            core::LLVMBuildNot(builder_ptr, operand_ptr, c_name.as_ptr())
+        };
+
+        if result.is_null() {
+            None
+        } else {
+            self.store_value(result)
+        }
+    }
+
+    /// Logical not
+    pub fn build_logical_not(
+        &mut self,
+        builder_tag: BuilderTag,
+        context_tag: ContextTag,
+        operand_tag: ValueTag,
+        name: &str
+    ) -> Option<ValueTag> {
+        let builder_arc_rwlock = self.get_builder(builder_tag)?;
+        let context_arc_rwlock = self.get_context(context_tag)?;
+        let operand_arc_rwlock = self.get_value(operand_tag)?;
+
+        let zero = unsafe { 
+            let context_ptr = context_arc_rwlock.read().expect("Failed to lock context for reading").read(LLVMRefType::Context, |context_ref| {
+                if let LLVMRef::Context(ptr) = context_ref {
+                    Some(*ptr)
+                } else {
+                    None
+                }
+            })?;
+            core::LLVMConstInt(core::LLVMInt1TypeInContext(context_ptr), 0, 0)
+        };
+        
+        let c_name = CString::new(name).expect("Failed to create CString");
+
+        let result = unsafe {
+            let builder_ptr = builder_arc_rwlock.read().expect("Failed to lock builder for reading").read(LLVMRefType::Builder, |builder_ref| {
+                if let LLVMRef::Builder(ptr) = builder_ref {
+                    Some(*ptr)
+                } else {
+                    None
+                }
+            })?;
+
+            let operand_ptr = operand_arc_rwlock.read().expect("Failed to lock operand for reading").read(LLVMRefType::Value, |operand_ref| {
+                if let LLVMRef::Value(ptr) = operand_ref {
+                    Some(*ptr)
+                } else {
+                    None
+                }
+            })?;
+
+            core::LLVMBuildICmp(builder_ptr, LLVMIntPredicate::LLVMIntEQ, operand_ptr, zero, c_name.as_ptr())
+        };
+
+        if result.is_null() {
+            None
+        } else {
+            self.store_value(result)
+        }
+    }
+}

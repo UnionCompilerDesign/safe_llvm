@@ -1,47 +1,51 @@
 extern crate llvm_sys as llvm;
 
-use std::{ffi::CString, sync::Mutex};
+use std::ffi::CString;
 
-use llvm::{core, prelude::{LLVMContextRef, LLVMModuleRef}, LLVMBasicBlock, LLVMBuilder, LLVMContext, LLVMModule, LLVMType, LLVMValue};
-use once_cell::sync::Lazy;
+use llvm::{core, prelude::{LLVMContextRef, LLVMModuleRef}};
 
-use crate::memory_management::resource_pools::{LLVMResourcePools, Handle};
+use crate::memory_management::{
+    pointer::{LLVMRef, LLVMRefType}, 
+    resource_pools::{ContextTag, ModuleTag, ResourcePools}
+};
 
-static POOL: Lazy<Mutex<LLVMResourcePools<LLVMContext, LLVMModule, LLVMValue, LLVMBasicBlock, LLVMBuilder, LLVMType>>> = Lazy::new(|| {
-    Mutex::new(LLVMResourcePools::new())
-});
+impl ResourcePools {
+    /// Allocates a new LLVM context and stores it in the resource pool.
+    pub fn create_context(&mut self) -> Option<ContextTag> {
+        let raw_ptr: LLVMContextRef = unsafe { core::LLVMContextCreate() };
 
-/// Initializes a context and stores it in the global pool, returning a handle to it.
-pub fn create_context() -> Option<Handle> {
-    let raw_ptr: LLVMContextRef = unsafe { core::LLVMContextCreate() };
-    if raw_ptr.is_null() {
-        return None;
+        if raw_ptr.is_null() {
+            return None;
+        }
+
+        self.store_context(raw_ptr)
     }
 
-    let mut pool = POOL.lock().unwrap();
-    pool.create_context(raw_ptr as *mut LLVMContext)
-}
+    /// Allocates a new LLVM module in a specified context and stores it in the resource pool.
+    pub fn create_module(&mut self, module_name: &str, context_tag: ContextTag) -> Option<ModuleTag> {
+        let c_module_name: CString = CString::new(module_name).expect("Failed to create CString from module name");
 
-/// Initializes a module in the specified LLVM context, returning a handle to the module.
-pub fn create_module(module_name: &str, context_handle: Handle) -> Option<Handle> {
-    let c_module_name = CString::new(module_name).expect("Failed to create CString from module name");
+        let context_arc_rwlock = self.get_context(context_tag)?;
+        
+        let context_rwlock = context_arc_rwlock.read().expect("Failed to lock context for reading");
 
-    let pool = POOL.lock().unwrap();
-    let context_lock = pool.get_context(context_handle)?;
-    let context_cpointer = context_lock.read().unwrap(); 
+        let context_ptr = context_rwlock.read(LLVMRefType::Context, |context_ref| {
+            if let LLVMRef::Context(ptr) = context_ref {
+                Some(*ptr)  
+            } else {
+                return None;
+            }
+        })?;
 
-    drop(pool);
+        let module_ptr: LLVMModuleRef = unsafe {
+            core::LLVMModuleCreateWithNameInContext(c_module_name.as_ptr(), context_ptr) 
+        }; 
 
-    let module_ptr: LLVMModuleRef = context_cpointer.use_ref(|context_ptr| {
-        unsafe { core::LLVMModuleCreateWithNameInContext(c_module_name.as_ptr(), context_ptr) }
-    });
+        if module_ptr.is_null() {
+            return None;
+        }
 
-    if module_ptr.is_null() {
-        return None;
+        self.store_module(module_ptr)
     }
-
-    let mut pool = POOL.lock().unwrap();
-
-    pool.create_module(module_ptr as *mut LLVMModule)
 }
 
