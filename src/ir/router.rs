@@ -51,7 +51,11 @@ impl LLVMApi for SafeLLVM {
 
     /// --- BUILDER --- ///
     fn create_builder(&mut self, context: ContextTag) -> Option<BuilderTag> {
-        self.pools.allocate_builder(context)
+        self.pools.create_builder(context)
+    }
+
+    fn create_function(&mut self, return_type_tag: Option<TypeTag>, param_type_tags: &[TypeTag], is_var_arg: bool, context_tag: ContextTag) -> Option<TypeTag> {
+        self.pools.create_function(return_type_tag, param_type_tags, is_var_arg, context_tag)
     }
 
     /// --- OPS --- ///
@@ -178,11 +182,6 @@ impl LLVMApi for SafeLLVM {
     fn create_boolean(&mut self, val: bool, context: ContextTag) -> Option<ValueTag> {
         self.pools.create_boolean(context, val)
     }
- 
-    fn create_function(&mut self, return_type: Option<TypeTag>, param_types: &[TypeTag], is_var_arg: bool, context: ContextTag) -> Option<TypeTag> {
-        self.pools.allocate_function(return_type, param_types, is_var_arg, context)
-    }
-
     fn create_array(&mut self, value: ValueTag, num_elements: u64) -> Option<ValueTag> {
         self.pools.create_array(value, num_elements)
     }
