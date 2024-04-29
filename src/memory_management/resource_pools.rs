@@ -37,6 +37,15 @@ pub struct BuilderTag(usize);
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct TypeTag(usize);
 
+pub enum Tag {
+    Context(ContextTag),
+    Module(ModuleTag),
+    Value(ValueTag),
+    BasicBlock(BasicBlockTag),
+    Builder(BuilderTag),
+    Type(TypeTag),
+}
+
 pub struct ResourcePools {
     contexts: Option<HashMap<ContextTag, Arc<RwLock<CPointer>>>>,
     modules: Option<HashMap<ModuleTag, Arc<RwLock<CPointer>>>>,
