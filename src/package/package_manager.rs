@@ -4,7 +4,7 @@ use crate::{
 };
 
 pub struct PackageManager {
-    resource_pools: ResourcePools,
+    pub resource_pools: ResourcePools,
 }
 
 impl PackageManager {
@@ -13,7 +13,7 @@ impl PackageManager {
             resource_pools: ResourcePools::new()
         }
     }
-    
+
     pub fn write_module_to_file(&mut self, module_tag: ModuleTag, file_name: &str) -> Result<(), String> {
         let module_ref_arc = self.resource_pools.get_module(module_tag)
             .ok_or_else(|| "Module not found in resource pools".to_string())?;
