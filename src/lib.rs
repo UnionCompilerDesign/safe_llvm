@@ -34,8 +34,6 @@ pub mod interface;
 
 // pub mod analysis;  // TODO analysis tools based on LLVM's analysis capabilities.
 
-pub mod package;
-
 pub mod router;
 
 pub use router::SafeLLVM;  // Exports the public api.
