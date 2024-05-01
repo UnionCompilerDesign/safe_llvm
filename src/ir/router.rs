@@ -190,14 +190,6 @@ impl LLVMApi for SafeLLVM {
         self.pools.create_pointer(value)
     }
 
-    fn create_struct(&mut self, values: &[ValueTag], context: ContextTag, packed: bool) -> Option<ValueTag> {
-        self.pools.create_struct(values, context, packed)
-    }
-
-    fn create_global_variable(&mut self, module: ModuleTag, initializer: ValueTag, name: &str) -> Option<ValueTag> {
-        self.pools.create_global_variable(module, initializer, name)
-    }
-
     fn create_string(&mut self, val: &str, builder: BuilderTag) -> Option<ValueTag> {
         self.pools.create_string(val, builder)
     }
