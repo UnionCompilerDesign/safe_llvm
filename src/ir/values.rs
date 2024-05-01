@@ -124,83 +124,17 @@ impl ResourcePools {
     }
 
     /// Creates a struct
-    pub fn create_struct(
-        &mut self,
-        values: &[ValueTag],
-        context_tag: ContextTag,
-        packed: bool
-    ) -> Option<ValueTag> {
-        let context_arc_rwlock = self.get_context(context_tag)?;
-        let mut value_ptrs: Vec<LLVMValueRef> = values.iter().map(|&tag| {
-            self.get_value(tag).and_then(|value_arc_rwlock| {
-                value_arc_rwlock.read().expect("Failed to lock value for reading").read(LLVMRefType::Value, |value_ref| {
-                if let LLVMRef::Value(ptr) = value_ref {
-                    Some(*ptr)
-                } else {
-                    None
-                }
-            })
-            }).expect("Failed to retrieve value pointer")
-        }).collect();
-
-        let struct_type = unsafe {
-            let context_ptr = context_arc_rwlock.read().expect("Failed to lock context for reading").read(LLVMRefType::Context, |context_ref| {
-                if let LLVMRef::Context(ptr) = context_ref {
-                    Some(*ptr)
-                } else {
-                    None
-                }
-            })?;
-    
-            core::LLVMConstStructInContext(context_ptr, value_ptrs.as_mut_ptr(), value_ptrs.len() as u32, packed as i32)
-        };
-    
-        if struct_type.is_null() {
-            None
-        } else {
-            self.store_value(struct_type)
-        }
+    pub fn create_struct(&mut self) -> Option<ValueTag> {
+        // core::LLVMConstStructInContext()
+        todo!("Unimplemented")
     }
     
     /// Creates a global variable
-    pub fn create_global_variable(
-        &mut self,
-        module_tag: ModuleTag,
-        initializer_tag: ValueTag,
-        name: &str
-    ) -> Option<ValueTag> {
-        let module_arc_rwlock = self.get_module(module_tag)?;
-        let initializer_arc_rwlock = self.get_value(initializer_tag)?;
+    pub fn create_global_variable(&mut self) -> Option<ValueTag> {
+            // core::LLVMAddGlobal()
+            // core::LLVMSetInitializer()
+            todo!("Unimplemented")
 
-        let c_name = CString::new(name).expect("Failed to create CString for global variable name");
-
-        let global_var = unsafe {
-            let module_ptr = module_arc_rwlock.read().expect("Failed to lock module for reading").read(LLVMRefType::Module, |module_ref| {
-                if let LLVMRef::Module(ptr) = module_ref {
-                    Some(*ptr)
-                } else {
-                    None
-                }
-            })?;
-
-            let initializer_ptr = initializer_arc_rwlock.read().expect("Failed to lock initializer for reading").read(LLVMRefType::Value, |initializer_ref| {
-                if let LLVMRef::Value(ptr) = initializer_ref {
-                    Some(*ptr)
-                } else {
-                    None
-                }
-            })?;
-
-            let global_var = core::LLVMAddGlobal(module_ptr, core::LLVMTypeOf(initializer_ptr), c_name.as_ptr());
-            core::LLVMSetInitializer(global_var, initializer_ptr);
-            global_var
-        };
-
-        if global_var.is_null() {
-            None
-        } else {
-            self.store_value(global_var)
-        }
     }
 
     /// Creates an immutable (global) string
