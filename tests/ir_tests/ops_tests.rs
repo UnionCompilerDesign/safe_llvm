@@ -104,25 +104,27 @@ fn test_build_xor() {
     assert!(result_tag.is_some(), "XOR operation should produce a result");
 }
 
-// #[test]
-// fn test_build_shl() {
-//     let mut resource_pools = ResourcePools::new();
-//     let context_tag = resource_pools.create_context().expect("Failed to create context");
-//     let builder_tag = resource_pools.create_builder(context_tag).expect("Failed to create builder");
-//     let param_a_tag = resource_pools.create_integer(1, context_tag).expect("Failed to create param a");
-//     let result_tag = resource_pools.build_shl(builder_tag, param_a_tag, 2, "shl_result"); 
-//     assert!(result_tag.is_some(), "Shift left operation should produce a result");
-// }
+#[test]
+fn test_build_shl() {
+    let mut resource_pools = ResourcePools::new();
+    let context_tag = resource_pools.create_context().expect("Failed to create context");
+    let builder_tag = resource_pools.create_builder(context_tag).expect("Failed to create builder");
+    let param_a_tag = resource_pools.create_integer( context_tag, 1).expect("Failed to create param a");
+    let param_b_tag = resource_pools.create_integer( context_tag, 2).expect("Failed to create param a");
+    let result_tag = resource_pools.build_shl(builder_tag, param_a_tag,  param_b_tag, "shl_result"); 
+    assert!(result_tag.is_some(), "Shift left operation should produce a result");
+}
 
-// #[test]
-// fn test_build_shr() {
-//     let mut resource_pools = ResourcePools::new();
-//     let context_tag = resource_pools.create_context().expect("Failed to create context");
-//     let builder_tag = resource_pools.create_builder(context_tag).expect("Failed to create builder");
-//     let param_a_tag = resource_pools.create_integer(4, context_tag).expect("Failed to create param a");
-//     let result_tag = resource_pools.build_shr(builder_tag, param_a_tag, 2, "shr_result"); 
-//     assert!(result_tag.is_some(), "Shift right operation should produce a result");
-// }
+#[test]
+fn test_build_shr() {
+    let mut resource_pools = ResourcePools::new();
+    let context_tag = resource_pools.create_context().expect("Failed to create context");
+    let builder_tag = resource_pools.create_builder(context_tag).expect("Failed to create builder");
+    let param_a_tag = resource_pools.create_integer( context_tag, 4).expect("Failed to create param a");
+    let param_b_tag = resource_pools.create_integer( context_tag, 4).expect("Failed to create param a");
+    let result_tag = resource_pools.build_shr(builder_tag, param_a_tag, param_b_tag, "shr_result"); 
+    assert!(result_tag.is_some(), "Shift right operation should produce a result");
+}
 
 #[test]
 fn test_build_icmp_gt() {

@@ -1,4 +1,4 @@
-use safe_llvm::memory_management::resource_pools::ResourcePools;
+use safe_llvm::memory_management::resource_pools::{ResourcePools, TypeTag};
 
 #[test]
 fn test_builder_creation() {
@@ -22,14 +22,14 @@ fn test_create_function_no_params_void_return() {
 
 #[test]
 fn test_create_function_with_params() {
-    // let mut llvm_resource_pool = ResourcePools::new();
-    // let context_tag = llvm_resource_pool.create_context()
-    //     .expect("Failed to create context");
+    let mut llvm_resource_pool = ResourcePools::new();
+    let context_tag = llvm_resource_pool.create_context()
+        .expect("Failed to create context");
 
-    // // let int_type_tag = llvm_resource_pool.create_integer_type(32, context_tag)
-    // //     .expect("Failed to create integer type");  
+    let int_type_tag = llvm_resource_pool.int_type(context_tag, 32)
+        .expect("Failed to create integer type");  
 
-    // let param_tags: Vec<TypeTag> = vec![int_type_tag];
-    // let function_tag = llvm_resource_pool.allocate_function(Some(int_type_tag), &param_tags, false, context_tag)
-    //     .expect("Failed to create function with parameters");
+    let param_tags: Vec<TypeTag> = vec![int_type_tag];
+    let _function_tag = llvm_resource_pool.create_function(Some(int_type_tag), &param_tags, false, context_tag)
+        .expect("Failed to create function with parameters");
 }
