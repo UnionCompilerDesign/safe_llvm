@@ -59,7 +59,7 @@ pub trait LLVMApi {
     fn create_function(&mut self, return_type: Option<TypeTag>, param_types: &[TypeTag], is_var_arg: bool, context: ContextTag) -> Option<TypeTag>;
     fn create_array(&mut self, value: ValueTag, num_elements: u64) -> Option<ValueTag>;
     fn create_pointer(&mut self, value: TypeTag) -> Option<ValueTag>;
-    fn create_string(&mut self, val: &str, builder: BuilderTag) -> Option<ValueTag>;
+    fn create_string(&mut self, val: &str) -> Option<ValueTag>;
     fn create_mut_string(&mut self, val: &str, context: ContextTag, builder: BuilderTag) -> Option<ValueTag>;
     fn create_null_pointer(&mut self, ty: TypeTag) -> Option<ValueTag>;
     fn create_continue_statement(&mut self, builder: BuilderTag, continue_block: BasicBlockTag) -> Option<ValueTag>;
