@@ -1,35 +1,57 @@
 extern crate llvm_sys as llvm;
 
-use std::{fs, path::Path};
+use std::{fs, path::Path, sync::{Arc, Mutex}};
 
-use llvm::{core, prelude::LLVMModuleRef};
+use llvm::core;
 
-use crate::utils::cstring;
+use crate::{memory_management::{pointer::{LLVMRef, LLVMRefType}, resource_pools::{ModuleTag, ResourcePools}}, utils::{cstring, utils_struct::Utils}};
 
-/// Writes an LLVM module to a file
-pub fn write_to_file(module: &LLVMModuleRef, file_name: &str) -> Result<(), String> {
-    if module.is_null() {
-        return Err("LLVM module reference is null".into());
-    }
+impl Utils {
+    /// Writes an LLVM module to a file
+    pub fn write_to_file(pools: Arc<Mutex<ResourcePools>>, module_tag: ModuleTag, file_name: &str) -> Result<(), String> {
+        // Lock the ResourcePools to access the module
+        let pools_guard = pools.lock().map_err(|e| format!("Failed to lock the resource pools: {}", e))?;
 
-    let output_dir = Path::new("target");
-    let output_file_path = output_dir.join(file_name);
+        // Retrieve the module reference using the provided tag
+        let module_ref_arc = pools_guard.get_module(module_tag)
+            .ok_or_else(|| "Module not found in resource pools".to_string())?;
 
-    if !output_dir.exists() {
-        fs::create_dir_all(output_dir)
-            .map_err(|e| format!("Failed to create target directory: {}", e))?;
-    }
+        // Lock the module for reading to ensure thread safety
+        let module_ref_rwlock = module_ref_arc.read().map_err(|_| "Failed to obtain read lock on module".to_string())?;
 
-    let output_file_cstr = cstring::convert_path_to_cstring(&output_file_path)
-        .map_err(|e| format!("Failed to convert path to CString: {}", e))?;
+        // Extract the LLVMModuleRef from the CPointer
+        let module_ptr = module_ref_rwlock.read(LLVMRefType::Module, |llvm_ref| {
+            if let LLVMRef::Module(ptr) = llvm_ref {
+                Some(*ptr)
+            } else {
+                None
+            }
+        }).ok_or_else(|| "Failed to extract LLVM module reference".to_string())?;
 
-    let result = unsafe {
-        core::LLVMPrintModuleToFile(module.clone(), output_file_cstr.as_ptr(), std::ptr::null_mut())
-    };
+        // Define the output directory and file path
+        let output_dir = Path::new("target");
+        let output_file_path = output_dir.join(file_name);
 
-    if result == 0 {
-        Ok(())
-    } else {
-        Err("LLVMPrintModuleToFile failed".into())
+        // Ensure the output directory exists
+        if !output_dir.exists() {
+            fs::create_dir_all(output_dir)
+                .map_err(|e| format!("Failed to create target directory: {}", e))?;
+        }
+
+        // Convert the file path to a CString for LLVM's API
+        let output_file_cstr = cstring::convert_path_to_cstring(&output_file_path)
+            .map_err(|e| format!("Failed to convert path to CString: {}", e))?;
+
+        // Call LLVM's function to print the module to the specified file
+        let result = unsafe {
+            core::LLVMPrintModuleToFile(module_ptr, output_file_cstr.as_ptr(), std::ptr::null_mut())
+        };
+
+        // Handle the result of the file printing operation
+        if result == 0 {
+            Ok(())
+        } else {
+            Err("LLVMPrintModuleToFile failed".into())
+        }
     }
 }

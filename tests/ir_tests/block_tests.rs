@@ -107,32 +107,32 @@ fn test_delete_basic_block() {
     assert!(result.is_some(), "Basic block should be deleted successfully");
 }
 
-// #[test]
-// fn test_get_first_instruction() {
-//     let mut resource_pools = ResourcePools::new();
+#[test]
+fn test_get_first_instruction() {
+    let mut resource_pools = ResourcePools::new();
 
-//     let context_tag =  resource_pools.create_context().expect("Failed to create context");
-//     let module_tag =  resource_pools.create_module("dummy_module", context_tag).expect("Failed to create module within context");    let function_type = resource_pools.void_type(context_tag).expect("Failed to create function type");
-//     let function_value = resource_pools.create_function(Some(function_type), &[], false, context_tag).expect("Failed to create function prototype");
-//     let function_tag = resource_pools.add_function_to_module(module_tag, "test_func", function_value).expect("Failed to add function to module");
-//     let _builder_tag = resource_pools.create_builder(context_tag).expect("Failed to create builder");
-//     let bb_tag = resource_pools.create_basic_block(context_tag, function_tag, "has_instruction").expect("Failed to create block");
-//     let instruction_tag = resource_pools.get_first_instruction(bb_tag);
+    let context_tag =  resource_pools.create_context().expect("Failed to create context");
+    let module_tag =  resource_pools.create_module("dummy_module", context_tag).expect("Failed to create module within context");    let function_type = resource_pools.void_type(context_tag).expect("Failed to create function type");
+    let function_value = resource_pools.create_function(Some(function_type), &[], false, context_tag).expect("Failed to create function prototype");
+    let function_tag = resource_pools.add_function_to_module(module_tag, "test_func", function_value).expect("Failed to add function to module");
+    let _builder_tag = resource_pools.create_builder(context_tag).expect("Failed to create builder");
+    let bb_tag = resource_pools.create_basic_block(context_tag, function_tag, "has_instruction").expect("Failed to create block");
+    let instruction_tag = resource_pools.get_first_instruction(bb_tag);
 
-//     assert!(instruction_tag.is_some(), "Should retrieve the first instruction in the block");
-// }
+    assert!(instruction_tag.is_none(), "Should retrieve nothing");
+}
 
-// #[test]
-// fn test_get_last_instruction() {
-//     let mut resource_pools = ResourcePools::new();
+#[test]
+fn test_get_last_instruction() {
+    let mut resource_pools = ResourcePools::new();
 
-//     let context_tag =  resource_pools.create_context().expect("Failed to create context");
-//     let module_tag =  resource_pools.create_module("dummy_module", context_tag).expect("Failed to create module within context");    let function_type = resource_pools.void_type(context_tag).expect("Failed to create function type");
-//     let function_value = resource_pools.create_function(Some(function_type), &[], false, context_tag).expect("Failed to create function prototype");
-//     let function_tag = resource_pools.add_function_to_module(module_tag, "test_func", function_value).expect("Failed to add function to module");
-//     let _builder_tag = resource_pools.create_builder(context_tag).expect("Failed to create builder");
-//     let bb_tag = resource_pools.create_basic_block(context_tag, function_tag, "has_instruction").expect("Failed to create block");
-//     let instruction_tag = resource_pools.get_last_instruction(bb_tag);
+    let context_tag =  resource_pools.create_context().expect("Failed to create context");
+    let module_tag =  resource_pools.create_module("dummy_module", context_tag).expect("Failed to create module within context");    let function_type = resource_pools.void_type(context_tag).expect("Failed to create function type");
+    let function_value = resource_pools.create_function(Some(function_type), &[], false, context_tag).expect("Failed to create function prototype");
+    let function_tag = resource_pools.add_function_to_module(module_tag, "test_func", function_value).expect("Failed to add function to module");
+    let _builder_tag = resource_pools.create_builder(context_tag).expect("Failed to create builder");
+    let bb_tag = resource_pools.create_basic_block(context_tag, function_tag, "has_instruction").expect("Failed to create block");
+    let instruction_tag = resource_pools.get_last_instruction(bb_tag);
 
-//     assert!(instruction_tag.is_some(), "Should retrieve the last instruction in the block");
-// }
+    assert!(instruction_tag.is_none(), "Should retrieve no instruction");
+}
