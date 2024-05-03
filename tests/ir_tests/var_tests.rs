@@ -1,4 +1,4 @@
-// use safe_llvm::memory_management::resource_pools::ResourcePools;
+use safe_llvm::memory_management::resource_pools::ResourcePools;
 
 // #[test]
 // fn test_init_var() {
