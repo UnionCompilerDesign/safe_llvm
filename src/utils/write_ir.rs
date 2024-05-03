@@ -1,23 +1,18 @@
 extern crate llvm_sys as llvm;
 
-use std::{fs, path::Path, sync::{Arc, Mutex}};
+use std::{fs, path::Path, sync::{Arc, RwLock}};
 
 use llvm::core;
 
-use crate::{memory_management::{pointer::{LLVMRef, LLVMRefType}, resource_pools::{ModuleTag, ResourcePools}}, utils::{cstring, utils_struct::Utils}};
+use crate::{
+    memory_management::pointer::{CPointer, LLVMRef, LLVMRefType}, 
+    utils::{cstring, utils_struct::Utils}
+};
 
 impl Utils {
     /// Writes an LLVM module to a file
-    pub fn write_to_file(pools: Arc<Mutex<ResourcePools>>, module_tag: ModuleTag, file_name: &str) -> Result<(), String> {
-        // Lock the ResourcePools to access the module
-        let pools_guard = pools.lock().map_err(|e| format!("Failed to lock the resource pools: {}", e))?;
-
-        // Retrieve the module reference using the provided tag
-        let module_ref_arc = pools_guard.get_module(module_tag)
-            .ok_or_else(|| "Module not found in resource pools".to_string())?;
-
-        // Lock the module for reading to ensure thread safety
-        let module_ref_rwlock = module_ref_arc.read().map_err(|_| "Failed to obtain read lock on module".to_string())?;
+    pub fn write_to_file(module: Arc<RwLock<CPointer>>, file_name: &str) -> Result<(), String> {
+        let module_ref_rwlock = module.read().map_err(|_| "Failed to obtain read lock on module".to_string())?;
 
         // Extract the LLVMModuleRef from the CPointer
         let module_ptr = module_ref_rwlock.read(LLVMRefType::Module, |llvm_ref| {
