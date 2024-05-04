@@ -7,6 +7,7 @@ use crate::memory_management::{resource_pools::{ResourcePools, ContextTag, Build
 impl ResourcePools {
     /// Allocates a builder in a specified context and stores it in the resource pool.
     pub fn create_builder(&mut self, context_tag: ContextTag) -> Option<BuilderTag> {
+
         let context_arc_rwlock = self.get_context(context_tag)?;
 
         let builder_ptr: LLVMBuilderRef = unsafe {
@@ -21,6 +22,7 @@ impl ResourcePools {
 
             core::LLVMCreateBuilderInContext(context_ptr)
         };
+
 
         if builder_ptr.is_null() {
             return None;
