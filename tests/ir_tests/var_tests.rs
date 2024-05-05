@@ -1,17 +1,17 @@
 use safe_llvm::memory_management::resource_pools::ResourcePools;
 
-// #[test]
-// fn test_init_var() {
-//     let mut resource_pools = ResourcePools::new();
+#[test]
+fn test_init_var() {
+    let mut resource_pools = ResourcePools::new();
 
-//     let context_tag = resource_pools.create_context().expect("Failed to create context");
-//     let builder_tag = resource_pools.create_builder(context_tag).expect("Failed to create builder");
-//     let int_type_tag = resource_pools.int_type(context_tag, 32).expect("Failed to create integer type");
-//     let initial_value_tag = resource_pools.create_integer(context_tag, 42).expect("Failed to create initial value");
+    let context_tag = resource_pools.create_context().expect("Failed to create context");
+    let builder_tag = resource_pools.create_builder(context_tag).expect("Failed to create builder");
+    let int_type_tag = resource_pools.int_type(context_tag, 32).expect("Failed to create integer type");
+    let initial_value_tag = resource_pools.create_integer(context_tag, 42).expect("Failed to create initial value");
 
-//     let var_tag = resource_pools.init_var(builder_tag, "myVar", int_type_tag, Some(initial_value_tag));
-//     assert!(var_tag.is_some(), "Variable should be initialized successfully");
-// }
+    let var_tag = resource_pools.init_var(builder_tag, "myVar", int_type_tag, Some(initial_value_tag));
+    assert!(var_tag.is_some(), "Variable should be initialized successfully");
+}
 
 // #[test]
 // fn test_reassign_var() {
