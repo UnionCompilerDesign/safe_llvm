@@ -1,0 +1,6 @@
+{"msg":"DevToolchain started","level":"INFO","ts":"2024-05-07T01:44:50.430453Z","version":"0.1.0","status":"running"}
+{"msg":"LLDB started successfully","level":"INFO","ts":"2024-05-07T01:44:50.525107Z","version":"0.1.0","pid":"23226"}
+{"msg":"Enter command ('quit' to exit, 'run' to start debugger):","level":"INFO","ts":"2024-05-07T01:44:50.525219Z","version":"0.1.0"}
+{"msg":"Unknown command 'i'","level":"ERRO","ts":"2024-05-07T01:44:51.935905Z","version":"0.1.0"}
+{"msg":"Enter command ('quit' to exit, 'run' to start debugger):","level":"INFO","ts":"2024-05-07T01:44:51.936151Z","version":"0.1.0"}
+{"msg":"Shutting down development toolchain.","level":"INFO","ts":"2024-05-07T01:44:53.585901Z","version":"0.1.0"}
