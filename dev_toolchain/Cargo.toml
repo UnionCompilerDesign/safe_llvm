@@ -1,0 +1,17 @@
+[package]
+name = "dev_toolchain"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+clap = "3.0"
+slog = { version = "2.7", features = ["max_level_info", "release_max_level_warn"] }
+slog-stdlog = "4.1"
+slog-scope = "4.4" 
+slog-term = "2.8"
+slog-async = "2.7"
+slog-json = "2.3" 
+
+[[bin]]
+name = "dev_toolchain"
+path = "src/main.rs"
