@@ -117,7 +117,7 @@ impl ResourcePools {
         if block.is_null() {
             None
         } else {
-            self.store_basic_block(block)
+            block
         }
     }
     
