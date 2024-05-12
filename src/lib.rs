@@ -32,7 +32,10 @@ pub mod interface;
 
 // pub mod aot;  // TODO tools related to Ahead-Of-Time compilation capabilities.
 
-// pub mod analysis;  // TODO analysis tools based on LLVM's analysis capabilities.
+/// Constants 
+pub mod constants;
+
+pub mod analysis; 
 
 pub mod router;
 
