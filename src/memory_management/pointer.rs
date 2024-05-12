@@ -93,19 +93,6 @@ impl CPointer {
     
 }
 
-impl PartialEq for CPointer {
-    fn eq(&self, other: &Self) -> bool {
-        let thisptr = *self.ptr.clone().read().expect("Comparison of CPointer failed!");
-        let otherptr = *other.ptr.clone().read().expect("Comparison of CPointer failed!");
-
-        if thisptr == otherptr {
-            return true;
-        }
-        false
-
-
-    }
-}
 
 /// Represents types of LLVM references to aid in safe runtime conversion.
 #[derive(Debug, Clone, Copy)]

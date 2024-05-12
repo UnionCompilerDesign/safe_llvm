@@ -144,7 +144,9 @@ impl ResourcePools {
 
     /// Gets a basic block's tag from pools
     pub fn get_basic_block_tag(&mut self, basic_block: LLVMBasicBlockRef) -> Option<BasicBlockTag> {      
-
+        // make store basic block also store in hashmap to tag
+        // to make retrieving tag from pointer possible and then
+        // get from hashmap here
         let c_pointer: CPointer = CPointer::new(LLVMRef::BasicBlock(basic_block))?;
         let mut tag: Option<BasicBlockTag> = None;
         for block in self.basic_blocks.clone() {
@@ -152,9 +154,7 @@ impl ResourcePools {
 
             let test_var = value.read().expect("Failed to read value in get basic block tag!");
 
-            if c_pointer == *test_var {
-                tag = block.keys().cloned().into_iter().last();
-            }
+            
 
             
         }
