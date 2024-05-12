@@ -1,14 +1,35 @@
-use safe_llvm::memory_management::resource_pools::ResourcePools;
+use safe_llvm::{analysis::validator::Validator, memory_management::resource_pools::ResourcePools, utils::utils_struct::Utils};
 
 #[test]
 fn test_add_function_to_module() {
     let mut resource_pools = ResourcePools::new();
-    
+
     let context_tag = resource_pools.create_context().expect("Failed to create context");
     let module_tag = resource_pools.create_module("test_module", context_tag).expect("Failed to create module");
     let void_type_tag = resource_pools.void_type(context_tag).expect("Failed to create void type");
     let function_tag = resource_pools.create_function(Some(void_type_tag), &[], false, context_tag).expect("Failed to create function");
-    let _added_function_tag = resource_pools.add_function_to_module(module_tag, "function_name", function_tag).expect("Failed to add function to module");
+    let added_function_tag = resource_pools.add_function_to_module(module_tag, "function_name", function_tag).expect("Failed to add function to module");
+    let builder_tag = resource_pools.create_builder(context_tag).expect("Failed to create builder");
+    let entry_bb_tag = resource_pools.create_basic_block(context_tag, added_function_tag, "entry").expect("Failed to create entry block");
+
+    resource_pools.position_builder(builder_tag, entry_bb_tag);
+    resource_pools.void_return(builder_tag);
+
+    let module = resource_pools.get_module(module_tag).expect("Failed to get module");
+
+    match Utils::write_to_file(module.clone(), "test_add_function_to_module") {
+        Ok(_) => {}
+        Err(e) => {
+            eprintln!("File write error: {}", e);
+            panic!();
+        }
+    }
+
+    let validator = Validator::new(module);
+    assert!(validator.is_valid_module(), "Invalid module");
+
+    let function = resource_pools.get_value(added_function_tag).expect("Failed to get function");
+    assert!(validator.is_valid_function(function), "Invalid function");
 }
 
 #[test]
@@ -20,5 +41,25 @@ fn test_get_param() {
     let int_type_tag = resource_pools.int_type(context_tag, 32).expect("Failed to create integer type");
     let function_tag = resource_pools.create_function(Some(int_type_tag), &[int_type_tag], false, context_tag).expect("Failed to create function with parameters");
     let added_function_tag = resource_pools.add_function_to_module(module_tag, "function_name", function_tag).expect("Failed to add function to module");
-    let _param_tag = resource_pools.get_param(added_function_tag, 0).expect("Failed to get parameter");
+    let builder_tag = resource_pools.create_builder(context_tag).expect("Failed to create builder");
+    let entry_bb_tag = resource_pools.create_basic_block(context_tag, added_function_tag, "entry").expect("Failed to create entry block");
+    let return_val = resource_pools.get_param(added_function_tag, 0).expect("Failed to get parameter");
+
+    resource_pools.position_builder(builder_tag, entry_bb_tag);
+    resource_pools.nonvoid_return(builder_tag, return_val);
+
+    let module = resource_pools.get_module(module_tag).expect("Failed to get module");
+
+    match Utils::write_to_file(module.clone(), "test_get_param") {
+        Ok(_) => {}
+        Err(e) => {
+            eprintln!("File write error: {}", e);
+            panic!();
+        }
+    }
+
+    let validator = Validator::new(module);
+    assert!(validator.is_valid_module(), "Invalid module");
+    let function = resource_pools.get_value(added_function_tag).expect("Failed to get function");
+    assert!(validator.is_valid_function(function), "Invalid function");
 }

@@ -192,8 +192,8 @@ impl LLVMApi for SafeLLVM {
         self.ir_codegen_impl.create_pointer(value)
     }
 
-    fn create_string(&mut self, val: &str, builder: BuilderTag) -> Option<ValueTag> {
-        self.ir_codegen_impl.create_string(val, builder)
+    fn create_string(&mut self, val: &str) -> Option<ValueTag> {
+        self.ir_codegen_impl.create_string(val)
     }
 
     fn create_mut_string(&mut self, val: &str, context: ContextTag, builder: BuilderTag) -> Option<ValueTag> {
