@@ -102,15 +102,4 @@ impl CPointer {
         let mut ref_to_mut_value = unsafe { LLVMRef::from_raw(lock.as_ptr(), kind) };
         f(&mut ref_to_mut_value)
     }
-
-    /// Safely retrieves the internal raw pointer for read access.
-    /// Returns a Result containing the pointer or an error if the pointer is not valid.
-    pub fn get_raw_ptr(&self) -> Result<*mut c_void, &'static str> {
-        let lock = self.ptr.read().expect("Failed to acquire read lock on CPointer");
-        if let Some(non_null_ptr) = NonNull::new(lock.as_ptr() as *mut c_void) {
-            Ok(non_null_ptr.as_ptr())
-        } else {
-            Err("Pointer is null or invalid")
-        }
-    }
 }

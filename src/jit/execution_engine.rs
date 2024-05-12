@@ -5,17 +5,18 @@
 
 extern crate llvm_sys as llvm;
 
-use llvm::{core, execution_engine, ir_reader, prelude::LLVMBool};
+use llvm::{core, execution_engine};
 
-use std::{ffi::{c_char, CStr, CString}, sync::{Arc, RwLock}};
+use std::{ffi::{c_char, c_void, CStr, CString}, sync::{Arc, RwLock}};
 
 use slog::{info, Logger};
 
 use crate::{
-    jit::target::TargetConfigurator, 
+    jit::target::{TargetConfigurator, GeneralTargetConfigurator},
     logger::init::init_logger, 
-    memory_management::pointer::{CPointer, LLVMRef, LLVMRefType}
+    memory_management::pointer::{CPointer, LLVMRef, LLVMRefType},
 };
+
 
 /// Represents an LLVM execution engine managed within a multi-threaded environment.
 /// This struct encapsulates all necessary LLVM components such as context, module, and execution engine.
@@ -33,13 +34,37 @@ impl ExecutionEngine {
     /// # Arguments
     /// * `debug_info` - If true, enables logging for this engine.
     pub fn new(debug_info: bool) -> Self {
+        GeneralTargetConfigurator.configure();
+
         let context_ref = create_empty_context().expect("Failed to create context");
         let context_cptr = CPointer::new(context_ref).expect("Context cannot be null");
 
         let module_cptr = create_empty_module(&context_ref).expect("Failed to create module");
 
-        let engine_cptr = CPointer::new(LLVMRef::ExecutionEngine(std::ptr::null_mut()))
-            .expect("Engine initialization failed");
+        let mut engine_ref: execution_engine::LLVMExecutionEngineRef = std::ptr::null_mut();
+        let mut out_error: *mut c_char = std::ptr::null_mut();
+        let engine_ptr = &mut engine_ref;
+        
+        module_cptr.read(LLVMRefType::Module, |module_ref| {
+            if let LLVMRef::Module(module_ptr) = module_ref {
+                unsafe {
+                    if execution_engine::LLVMCreateExecutionEngineForModule(engine_ptr, *module_ptr, &mut out_error) != 0 {
+                        if !out_error.is_null() {
+                            let error_str = CStr::from_ptr(out_error).to_str().unwrap_or("Unknown error");
+                            eprintln!("{}", error_str);
+                            core::LLVMDisposeMessage(out_error);
+                            panic!("Failed to create execution engine");
+                        } else {
+                            panic!("Failed to create execution engine with unknown error.");
+                        }
+                    }
+                }
+            } else {
+                panic!("Module pointer is not correctly retrieved.");
+            }
+        });
+        
+        let engine_cptr = CPointer::new(LLVMRef::ExecutionEngine(engine_ref)).expect("Engine cannot be null");
 
         let logger = if debug_info {
             Some(init_logger())
@@ -132,65 +157,43 @@ impl ExecutionEngine {
         engine_result
     }
 
-    /// Executes an IR string within the engine's context, compiling and running the specified function.
+    /// Executes a specified function within an already compiled module.
     ///
     /// # Arguments
-    /// * `ir` - A string slice that holds the LLVM IR to be executed.
-    /// * `function_name` - The name of the function within the IR to call.
-    /// * `args` - A slice of i64 arguments to pass to the function.
+    /// * `module` - An Arc<RwLock<CPointer>> pointing to the pre-compiled LLVM module.
+    /// * `function_name` - The name of the function within the module to call.
     ///
     /// # Returns
     /// Returns `Ok(i64)` with the function's result if successful, or `Err(String)` with an error message if the execution fails.
-    pub fn execute(&mut self, ir: &str, function_name: &str, args: &[i64]) -> Result<i64, String> {
-        let ir_cstr = CString::new(ir).map_err(|_| "Failed to create CString from IR.")?;
-        let buffer_name = CString::new("ir_buffer").map_err(|_| "Failed to create CString for buffer name.")?;
+    pub fn execute(&mut self, function_name: &str) -> Result<c_void, String> {
+        let engine_lock = self.engine.read().map_err(|e| format!("Failed to obtain read lock on engine: {}", e))?;
 
-        // Using closure to read context, module, and engine pointers directly
-        let result = self.context.read().unwrap().read(LLVMRefType::Context, |context_ref| {
-            if let LLVMRef::Context(context_ptr) = context_ref {
-                let memory_buffer = unsafe {
-                    core::LLVMCreateMemoryBufferWithMemoryRange(
-                        ir_cstr.as_ptr(),
-                        ir_cstr.as_bytes().len(),
-                        buffer_name.as_ptr(),
-                        0 as LLVMBool,
-                    )
-                };
-
-                let mut module_ptr = std::ptr::null_mut();
-                unsafe {
-                    ir_reader::LLVMParseIRInContext(*context_ptr, memory_buffer, &mut module_ptr, std::ptr::null_mut())
-                };
-
-                if module_ptr.is_null() {
-                    return Err("Failed to parse IR into module.".to_string());
-                }
-
-                // Using the module read to fetch the engine and execute
-                self.engine.read().unwrap().read(LLVMRefType::ExecutionEngine, |engine_ref| {
-                    if let LLVMRef::ExecutionEngine(engine_ptr) = engine_ref {
-                        // Lookup the function by name
-                        let function_name_c = CString::new(function_name).unwrap();
+        let result = engine_lock.read(LLVMRefType::ExecutionEngine, |engine_ref| {
+            if let LLVMRef::ExecutionEngine(engine_ptr) = engine_ref {
+                let module_lock = self.module.read().map_err(|e| format!("Failed to obtain read lock on module: {}", e))?;
+                module_lock.read(LLVMRefType::Module, |module_ref| {
+                    if let LLVMRef::Module(_module_ptr) = module_ref {
+                        let function_name_c = CString::new(function_name).map_err(|_| "Failed to create CString for function name.")?;
                         let function_address = unsafe { execution_engine::LLVMGetFunctionAddress(*engine_ptr, function_name_c.as_ptr()) };
                         if function_address == 0 {
                             return Err("Function not found in the module.".to_string());
                         }
 
-                        // Define the function type and execute
-                        let add_function: extern "C" fn(i64, i64) -> i64 = unsafe { std::mem::transmute(function_address) };
-                        Ok(add_function(args[0], args[1]))  // Execute the function
+                        // Cast the function pointer to a callable function type
+                        let entry_main: extern "C" fn() -> c_void = unsafe { std::mem::transmute(function_address) };
+                        Ok(entry_main())  // Execute the function
                     } else {
-                        Err("Invalid engine pointer.".to_string())
+                        Err("Invalid module pointer.".to_string())
                     }
                 })
             } else {
-                Err("Invalid context pointer.".to_string())
+                Err("Invalid engine pointer.".to_string())
             }
         });
 
         match result {
             Ok(function_result) => {
-                self.log_info(&format!("Function '{}' executed with result: {}", function_name, function_result));
+                self.log_info(&format!("Function executed successfully."));
                 Ok(function_result)
             },
             Err(e) => {
