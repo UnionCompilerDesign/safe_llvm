@@ -7,6 +7,7 @@
 extern crate llvm_sys as llvm;
 
 use llvm::prelude::{LLVMBasicBlockRef, LLVMBuilderRef, LLVMContextRef, LLVMModuleRef, LLVMTypeRef, LLVMValueRef};
+use slog_term::ThreadSafeTimestampFn;
 
 use std::{ffi::c_void, ptr::NonNull, sync::{Arc, RwLock}};
 
@@ -50,6 +51,7 @@ impl LLVMRef {
 }
 
 /// Thread-safe pointer type for managing raw C pointers in a synchronized context.
+#[derive(Debug, Clone)]
 pub struct CPointer {
     ptr: Arc<RwLock<NonNull<c_void>>>,
 }
@@ -86,6 +88,22 @@ impl CPointer {
         let lock = self.ptr.write().expect("RwLock has been poisoned");
         let mut ref_to_mut_value = unsafe { LLVMRef::from_raw(lock.as_ptr(), kind) };
         f(&mut ref_to_mut_value)
+    }
+
+    
+}
+
+impl PartialEq for CPointer {
+    fn eq(&self, other: &Self) -> bool {
+        let thisptr = *self.ptr.clone().read().expect("Comparison of CPointer failed!");
+        let otherptr = *other.ptr.clone().read().expect("Comparison of CPointer failed!");
+
+        if thisptr == otherptr {
+            return true;
+        }
+        false
+
+
     }
 }
 

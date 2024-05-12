@@ -7,7 +7,7 @@ extern crate llvm_sys as llvm;
 
 use llvm::prelude::{LLVMBasicBlockRef, LLVMBuilderRef, LLVMContextRef, LLVMModuleRef, LLVMTypeRef, LLVMValueRef};
 
-use std::{collections::HashMap, sync::{Arc, RwLock}};
+use std::{borrow::Borrow, collections::HashMap, sync::{Arc, RwLock}};
 
 use crate::memory_management::pointer::{LLVMRef, CPointer};
 
@@ -140,6 +140,26 @@ impl ResourcePools {
         basic_block_map.insert(tag, Arc::new(RwLock::new(c_pointer)));
 
         Some(tag)
+    }
+
+    /// Gets a basic block's tag from pools
+    pub fn get_basic_block_tag(&mut self, basic_block: LLVMBasicBlockRef) -> Option<BasicBlockTag> {      
+
+        let c_pointer: CPointer = CPointer::new(LLVMRef::BasicBlock(basic_block))?;
+        let mut tag: Option<BasicBlockTag> = None;
+        for block in self.basic_blocks.clone() {
+            let value = block.values().cloned().last().expect("Failed to get CPointer lock in get basic block tag!");
+
+            let test_var = value.read().expect("Failed to read value in get basic block tag!");
+
+            if c_pointer == *test_var {
+                tag = block.keys().cloned().into_iter().last();
+            }
+
+            
+        }
+
+        tag
     }
 
     /// Retrieves a basic block from the resource pools.

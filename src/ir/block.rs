@@ -117,7 +117,7 @@ impl ResourcePools {
         if block.is_null() {
             None
         } else {
-            block
+            self.get_basic_block_tag(block)
         }
     }
     
