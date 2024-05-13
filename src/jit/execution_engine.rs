@@ -7,14 +7,14 @@ extern crate llvm_sys as llvm;
 
 use llvm::{core, execution_engine};
 
-use std::{ffi::{c_char, c_void, CStr, CString}, sync::{Arc, RwLock}};
+use std::{ffi::{c_char, CStr, CString}, sync::{Arc, RwLock}};
 
-use slog::{info, Logger};
+use slog::{info, warn, Logger};
 
 use crate::{
-    jit::target::{TargetConfigurator, GeneralTargetConfigurator},
+    jit::target::{GeneralTargetConfigurator, TargetConfigurator},
     logger::init::init_logger, 
-    memory_management::pointer::{CPointer, LLVMRef, LLVMRefType},
+    memory_management::pointer::{CPointer, LLVMRef, LLVMRefType}, 
 };
 
 
@@ -157,31 +157,27 @@ impl ExecutionEngine {
         engine_result
     }
 
-    /// Executes a specified function within an already compiled module.
-    ///
-    /// # Arguments
-    /// * `module` - An Arc<RwLock<CPointer>> pointing to the pre-compiled LLVM module.
-    /// * `function_name` - The name of the function within the module to call.
-    ///
-    /// # Returns
-    /// Returns `Ok(i64)` with the function's result if successful, or `Err(String)` with an error message if the execution fails.
-    pub fn execute(&mut self, function_name: &str) -> Result<c_void, String> {
+    /// Executes a specified function.
+    pub fn execute(&mut self, function_name: &str) -> Result<(), String> {
         let engine_lock = self.engine.read().map_err(|e| format!("Failed to obtain read lock on engine: {}", e))?;
 
         let result = engine_lock.read(LLVMRefType::ExecutionEngine, |engine_ref| {
             if let LLVMRef::ExecutionEngine(engine_ptr) = engine_ref {
                 let module_lock = self.module.read().map_err(|e| format!("Failed to obtain read lock on module: {}", e))?;
+                
                 module_lock.read(LLVMRefType::Module, |module_ref| {
                     if let LLVMRef::Module(_module_ptr) = module_ref {
                         let function_name_c = CString::new(function_name).map_err(|_| "Failed to create CString for function name.")?;
                         let function_address = unsafe { execution_engine::LLVMGetFunctionAddress(*engine_ptr, function_name_c.as_ptr()) };
+                        
                         if function_address == 0 {
-                            return Err("Function not found in the module.".to_string());
+                            self.log_warning(&format!("Function '{}' not found.", function_name));
+                            return Err("Function not found in given module.".to_string());
                         }
 
-                        // Cast the function pointer to a callable function type
-                        let entry_main: extern "C" fn() -> c_void = unsafe { std::mem::transmute(function_address) };
-                        Ok(entry_main())  // Execute the function
+                        let main: extern "C" fn() -> () = unsafe { std::mem::transmute(function_address) };
+                        main(); 
+                        Ok(())
                     } else {
                         Err("Invalid module pointer.".to_string())
                     }
@@ -192,9 +188,9 @@ impl ExecutionEngine {
         });
 
         match result {
-            Ok(function_result) => {
-                self.log_info(&format!("Function executed successfully."));
-                Ok(function_result)
+            Ok(_) => {
+                self.log_info(&format!("Function '{}' executed successfully.", function_name));
+                Ok(())
             },
             Err(e) => {
                 self.log_info(&format!("Execution error: {}", e));
@@ -210,6 +206,12 @@ impl ExecutionEngine {
     fn log_info(&self, msg: &str) {
         if let Some(ref log) = self.logger {
             info!(log, "{}", msg);
+        }
+    }
+
+    fn log_warning(&self, msg: &str) {
+        if let Some(ref log) = self.logger {
+            warn!(log, "{}", msg);
         }
     }
 }
