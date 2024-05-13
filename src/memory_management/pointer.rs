@@ -8,7 +8,7 @@ extern crate llvm_sys as llvm;
 
 use llvm::prelude::{LLVMBasicBlockRef, LLVMBuilderRef, LLVMContextRef, LLVMModuleRef, LLVMTypeRef, LLVMValueRef};
 
-use std::{ffi::c_void, ptr::NonNull, sync::{Arc, RwLock}};
+use std::{ffi::c_void, fmt, ptr::NonNull, sync::{Arc, PoisonError, RwLock}};
 
 /// Enum to represent various LLVM reference types for better type management and safety.
 #[derive(Debug, Clone, Copy)]
@@ -50,42 +50,42 @@ impl LLVMRef {
 }
 
 /// Thread-safe pointer type for managing raw C pointers in a synchronized context.
-pub struct CPointer {
+pub struct SafeLLVMPointer {
     ptr: Arc<RwLock<NonNull<c_void>>>,
 }
 
-impl CPointer {
-    /// Constructs a new `CPointer` by taking an `LLVMRef` and converting it to a non-null raw pointer.
-    /// Returns an `Option` wrapped instance of `CPointer` if the pointer is non-null.
-    pub fn new(llvm_ref: LLVMRef) -> Option<Self> {
+impl SafeLLVMPointer {
+    /// Constructs a new `SafeLLVMPointer` by taking an `LLVMRef` and converting it to a non-null raw pointer.
+    /// Returns an `Option` wrapped instance of `SafeLLVMPointer` if the pointer is non-null.
+    pub fn new(llvm_ref: LLVMRef) -> Result<Self, PointerError> {
         let raw_ptr = llvm_ref.to_raw();
-        NonNull::new(raw_ptr).map(|nn_ptr| CPointer {
+        NonNull::new(raw_ptr).map(|nn_ptr| SafeLLVMPointer {
             ptr: Arc::new(RwLock::new(nn_ptr)),
-        })
+        }).ok_or(PointerError::NullPointer)
     }
 
     /// Provides read-only access to the pointed-to value.
     /// The read operation is safely performed within the bounds of an `RwLock`, ensuring no concurrent write operations.
     /// A closure receives an immutable reference to the value of `LLVMRef`.
-    pub fn read<F, R>(&self, kind: LLVMRefType, f: F) -> R
+    pub fn read<F, R>(&self, kind: LLVMRefType, f: F) -> Result<R, PointerError>
     where
         F: FnOnce(&LLVMRef) -> R,
     {
-        let lock = self.ptr.read().expect("RwLock has been poisoned");
+        let lock = self.ptr.read()?;
         let ref_to_value = unsafe { LLVMRef::from_raw(lock.as_ptr(), kind) };
-        f(&ref_to_value)
+        Ok(f(&ref_to_value))
     }
 
     /// Provides write access to the pointed-to value.
     /// The write operation ensures exclusive, mutable access via an `RwLock`.
     /// A closure receives a mutable reference to the value of `LLVMRef`.
-    pub fn write<F, R>(&self, kind: LLVMRefType, f: F) -> R
+    pub fn write<F, R>(&self, kind: LLVMRefType, f: F) -> Result<R, PointerError>
     where
         F: FnOnce(&mut LLVMRef) -> R,
     {
-        let lock = self.ptr.write().expect("RwLock has been poisoned");
+        let mut lock = self.ptr.write()?;
         let mut ref_to_mut_value = unsafe { LLVMRef::from_raw(lock.as_ptr(), kind) };
-        f(&mut ref_to_mut_value)
+        Ok(f(&mut ref_to_mut_value))
     }
 }
 
@@ -98,4 +98,26 @@ pub enum LLVMRefType {
     BasicBlock,
     Builder,
     Type,
+}
+
+// Define an error type for your SafeLLVMPointer operations
+#[derive(Debug)]
+pub enum PointerError {
+    NullPointer,
+    LockError(String),
+}
+
+impl fmt::Display for PointerError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            PointerError::NullPointer => write!(f, "Attempted to create a pointer to a null reference"),
+            PointerError::LockError(ref err) => write!(f, "Lock error: {}", err),
+        }
+    }
+}
+
+impl<T> From<PoisonError<T>> for PointerError {
+    fn from(error: PoisonError<T>) -> Self {
+        PointerError::LockError(format!("{}", error))
+    }
 }

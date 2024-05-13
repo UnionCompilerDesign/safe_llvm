@@ -4,19 +4,19 @@ use std::sync::{Arc, RwLock};
 
 use llvm::{analysis, core};
 
-use crate::memory_management::pointer::{CPointer, LLVMRef, LLVMRefType};
+use crate::memory_management::pointer::{SafeLLVMPointer, LLVMRef, LLVMRefType};
 
 pub struct Validator {
-    module: Arc<RwLock<CPointer>>,
+    module: Arc<RwLock<SafeLLVMPointer>>,
 }
 
 impl Validator {
     // Constructs a new Validator
-    pub fn new(module: Arc<RwLock<CPointer>>) -> Self {
+    pub fn new(module: Arc<RwLock<SafeLLVMPointer>>) -> Self {
         Self { module }
     }
 
-    pub fn get_module(&self) -> &Arc<RwLock<CPointer>> {
+    pub fn get_module(&self) -> &Arc<RwLock<SafeLLVMPointer>> {
        &self.module
     }
 
@@ -50,7 +50,7 @@ impl Validator {
     }
 
     // Validates a specific function in the module
-    pub fn is_valid_function(&self, function: Arc<RwLock<CPointer>>) -> bool {
+    pub fn is_valid_function(&self, function: Arc<RwLock<SafeLLVMPointer>>) -> bool {
         let action = analysis::LLVMVerifierFailureAction::LLVMPrintMessageAction;
 
         let function_rw_lock = function.read().expect("Failed to get function");
