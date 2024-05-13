@@ -29,6 +29,12 @@ pub struct ValueTag(usize);
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct BasicBlockTag(usize);
 
+impl BasicBlockTag {
+    pub fn new(tag: usize) -> BasicBlockTag {
+        BasicBlockTag(tag)
+    }
+}
+
 /// Gives access to value resources in the pools. 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct BuilderTag(usize);
