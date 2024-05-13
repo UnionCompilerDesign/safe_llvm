@@ -51,6 +51,7 @@ pub struct ResourcePools {
     modules: Option<HashMap<ModuleTag, Arc<RwLock<CPointer>>>>,
     values: Option<HashMap<ValueTag, Arc<RwLock<CPointer>>>>,
     basic_blocks: Option<HashMap<BasicBlockTag, Arc<RwLock<CPointer>>>>,
+    basic_block_tag_map: HashMap<LLVMBasicBlockRef, BasicBlockTag>,
     builders: Option<HashMap<BuilderTag, Arc<RwLock<CPointer>>>>,
     types: Option<HashMap<TypeTag, Arc<RwLock<CPointer>>>>,
     next_tag: usize,
@@ -64,6 +65,7 @@ impl ResourcePools {
             modules: None,
             values: None,
             basic_blocks: None,
+            basic_block_tag_map: HashMap::new(),
             builders: None,
             types: None,
             next_tag: 0,
@@ -129,10 +131,20 @@ impl ResourcePools {
         self.values.as_ref()?.get(&tag).cloned()
     }
 
+    fn store_basic_block_tag(&mut self, basic_block: LLVMBasicBlockRef, tag: BasicBlockTag) {
+        self.basic_block_tag_map.insert(basic_block, tag);
+    }
+
+    fn retrieve_basic_block_tag(&mut self, basic_block: LLVMBasicBlockRef) -> Option<BasicBlockTag> {
+        self.basic_block_tag_map.get(&basic_block).cloned()
+    }
+
     /// Creates a new basic block and stores it in the resource pools.
     pub fn store_basic_block(&mut self, basic_block: LLVMBasicBlockRef) -> Option<BasicBlockTag> {
         let tag = BasicBlockTag(self.next_tag);
         self.increment_tag();        
+
+        self.store_basic_block_tag(basic_block.clone(), tag.clone());
 
         let c_pointer = CPointer::new(LLVMRef::BasicBlock(basic_block))?;
 
@@ -144,20 +156,8 @@ impl ResourcePools {
 
     /// Gets a basic block's tag from pools
     pub fn get_basic_block_tag(&mut self, basic_block: LLVMBasicBlockRef) -> Option<BasicBlockTag> {      
-        // make store basic block also store in hashmap to tag
-        // to make retrieving tag from pointer possible and then
-        // get from hashmap here
-        let c_pointer: CPointer = CPointer::new(LLVMRef::BasicBlock(basic_block))?;
-        let mut tag: Option<BasicBlockTag> = None;
-        for block in self.basic_blocks.clone() {
-            let value = block.values().cloned().last().expect("Failed to get CPointer lock in get basic block tag!");
 
-            let test_var = value.read().expect("Failed to read value in get basic block tag!");
-
-            
-
-            
-        }
+        let tag = self.retrieve_basic_block_tag(basic_block);
 
         tag
     }
