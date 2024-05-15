@@ -151,6 +151,37 @@ impl ResourcePools {
         }
 
     }
+
+    /// Retrieves the next basic block after the current one. 
+    pub fn get_previous_block(&mut self, builder_tag: BuilderTag) -> Option<BasicBlockTag> {
+        let builder_arc_rwlock = self.get_builder(builder_tag)?;
+
+        let builder_ptr: LLVMBuilderRef = {
+            let builder_rwlock = builder_arc_rwlock.read().expect("Failed to lock builder for reading");
+            let builder_ref = builder_rwlock.read(LLVMRefType::Builder, |builder_ref| {
+                match builder_ref {
+                    LLVMRef::Builder(ptr) => Some(*ptr),
+                    _ => None
+                }
+            })?;
+            builder_ref
+        };
+
+        let block = unsafe {
+            core::LLVMGetInsertBlock(builder_ptr)
+        };
+
+        if block.is_null() {
+            None
+        } else {
+            let return_block = unsafe {
+                core::LLVMGetPreviousBasicBlock(block)
+            };
+
+            self.get_basic_block_tag(return_block)
+        }
+
+    }
     
     /// Creates a conditional branch to two different blocks. 
     pub fn create_cond_br(&mut self, builder_tag: BuilderTag, condition_tag: ValueTag, then_bb_tag: BasicBlockTag, else_bb_tag: BasicBlockTag) -> Option<ValueTag> {
