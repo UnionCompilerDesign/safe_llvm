@@ -51,7 +51,7 @@ impl LLVMRef {
 }
 
 /// Thread-safe pointer type for managing raw C pointers in a synchronized context.
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct CPointer {
     ptr: Arc<RwLock<NonNull<c_void>>>,
 }
