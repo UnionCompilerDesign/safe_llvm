@@ -57,7 +57,7 @@ pub struct ResourcePools {
     modules: Option<HashMap<ModuleTag, Arc<RwLock<CPointer>>>>,
     values: Option<HashMap<ValueTag, Arc<RwLock<CPointer>>>>,
     basic_blocks: Option<HashMap<BasicBlockTag, Arc<RwLock<CPointer>>>>,
-    basic_block_tag_map: HashMap<LLVMBasicBlockRef, BasicBlockTag>,
+    basic_block_tag_map: Option<HashMap<LLVMBasicBlockRef, BasicBlockTag>>,
     builders: Option<HashMap<BuilderTag, Arc<RwLock<CPointer>>>>,
     types: Option<HashMap<TypeTag, Arc<RwLock<CPointer>>>>,
     next_tag: usize,
@@ -71,7 +71,7 @@ impl ResourcePools {
             modules: None,
             values: None,
             basic_blocks: None,
-            basic_block_tag_map: HashMap::new(),
+            basic_block_tag_map: None,
             builders: None,
             types: None,
             next_tag: 0,
@@ -81,6 +81,11 @@ impl ResourcePools {
     /// Increments the tag counter.
     fn increment_tag(&mut self) {
         self.next_tag += 1;
+    }
+
+    /// Initializes the basic block tag map
+    fn initialize_basic_block_tag_map(&mut self) {
+        self.basic_block_tag_map = Some(HashMap::new());
     }
 
     /// Creates a new context and stores it in the resource pools.
@@ -138,11 +143,17 @@ impl ResourcePools {
     }
 
     fn store_basic_block_tag(&mut self, basic_block: LLVMBasicBlockRef, tag: BasicBlockTag) {
-        self.basic_block_tag_map.insert(basic_block, tag);
+        if self.basic_block_tag_map.is_none() {
+            self.initialize_basic_block_tag_map();
+        }
+        self.basic_block_tag_map.as_mut().unwrap().insert(basic_block, tag);
     }
 
     fn retrieve_basic_block_tag(&mut self, basic_block: LLVMBasicBlockRef) -> Option<BasicBlockTag> {
-        self.basic_block_tag_map.get(&basic_block).cloned()
+        if self.basic_block_tag_map.is_none() {
+            return None
+        }
+        self.basic_block_tag_map.as_mut().unwrap().get(&basic_block).cloned()
     }
 
     /// Creates a new basic block and stores it in the resource pools.
