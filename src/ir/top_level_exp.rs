@@ -1,10 +1,10 @@
 extern crate llvm_sys as llvm;
 
-use llvm::core;
+use llvm::{core, prelude::LLVMTypeRef};
 
-use std::ffi::CString;
+use std::{collections::HashMap, ffi::CString};
 
-use crate::memory_management::{pointer::{LLVMRef, LLVMRefType}, resource_pools::{ModuleTag, ResourcePools, TypeTag, ValueTag}};
+use crate::memory_management::{definitions::EnumDefinition, pointer::{LLVMRef, LLVMRefType}, resource_pools::{ContextTag, ModuleTag, ResourcePools, TypeTag, ValueTag}};
 
 impl ResourcePools {
     /// Gets a parameter from a function by its index.
@@ -66,6 +66,81 @@ impl ResourcePools {
             None
         } else {
             self.store_value(function)
+        }
+    }
+
+    /// Creates a new struct type in the LLVM context.
+    pub fn create_struct(&mut self, context_tag: ContextTag, member_types: Vec<TypeTag>, packed: bool) -> Option<TypeTag> {
+        let mut member_llvm_types: Vec<LLVMTypeRef> = member_types.iter()
+            .map(|type_tag| {
+                let type_arc_rwlock = self.get_type(*type_tag)?;
+                let type_ptr = {
+                    let type_rwlock = type_arc_rwlock.read().expect("Failed to lock type for reading");
+                    type_rwlock.read(LLVMRefType::Type, |type_ref| {
+                        if let LLVMRef::Type(ptr) = type_ref {
+                            Some(*ptr)
+                        } else {
+                            None
+                        }
+                    })?
+                };
+                Some(type_ptr)
+            })
+            .collect::<Option<Vec<_>>>()?;
+
+            let context_arc_rwlock = self.get_context(context_tag)?;
+            let context_ptr = {
+                let context_rwlock = context_arc_rwlock.read().expect("Failed to lock context for reading");
+                context_rwlock.read(LLVMRefType::Context, |context_ref| {
+                    if let LLVMRef::Context(ptr) = context_ref {
+                        Some(*ptr)
+                    } else {
+                        None
+                    }
+                })?
+            };
+
+        let struct_type = unsafe {
+            llvm::core::LLVMStructTypeInContext(context_ptr, member_llvm_types.as_mut_ptr(), member_llvm_types.len() as u32, packed as i32)
+        };
+
+        if struct_type.is_null() {
+            None
+        } else {
+            self.store_type(struct_type)
+        }
+    }
+    /// Creates an enum type represented by an integer of specified bit width and associated variants.
+    /// Each variant is internally mapped to an integer value starting from 0.
+    pub fn create_enum(&mut self, context_tag: ContextTag, num_bits: u32, name: &str, variants: &[String]) -> Option<TypeTag> {
+        let context_arc_rwlock = self.get_context(context_tag)?;
+        let context_ptr = {
+            let context_rwlock = context_arc_rwlock.read().expect("Failed to lock context for reading");
+            context_rwlock.read(LLVMRefType::Context, |context_ref| {
+                if let LLVMRef::Context(ptr) = context_ref {
+                    Some(*ptr)
+                } else {
+                    None
+                }
+            })?
+        };
+
+        let enum_type_ptr = unsafe { llvm::core::LLVMIntTypeInContext(context_ptr, num_bits) };
+        
+        if enum_type_ptr.is_null() {
+            None
+        } else {
+            let type_tag = self.store_type(enum_type_ptr).expect("Failed to store type tag");
+            let mut variant_map = HashMap::new();
+
+            for (index, variant) in variants.iter().enumerate() {
+                variant_map.insert(variant.clone(), index as i64);
+            }
+
+            self.store_enum_definition(type_tag, EnumDefinition::new(name.to_string(), variant_map));
+
+
+            Some(type_tag)
         }
     }
 }

@@ -1,10 +1,10 @@
 extern crate llvm_sys as llvm;
 
-use llvm::{core, prelude::LLVMValueRef};
+use llvm::core;
 
 use std::ffi::CString;
 
-use crate::memory_management::{pointer::{LLVMRef, LLVMRefType}, resource_pools::{BasicBlockTag, BuilderTag, ContextTag, ModuleTag, ResourcePools, TypeTag, ValueTag}};
+use crate::memory_management::{pointer::{LLVMRef, LLVMRefType}, resource_pools::{BasicBlockTag, BuilderTag, ContextTag, ResourcePools, TypeTag, ValueTag}};
 
 impl ResourcePools {
     /// Creates an integer constant of 64 bits in the specified context.
@@ -123,11 +123,6 @@ impl ResourcePools {
         }
     }
 
-    /// Creates a struct
-    pub fn create_struct(&mut self) -> Option<ValueTag> {
-        // core::LLVMConstStructInContext()
-        todo!("Unimplemented")
-    }
     
     /// Creates a global variable
     pub fn create_global_variable(&mut self) -> Option<ValueTag> {
@@ -157,9 +152,6 @@ impl ResourcePools {
         
         None
     }
-    
-
-    
 
     /// Creates a mutable (local) string
     pub fn create_mut_string(
