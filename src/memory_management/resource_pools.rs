@@ -78,10 +78,6 @@ impl ResourcePools {
         self.next_tag += 1;
     }
 
-    /// Initializes the basic block tag map
-    fn initialize_basic_block_tag_map(&mut self) {
-        self.basic_block_tag_map = Some(HashMap::new());
-    }
 
     /// Creates a new context and stores it in the resource pools.
     pub fn store_context(&mut self, context: LLVMContextRef) -> Option<ContextTag> {
@@ -138,17 +134,13 @@ impl ResourcePools {
     }
 
     fn store_basic_block_tag(&mut self, basic_block: LLVMBasicBlockRef, tag: BasicBlockTag) {
-        if self.basic_block_tag_map.is_none() {
-            self.initialize_basic_block_tag_map();
-        }
-        self.basic_block_tag_map.as_mut().unwrap().insert(basic_block, tag);
+        let block_map = self.basic_block_tag_map.get_or_insert_with(HashMap::new);
+        block_map.insert(basic_block, tag);
     }
 
     fn retrieve_basic_block_tag(&mut self, basic_block: LLVMBasicBlockRef) -> Option<BasicBlockTag> {
-        if self.basic_block_tag_map.is_none() {
-            return None
-        }
-        self.basic_block_tag_map.as_mut().unwrap().get(&basic_block).cloned()
+        let block_map = self.basic_block_tag_map.get_or_insert_with(HashMap::new);
+        block_map.get(&basic_block).cloned()
     }
 
     /// Creates a new basic block and stores it in the resource pools.
