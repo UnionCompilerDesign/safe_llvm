@@ -63,3 +63,23 @@ fn test_get_param() {
     let function = resource_pools.get_value(added_function_tag).expect("Failed to get function");
     assert!(validator.is_valid_function(function), "Invalid function");
 }
+
+#[test]
+fn test_create_enum() {
+    let mut resource_pools = ResourcePools::new();
+
+    let context_tag = resource_pools.create_context().expect("Failed to create context");
+
+    let variants = vec!["Red".to_string(), "Green".to_string(), "Blue".to_string()];
+
+    let num_bits = 2;
+    let enum_type_tag = resource_pools.create_enum(context_tag, num_bits, "Color", &variants).expect("Failed to create enum type");
+
+    let enum_def = resource_pools.get_enum_definition(enum_type_tag).expect("Failed to retrieve enum definition");
+
+    assert_eq!(enum_def.get_name(), "Color", "Enum name does not match");
+    assert_eq!(enum_def.get_variant("Red"), Some(0), "Red should be mapped to 0");
+    assert_eq!(enum_def.get_variant("Green"), Some(1), "Green should be mapped to 1");
+    assert_eq!(enum_def.get_variant("Blue"), Some(2), "Blue should be mapped to 2");
+    assert_eq!(enum_def.get_variant("Yellow"), None, "Yellow should not be present");
+}

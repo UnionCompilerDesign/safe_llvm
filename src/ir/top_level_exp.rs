@@ -2,9 +2,9 @@ extern crate llvm_sys as llvm;
 
 use llvm::core;
 
-use std::ffi::CString;
+use std::{collections::HashMap, ffi::CString};
 
-use crate::memory_management::{pointer::{LLVMRef, LLVMRefType}, resource_pools::{ModuleTag, ResourcePools, TypeTag, ValueTag}};
+use crate::memory_management::{definitions::EnumDefinition, pointer::{LLVMRef, LLVMRefType}, resource_pools::{ContextTag, ModuleTag, ResourcePools, TypeTag, ValueTag}};
 
 impl ResourcePools {
     /// Gets a parameter from a function by its index.
@@ -66,6 +66,40 @@ impl ResourcePools {
             None
         } else {
             self.store_value(function)
+        }
+    }
+
+    /// Creates an enum type represented by an integer of specified bit width and associated variants.
+    /// Each variant is internally mapped to an integer value starting from 0.
+    pub fn create_enum(&mut self, context_tag: ContextTag, num_bits: u32, name: &str, variants: &[String]) -> Option<TypeTag> {
+        let context_arc_rwlock = self.get_context(context_tag)?;
+        let context_ptr = {
+            let context_rwlock = context_arc_rwlock.read().expect("Failed to lock context for reading");
+            context_rwlock.read(LLVMRefType::Context, |context_ref| {
+                if let LLVMRef::Context(ptr) = context_ref {
+                    Some(*ptr)
+                } else {
+                    None
+                }
+            })?
+        };
+
+        let enum_type_ptr = unsafe { llvm::core::LLVMIntTypeInContext(context_ptr, num_bits) };
+        
+        if enum_type_ptr.is_null() {
+            None
+        } else {
+            let type_tag = self.store_type(enum_type_ptr).expect("Failed to store type tag");
+            let mut variant_map = HashMap::new();
+
+            for (index, variant) in variants.iter().enumerate() {
+                variant_map.insert(variant.clone(), index as i64);
+            }
+
+            self.store_enum_definition(type_tag, EnumDefinition::new(name.to_string(), variant_map));
+
+
+            Some(type_tag)
         }
     }
 }
