@@ -5,7 +5,7 @@ use slog_json::Json;
 
 use std::fs::File;
 
-fn init_logger() -> Logger {
+pub fn init_logger() -> Logger {
     // Terminal output drain
     let decorator: TermDecorator = TermDecorator::new().build();
     let term_drain: Fuse<CompactFormat<TermDecorator>> = CompactFormat::new(decorator).build().fuse();
