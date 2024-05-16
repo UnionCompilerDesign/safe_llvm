@@ -1,4 +1,4 @@
-use safe_llvm::{analysis::validator::Validator, memory_management::resource_pools::ResourcePools, utils::utils_struct::Utils};
+use safe_llvm::{analysis::validator::Validator, memory_management::{pointer::{LLVMRef, LLVMRefType}, resource_pools::ResourcePools}, utils::utils_struct::Utils};
 
 #[test]
 fn test_add_function_to_module() {
@@ -62,4 +62,32 @@ fn test_get_param() {
     assert!(validator.is_valid_module(), "Invalid module");
     let function = resource_pools.get_value(added_function_tag).expect("Failed to get function");
     assert!(validator.is_valid_function(function), "Invalid function");
+}
+
+#[test]
+fn test_create_struct() {
+    let mut resource_pools = ResourcePools::new();
+
+    let context_tag = resource_pools.create_context().expect("Failed to create context");
+
+    let int_type_tag = resource_pools.int_type(context_tag, 32).expect("Failed to create integer type");
+    let float_type_tag = resource_pools.float_type(context_tag).expect("Failed to create float type");
+
+    let member_types = vec![int_type_tag, float_type_tag];
+
+    let struct_type_tag = resource_pools.create_struct(context_tag, member_types, false).expect("Failed to create struct type");
+
+    let struct_type_ptr = {
+        let struct_type_arc_rwlock = resource_pools.get_type(struct_type_tag).expect("Failed to get struct type");
+        let struct_type_rwlock = struct_type_arc_rwlock.read().expect("Failed to lock struct type for reading");
+        struct_type_rwlock.read(LLVMRefType::Type, |type_ref| {
+            if let LLVMRef::Type(ptr) = type_ref {
+                Some(*ptr)
+            } else {
+                None
+            }
+        }).expect("Failed to read struct type")
+    };
+
+    assert!(!struct_type_ptr.is_null(), "Struct type pointer should not be null");
 }

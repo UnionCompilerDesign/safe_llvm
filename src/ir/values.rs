@@ -123,11 +123,6 @@ impl ResourcePools {
         }
     }
 
-    /// Creates a struct
-    pub fn create_struct(&mut self) -> Option<ValueTag> {
-        // core::LLVMConstStructInContext()
-        todo!("Unimplemented")
-    }
     
     /// Creates a global variable
     pub fn create_global_variable(&mut self) -> Option<ValueTag> {
