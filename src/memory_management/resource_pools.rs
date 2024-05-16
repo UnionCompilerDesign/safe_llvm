@@ -11,6 +11,8 @@ use std::{collections::HashMap, sync::{Arc, RwLock}};
 
 use crate::memory_management::pointer::{LLVMRef, CPointer};
 
+use super::definitions::EnumDefinition;
+
 /// Each tag is unique throughout the course of an application's runtime. 
 
 /// Gives access to context resources in the pools. 
@@ -53,6 +55,7 @@ pub struct ResourcePools {
     basic_blocks: Option<HashMap<BasicBlockTag, Arc<RwLock<CPointer>>>>,
     builders: Option<HashMap<BuilderTag, Arc<RwLock<CPointer>>>>,
     types: Option<HashMap<TypeTag, Arc<RwLock<CPointer>>>>,
+    enums: Option<HashMap<TypeTag, EnumDefinition>>,
     next_tag: usize,
 }
 
@@ -66,6 +69,7 @@ impl ResourcePools {
             basic_blocks: None,
             builders: None,
             types: None,
+            enums: None,
             next_tag: 0,
         }
     }
@@ -181,5 +185,14 @@ impl ResourcePools {
     /// Retrieves a type from the resource pools.
     pub fn get_type(&self, tag: TypeTag) -> Option<Arc<RwLock<CPointer>>> {
         self.types.as_ref()?.get(&tag).cloned()
+    }
+
+    pub fn store_enum_definition(&mut self, tag: TypeTag, enum_definition: EnumDefinition) {
+        let enums_map = self.enums.get_or_insert(HashMap::new());
+        enums_map.insert(tag, enum_definition);
+    }
+
+    pub fn get_enum_definition(&self, tag: TypeTag) -> Option<EnumDefinition> {
+        self.enums.as_ref()?.get(&tag).cloned()
     }
 }

@@ -6,11 +6,11 @@
 
 extern crate llvm_sys as llvm;
 
-use llvm::prelude::{LLVMBasicBlockRef, LLVMBuilderRef, LLVMContextRef, LLVMModuleRef, LLVMTypeRef, LLVMValueRef};
+use llvm::{execution_engine::LLVMExecutionEngineRef, prelude::{LLVMBasicBlockRef, LLVMBuilderRef, LLVMContextRef, LLVMModuleRef, LLVMTypeRef, LLVMValueRef}};
 
 use std::{ffi::c_void, ptr::NonNull, sync::{Arc, RwLock}};
 
-/// Enum to represent various LLVM reference types for better type management and safety.
+/// Enum to represent various LLVM references for better type management and safety.
 #[derive(Debug, Clone, Copy)]
 pub enum LLVMRef {
     Context(LLVMContextRef), // https://llvm.org/doxygen/classllvm_1_1LLVMContext.html
@@ -19,6 +19,19 @@ pub enum LLVMRef {
     BasicBlock(LLVMBasicBlockRef), // https://llvm.org/doxygen/classllvm_1_1BasicBlock.html
     Builder(LLVMBuilderRef), // https://www.llvmpy.org/llvmpy-doc/0.12.7/doc/llvm.core.Builder.html
     Type(LLVMTypeRef), // https://llvm.org/doxygen/classllvm_1_1Type.html
+    ExecutionEngine(LLVMExecutionEngineRef) // https://llvm.org/doxygen/group__LLVMCExecutionEngine.html
+}
+
+/// Represents types of LLVM references to aid in safe runtime conversion.
+#[derive(Debug, Clone, Copy)]
+pub enum LLVMRefType {
+    Context,
+    Module,
+    Value,
+    BasicBlock,
+    Builder,
+    Type,
+    ExecutionEngine,
 }
 
 /// Helper methods for the LLVMRef enum to manage raw pointer conversions safely.
@@ -32,6 +45,7 @@ impl LLVMRef {
             LLVMRef::BasicBlock(ptr) => ptr as *mut c_void,
             LLVMRef::Builder(ptr) => ptr as *mut c_void,
             LLVMRef::Type(ptr) => ptr as *mut c_void,
+            LLVMRef::ExecutionEngine(ptr) => ptr as *mut c_void,
         }
     }
 
@@ -45,6 +59,7 @@ impl LLVMRef {
             LLVMRefType::BasicBlock => LLVMRef::BasicBlock(ptr as LLVMBasicBlockRef),
             LLVMRefType::Builder => LLVMRef::Builder(ptr as LLVMBuilderRef),
             LLVMRefType::Type => LLVMRef::Type(ptr as LLVMTypeRef),
+            LLVMRefType::ExecutionEngine => LLVMRef::ExecutionEngine(ptr as LLVMExecutionEngineRef),
         }
     }
 }
@@ -87,15 +102,4 @@ impl CPointer {
         let mut ref_to_mut_value = unsafe { LLVMRef::from_raw(lock.as_ptr(), kind) };
         f(&mut ref_to_mut_value)
     }
-}
-
-/// Represents types of LLVM references to aid in safe runtime conversion.
-#[derive(Debug, Clone, Copy)]
-pub enum LLVMRefType {
-    Context,
-    Module,
-    Value,
-    BasicBlock,
-    Builder,
-    Type,
 }
