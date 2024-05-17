@@ -31,7 +31,6 @@ impl ResourcePools {
                     None
                 }
             })?;
-
             let data_type_ptr = data_type_arc_rwlock.read().expect("Failed to lock data type for reading").read(LLVMRefType::Type, |data_type_ref| {
                 if let LLVMRef::Type(ptr) = data_type_ref {
                     Some(*ptr)
@@ -39,8 +38,8 @@ impl ResourcePools {
                     None
                 }
             })?;
-
-            core::LLVMBuildAlloca(builder_ptr, data_type_ptr, var_name_cstr.as_ptr())
+            
+            core::LLVMBuildAlloca(builder_ptr, data_type_ptr, var_name_cstr.as_ptr()) //problem is HERE
         };
 
         if alloca.is_null() {

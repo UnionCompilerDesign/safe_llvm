@@ -42,14 +42,13 @@ fn test_create_pointer() {
     assert!(pointer_value_tag.is_some(), "Pointer to integer should be created successfully");
 }
 
-// #[test]
-// fn test_create_string() {
-//     let mut resource_pools = ResourcePools::new();
-//     let context_tag = resource_pools.create_context().expect("Failed to create context");
-//     let builder_tag = resource_pools.create_builder(context_tag).expect("Failed to create builder");
-//     let string_value_tag = resource_pools.create_string("hello, world", builder_tag);
-//     assert!(string_value_tag.is_some(), "String value should be created successfully");
-// }
+#[test]
+fn test_create_string() {
+    let mut resource_pools = ResourcePools::new();
+    let _context_tag = resource_pools.create_context().expect("Failed to create context");
+    let string_value_tag = resource_pools.create_string("hello, world");
+    assert!(string_value_tag.is_some(), "String value should be created successfully");
+}
 
 // #[test]
 // fn test_create_mut_string() {

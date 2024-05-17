@@ -1,10 +1,10 @@
 extern crate llvm_sys as llvm;
 
-use llvm::{core, prelude::LLVMValueRef};
+use llvm::core;
 
 use std::ffi::CString;
 
-use crate::memory_management::{pointer::{LLVMRef, LLVMRefType}, resource_pools::{BasicBlockTag, BuilderTag, ContextTag, ModuleTag, ResourcePools, TypeTag, ValueTag}};
+use crate::memory_management::{pointer::{LLVMRef, LLVMRefType}, resource_pools::{BasicBlockTag, BuilderTag, ContextTag, ResourcePools, TypeTag, ValueTag}};
 
 impl ResourcePools {
     /// Creates an integer constant of 64 bits in the specified context.
@@ -123,11 +123,6 @@ impl ResourcePools {
         }
     }
 
-    /// Creates a struct
-    pub fn create_struct(&mut self) -> Option<ValueTag> {
-        // core::LLVMConstStructInContext()
-        todo!("Unimplemented")
-    }
     
     /// Creates a global variable
     pub fn create_global_variable(&mut self) -> Option<ValueTag> {
@@ -141,32 +136,19 @@ impl ResourcePools {
     pub fn create_string(
         &mut self,
         val: &str,
-        builder_tag: BuilderTag
     ) -> Option<ValueTag> {
-        let builder_arc_rwlock = self.get_builder(builder_tag)?;
 
         let c_val = CString::new(val).expect("Failed to create CString for string value");
-        let c_str_name = CString::new("const_str").expect("Failed to create CString for string name");
 
-        let builder_ptr_option = builder_arc_rwlock.read()
-            .expect("Failed to lock builder for reading")
-            .read(LLVMRefType::Builder, |builder_ref| {
-                if let LLVMRef::Builder(ptr) = builder_ref {
-                    Some(*ptr) 
-                } else {
-                    None 
-                }
-            });
+        let str_pointer = unsafe {
+            core::LLVMConstString(c_val.as_ptr(), val.len() as u32, 1)
+            
+        };
 
-        if let Some(builder_ptr) = builder_ptr_option {
-            let str_pointer = unsafe {
-                core::LLVMBuildGlobalStringPtr(builder_ptr, c_val.as_ptr(), c_str_name.as_ptr())
-            };
-
-            if !str_pointer.is_null() {
-                return self.store_value(str_pointer);
-            }
+        if !str_pointer.is_null() {
+            return self.store_value(str_pointer);
         }
+        
         
         None
     }
