@@ -7,7 +7,7 @@ extern crate llvm_sys as llvm;
 
 use llvm::prelude::{LLVMBasicBlockRef, LLVMBuilderRef, LLVMContextRef, LLVMModuleRef, LLVMTypeRef, LLVMValueRef};
 
-use std::{collections::HashMap, sync::{Arc, RwLock}};
+use std::{borrow::Borrow, collections::HashMap, sync::{Arc, RwLock}};
 
 use crate::memory_management::pointer::{LLVMRef, CPointer};
 
@@ -31,6 +31,7 @@ pub struct ValueTag(usize);
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct BasicBlockTag(usize);
 
+
 /// Gives access to value resources in the pools. 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct BuilderTag(usize);
@@ -53,6 +54,7 @@ pub struct ResourcePools {
     modules: Option<HashMap<ModuleTag, Arc<RwLock<CPointer>>>>,
     values: Option<HashMap<ValueTag, Arc<RwLock<CPointer>>>>,
     basic_blocks: Option<HashMap<BasicBlockTag, Arc<RwLock<CPointer>>>>,
+    basic_block_tag_map: Option<HashMap<LLVMBasicBlockRef, BasicBlockTag>>,
     builders: Option<HashMap<BuilderTag, Arc<RwLock<CPointer>>>>,
     types: Option<HashMap<TypeTag, Arc<RwLock<CPointer>>>>,
     enums: Option<HashMap<TypeTag, EnumDefinition>>,
@@ -67,6 +69,7 @@ impl ResourcePools {
             modules: None,
             values: None,
             basic_blocks: None,
+            basic_block_tag_map: None,
             builders: None,
             types: None,
             enums: None,
@@ -78,6 +81,7 @@ impl ResourcePools {
     fn increment_tag(&mut self) {
         self.next_tag += 1;
     }
+
 
     /// Creates a new context and stores it in the resource pools.
     pub fn store_context(&mut self, context: LLVMContextRef) -> Option<ContextTag> {
@@ -133,10 +137,22 @@ impl ResourcePools {
         self.values.as_ref()?.get(&tag).cloned()
     }
 
+    fn store_basic_block_tag(&mut self, basic_block: LLVMBasicBlockRef, tag: BasicBlockTag) {
+        let block_map = self.basic_block_tag_map.get_or_insert_with(HashMap::new);
+        block_map.insert(basic_block, tag);
+    }
+
+    fn retrieve_basic_block_tag(&mut self, basic_block: LLVMBasicBlockRef) -> Option<BasicBlockTag> {
+        let block_map = self.basic_block_tag_map.get_or_insert_with(HashMap::new);
+        block_map.get(&basic_block).cloned()
+    }
+
     /// Creates a new basic block and stores it in the resource pools.
     pub fn store_basic_block(&mut self, basic_block: LLVMBasicBlockRef) -> Option<BasicBlockTag> {
         let tag = BasicBlockTag(self.next_tag);
         self.increment_tag();        
+
+        self.store_basic_block_tag(basic_block.clone(), tag.clone());
 
         let c_pointer = CPointer::new(LLVMRef::BasicBlock(basic_block))?;
 
@@ -144,6 +160,14 @@ impl ResourcePools {
         basic_block_map.insert(tag, Arc::new(RwLock::new(c_pointer)));
 
         Some(tag)
+    }
+
+    /// Gets a basic block's tag from pools
+    pub fn get_basic_block_tag(&mut self, basic_block: LLVMBasicBlockRef) -> Option<BasicBlockTag> {      
+
+        let tag = self.retrieve_basic_block_tag(basic_block);
+
+        tag
     }
 
     /// Retrieves a basic block from the resource pools.
