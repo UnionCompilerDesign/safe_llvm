@@ -4,7 +4,7 @@ extern crate llvm_sys as llvm;
 
 use llvm::{core, execution_engine};
 
-use std::{ffi::{c_char, CStr, CString}, sync::{Arc, RwLock}};
+use std::{any::Any, ffi::{c_char, CStr, CString}, sync::{Arc, RwLock}};
 
 use slog::Logger;
 
@@ -83,11 +83,14 @@ impl ExecutionEngine {
     }
 
     /// Executes a specified function.
-    pub fn execute(&mut self, function_name: &str) -> Result<(), String> {
+    pub fn execute<RETURNTYPE, ARGTYPE>(&mut self, function_name: &str, args: ARGTYPE) -> Result<RETURNTYPE, String>
+    where
+        RETURNTYPE: 'static, 
+        ARGTYPE: Any + Send + Sync, 
+    {
         let engine_lock = self.engine.read().map_err(|e| format!("Failed to obtain read lock on engine: {}", e))?;
-
         let result = engine_lock.read(LLVMRefType::ExecutionEngine, |engine_ref| {
-            if let LLVMRef::ExecutionEngine(engine_ptr) = engine_ref {                  
+            if let LLVMRef::ExecutionEngine(engine_ptr) = engine_ref {
                 let function_name_c = CString::new(function_name).map_err(|_| "Failed to create CString for function name.")?;
                 let function_address = unsafe { execution_engine::LLVMGetFunctionAddress(*engine_ptr, function_name_c.as_ptr()) };
                 
@@ -96,19 +99,19 @@ impl ExecutionEngine {
                     return Err("Function not found in given module.".to_string());
                 }
 
-                let main: extern "C" fn() -> () = unsafe { std::mem::transmute(function_address) }; 
-                main(); 
-
-                Ok(())
+                unsafe {
+                    let func: extern "C" fn(ARGTYPE) -> RETURNTYPE = std::mem::transmute(function_address);
+                    Ok(func(args))
+                }
             } else {
                 Err("Invalid engine pointer.".to_string())
             }
         });
-    
+
         match result {
-            Ok(_) => {
+            Ok(value) => {
                 self.log_info(&format!("Function '{}' executed successfully.", function_name));
-                Ok(())
+                Ok(value)
             },
             Err(e) => {
                 self.log_error(&format!("Execution error: {}", e));
