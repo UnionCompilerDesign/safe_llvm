@@ -7,7 +7,7 @@ extern crate llvm_sys as llvm;
 
 use llvm::prelude::{LLVMBasicBlockRef, LLVMBuilderRef, LLVMContextRef, LLVMModuleRef, LLVMTypeRef, LLVMValueRef};
 
-use std::{borrow::Borrow, collections::HashMap, sync::{Arc, RwLock}};
+use std::{collections::HashMap, hash::Hash, hash::Hasher, sync::{Arc, RwLock}};
 
 use crate::memory_management::pointer::{LLVMRef, CPointer};
 
@@ -40,6 +40,37 @@ pub struct BuilderTag(usize);
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct TypeTag(usize);
 
+#[derive(Clone, Debug)]
+
+pub struct BasicBlockMapTag{
+    basic_block_ref: Arc<RwLock<LLVMBasicBlockRef>>
+}
+
+impl BasicBlockMapTag {
+    pub fn new(reference: LLVMBasicBlockRef) -> Self {
+        Self {
+            basic_block_ref: Arc::new(RwLock::new(reference))
+        }
+    }
+}
+
+impl PartialEq for BasicBlockMapTag {
+    fn eq(&self, other: &Self) -> bool {
+        let self_reference: LLVMBasicBlockRef = *self.basic_block_ref.read().expect("Couldn't read other BB map tag!");
+        let other_reference: LLVMBasicBlockRef = *other.basic_block_ref.read().expect("Couldn't read other BB map tag!");
+
+        self_reference == other_reference
+    }
+}
+
+impl Eq for BasicBlockMapTag {}
+
+impl Hash for BasicBlockMapTag {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        let self_reference: LLVMBasicBlockRef = *self.basic_block_ref.read().expect("Couldn't read other BB map tag!");
+        self_reference.hash(state);
+    }
+}
 pub enum Tag {
     Context(ContextTag),
     Module(ModuleTag),
@@ -54,7 +85,7 @@ pub struct ResourcePools {
     modules: Option<HashMap<ModuleTag, Arc<RwLock<CPointer>>>>,
     values: Option<HashMap<ValueTag, Arc<RwLock<CPointer>>>>,
     basic_blocks: Option<HashMap<BasicBlockTag, Arc<RwLock<CPointer>>>>,
-    basic_block_tag_map: Option<HashMap<LLVMBasicBlockRef, BasicBlockTag>>,
+    basic_block_tag_map: Option<HashMap<BasicBlockMapTag, BasicBlockTag>>,
     builders: Option<HashMap<BuilderTag, Arc<RwLock<CPointer>>>>,
     types: Option<HashMap<TypeTag, Arc<RwLock<CPointer>>>>,
     enums: Option<HashMap<TypeTag, EnumDefinition>>,
@@ -139,12 +170,14 @@ impl ResourcePools {
 
     fn store_basic_block_tag(&mut self, basic_block: LLVMBasicBlockRef, tag: BasicBlockTag) {
         let block_map = self.basic_block_tag_map.get_or_insert_with(HashMap::new);
-        block_map.insert(basic_block, tag);
+        let block_representation = BasicBlockMapTag::new(basic_block);
+        block_map.insert(block_representation, tag);
     }
 
     fn retrieve_basic_block_tag(&mut self, basic_block: LLVMBasicBlockRef) -> Option<BasicBlockTag> {
         let block_map = self.basic_block_tag_map.get_or_insert_with(HashMap::new);
-        block_map.get(&basic_block).cloned()
+        let block_representation = BasicBlockMapTag::new(basic_block);
+        block_map.get(&block_representation).cloned()
     }
 
     /// Creates a new basic block and stores it in the resource pools.
