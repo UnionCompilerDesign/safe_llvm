@@ -38,7 +38,7 @@ impl ResourcePools {
             let context_rwlock = context_arc_rwlock.read().expect("Failed to lock context for reading");
             let context_ptr = context_rwlock.read(LLVMRefType::Context, |context_ref| {
                 if let LLVMRef::Context(ptr) = context_ref {
-                    Some(unsafe { core::LLVMConstReal(core::LLVMDoubleTypeInContext(*ptr), val) })
+                    Some(unsafe { core::LLVMConstReal(core::LLVMFloatTypeInContext(*ptr), val) })
                 } else {
                     None
                 }

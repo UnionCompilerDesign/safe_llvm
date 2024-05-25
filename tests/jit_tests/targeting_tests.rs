@@ -37,7 +37,7 @@ fn test_execution_engine_with_general_targeting() {
     let mut engine = ExecutionEngine::new( module, true);
     engine.init_target(GeneralTargetConfigurator {}).expect("Failed to configure engine");
 
-    let result = engine.execute(DEFAULT_FUNCTION_NAME);
+    let result: Result<i64, String> = engine.execute(DEFAULT_FUNCTION_NAME, ());
 
     assert!(result.is_ok(), "Execution failed with error: {:?}", result.err());
     println!("Execution result: {:?}", result);
@@ -78,7 +78,7 @@ fn test_execution_engine_with_arm_targeting() {
     let mut engine = ExecutionEngine::new( module, true);
     engine.init_target(ARMTargetConfigurator {}).expect("Failed to configure engine");
 
-    let result = engine.execute(DEFAULT_FUNCTION_NAME);
+    let result: Result<i64, String> = engine.execute(DEFAULT_FUNCTION_NAME, ());
 
     assert!(result.is_ok(), "Execution failed with error: {:?}", result.err());
     println!("Execution result: {:?}", result);
@@ -119,7 +119,7 @@ fn test_execution_engine_with_x86_targeting() {
     let mut engine = ExecutionEngine::new( module, true);
     engine.init_target(X86TargetConfigurator {}).expect("Failed to configure engine");
 
-    let result = engine.execute(DEFAULT_FUNCTION_NAME);
+    let result: Result<i64, String> = engine.execute(DEFAULT_FUNCTION_NAME, ());
 
     assert!(result.is_ok(), "Execution failed with error: {:?}", result.err());
     println!("Execution result: {:?}", result);
@@ -160,7 +160,7 @@ fn test_execution_engine_with_mips_targeting() {
     let mut engine = ExecutionEngine::new( module, true);
     engine.init_target(MIPSTargetConfigurator {}).expect("Failed to configure engine");
 
-    let result = engine.execute(DEFAULT_FUNCTION_NAME);
+    let result: Result<i64, String> = engine.execute(DEFAULT_FUNCTION_NAME, ());
 
     assert!(result.is_ok(), "Execution failed with error: {:?}", result.err());
     println!("Execution result: {:?}", result);
@@ -201,7 +201,7 @@ fn test_execution_engine_with_rv_targeting() {
     let mut engine = ExecutionEngine::new( module, true);
     engine.init_target(RVTargetConfigurator {}).expect("Failed to configure engine");
 
-    let result = engine.execute(DEFAULT_FUNCTION_NAME);
+    let result: Result<i64, String> = engine.execute(DEFAULT_FUNCTION_NAME, ());
 
     assert!(result.is_ok(), "Execution failed with error: {:?}", result.err());
     println!("Execution result: {:?}", result);
@@ -242,7 +242,7 @@ fn test_execution_engine_with_wasm_targeting() {
     let mut engine = ExecutionEngine::new( module, true);
     engine.init_target(WasmTargetConfigurator {}).expect("Failed to configure engine");
 
-    let result = engine.execute(DEFAULT_FUNCTION_NAME);
+    let result: Result<i64, String> = engine.execute(DEFAULT_FUNCTION_NAME, ());
 
     assert!(result.is_ok(), "Execution failed with error: {:?}", result.err());
     println!("Execution result: {:?}", result);
@@ -283,7 +283,7 @@ fn test_execution_engine_with_ppc_targeting() {
     let mut engine = ExecutionEngine::new(module, true);
     engine.init_target(PPCTargetConfigurator {}).expect("Failed to configure engine");
 
-    let result = engine.execute(DEFAULT_FUNCTION_NAME);
+    let result: Result<i64, String> = engine.execute(DEFAULT_FUNCTION_NAME, ());
 
     assert!(result.is_ok(), "Execution failed with error: {:?}", result.err());
     println!("Execution result: {:?}", result);
@@ -324,7 +324,7 @@ fn test_execution_engine_with_sparc_targeting() {
     let mut engine = ExecutionEngine::new( module, true);
     engine.init_target(SparcTargetConfigurator {}).expect("Failed to configure engine");
 
-    let result = engine.execute(DEFAULT_FUNCTION_NAME);
+    let result: Result<i64, String> = engine.execute(DEFAULT_FUNCTION_NAME, ());
 
     assert!(result.is_ok(), "Execution failed with error: {:?}", result.err());
     println!("Execution result: {:?}", result);
@@ -365,7 +365,7 @@ fn test_execution_engine_with_systemz_targeting() {
     let mut engine = ExecutionEngine::new(module, true);
     engine.init_target(SystemZTargetConfigurator {}).expect("Failed to configure engine");
 
-    let result = engine.execute(DEFAULT_FUNCTION_NAME);
+    let result: Result<i64, String> = engine.execute(DEFAULT_FUNCTION_NAME, ());
 
     assert!(result.is_ok(), "Execution failed with error: {:?}", result.err());
     println!("Execution result: {:?}", result);
@@ -406,7 +406,7 @@ fn test_execution_engine_with_aarch64_targeting() {
     let mut engine = ExecutionEngine::new( module, true);
     engine.init_target(AArch64TargetConfigurator {}).expect("Failed to configure engine");
 
-    let result = engine.execute(DEFAULT_FUNCTION_NAME);
+    let result: Result<i64, String> = engine.execute(DEFAULT_FUNCTION_NAME, ());
 
     assert!(result.is_ok(), "Execution failed with error: {:?}", result.err());
     println!("Execution result: {:?}", result);
@@ -447,7 +447,8 @@ fn test_execution_engine_with_amdgpu_targeting() {
     let mut engine = ExecutionEngine::new( module, true);
     engine.init_target(AMDGPUTargetConfigurator {}).expect("Failed to configure engine");
 
-    let result = engine.execute(DEFAULT_FUNCTION_NAME);
+
+    let result: Result<i64, String> = engine.execute(DEFAULT_FUNCTION_NAME, ());
 
     assert!(result.is_ok(), "Execution failed with error: {:?}", result.err());
     println!("Execution result: {:?}", result);
@@ -488,8 +489,8 @@ fn test_execution_engine_with_bpf_targeting() {
     let mut engine = ExecutionEngine::new( module, true);
     engine.init_target(BPFTargetConfigurator {}).expect("Failed to configure engine");
 
-    let result = engine.execute(DEFAULT_FUNCTION_NAME);
-
+    let result: Result<i64, String> = engine.execute(DEFAULT_FUNCTION_NAME, ());
+    
     assert!(result.is_ok(), "Execution failed with error: {:?}", result.err());
     println!("Execution result: {:?}", result);
 }
