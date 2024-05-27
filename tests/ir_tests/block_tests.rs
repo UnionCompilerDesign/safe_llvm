@@ -94,6 +94,34 @@ fn test_get_next_and_previous_block() {
 }
 
 #[test]
+fn test_create_after_block() {
+    let mut resource_pools = ResourcePools::new();
+
+    let context_tag = resource_pools.create_context().expect("Failed to create context");
+    let module_tag = resource_pools.create_module(DEFAULT_MODULE_NAME, context_tag).expect("Failed to create module within context");
+    let function_type = resource_pools.void_type(context_tag).expect("Failed to create function type");
+    let function_value = resource_pools.create_function(Some(function_type), &[], false, context_tag).expect("Failed to create function prototype");
+    let function_tag = resource_pools.add_function_to_module(module_tag, DEFAULT_FUNCTION_NAME, function_value).expect("Failed to add function to module");
+    let builder_tag = resource_pools.create_builder(context_tag).expect("Failed to create builder");
+    let bb1_tag = resource_pools.create_basic_block(context_tag, function_tag, "block_1").expect("Failed to create block 1");
+    let bb2_tag = resource_pools.create_basic_block(context_tag, function_tag, "block_2").expect("Failed to create block 2");
+    let bb3_tag = resource_pools.create_basic_block(context_tag, function_tag, "block_3").expect("Failed to create block 3");
+
+    let bb4_tag = resource_pools.create_basic_block_after(context_tag, function_tag, bb2_tag, "block_4").expect("Failed to create block 4");
+
+    resource_pools.position_builder(builder_tag, bb2_tag);
+    
+    assert_eq!(resource_pools.get_next_block(builder_tag).expect("Failed to get next block tag!"), bb4_tag);
+    assert_eq!(resource_pools.get_previous_block(builder_tag).expect("Failed to get next block tag!"), bb1_tag);
+
+    resource_pools.position_builder(builder_tag, bb4_tag);
+    assert_eq!(resource_pools.get_next_block(builder_tag).expect("Failed to get next block tag!"), bb3_tag);
+    resource_pools.position_builder(builder_tag, bb3_tag);
+    assert_eq!(resource_pools.get_next_block(builder_tag), None)
+
+}
+
+#[test]
 fn test_create_cond_br() {
     let mut resource_pools = ResourcePools::new();
 

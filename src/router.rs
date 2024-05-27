@@ -14,6 +14,10 @@ impl LLVMApi for SafeLLVM {
         self.ir_codegen_impl.create_basic_block(context, function, name)
     }
 
+    fn create_basic_block_after(&mut self, context_tag: ContextTag, function_tag: ValueTag, target_tag: BasicBlockTag, name: &str) -> Option<BasicBlockTag> {
+        self.ir_codegen_impl.create_basic_block_after(context_tag, function_tag, target_tag, name)
+    }
+
     fn get_current_block(&mut self, builder: BuilderTag) -> Option<BasicBlockTag> {
         self.ir_codegen_impl.get_current_block(builder)
     }
@@ -204,13 +208,6 @@ impl LLVMApi for SafeLLVM {
         self.ir_codegen_impl.create_null_pointer(ty)
     }
 
-    fn create_continue_statement(&mut self, builder: BuilderTag, continue_block: BasicBlockTag) -> Option<ValueTag> {
-        self.ir_codegen_impl.create_continue_statement(builder, continue_block)
-    }
-
-    fn create_break_statement(&mut self, builder: BuilderTag, break_block: BasicBlockTag) -> Option<ValueTag> {
-        self.ir_codegen_impl.create_break_statement(builder, break_block)
-    }
 
 
     /// --- VARIABLES --- ///

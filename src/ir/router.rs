@@ -202,6 +202,10 @@ impl LLVMApi for SafeLLVM {
         self.pools.create_null_pointer(ty)
     }
 
+    fn create_basic_block_after(&mut self, context_tag: ContextTag, function_tag: ValueTag, target_tag: BasicBlockTag, name: &str) -> Option<BasicBlockTag> {
+        self.pools.create_basic_block_after(context_tag, function_tag, target_tag, name)
+    }
+
     /// --- VARIABLES --- ///
     fn init_var(&mut self, builder: BuilderTag, var_name: &str, data_type: TypeTag, initial_value: Option<ValueTag>) -> Option<ValueTag> {
         self.pools.init_var(builder, var_name, data_type, initial_value)
