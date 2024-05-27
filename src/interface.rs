@@ -6,6 +6,7 @@ pub trait LLVMApi {
     /// --- IR CODE GENERATION SECTION --- ///
     /// --- BLOCK --- ///
     fn create_basic_block(&mut self, context: ContextTag, function: ValueTag, name: &str) -> Option<BasicBlockTag>;
+    fn create_basic_block_after(&mut self, context_tag: ContextTag, function_tag: ValueTag, target_tag: BasicBlockTag, name: &str) -> Option<BasicBlockTag>;
     fn get_current_block(&mut self, builder: BuilderTag) -> Option<BasicBlockTag>;
     fn create_cond_br(&mut self, builder: BuilderTag, condition: ValueTag, then_bb: BasicBlockTag, else_bb: BasicBlockTag) -> Option<ValueTag>;
     fn create_br(&mut self, builder: BuilderTag, target_bb: BasicBlockTag) -> Option<ValueTag>;
@@ -62,8 +63,6 @@ pub trait LLVMApi {
     fn create_string(&mut self, val: &str) -> Option<ValueTag>;
     fn create_mut_string(&mut self, val: &str, context: ContextTag, builder: BuilderTag) -> Option<ValueTag>;
     fn create_null_pointer(&mut self, ty: TypeTag) -> Option<ValueTag>;
-    fn create_continue_statement(&mut self, builder: BuilderTag, continue_block: BasicBlockTag) -> Option<ValueTag>;
-    fn create_break_statement(&mut self, builder: BuilderTag, break_block: BasicBlockTag) -> Option<ValueTag>;
 
     /// --- VARIABLES --- ///
     fn init_var(&mut self, builder: BuilderTag, var_name: &str, data_type: TypeTag, initial_value: Option<ValueTag>) -> Option<ValueTag>;
