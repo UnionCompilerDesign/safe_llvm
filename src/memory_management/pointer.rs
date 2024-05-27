@@ -35,7 +35,7 @@ pub enum LLVMRefType {
 /// Helper methods for the LLVMRef enum to manage raw pointer conversions safely.
 impl LLVMRef {
     /// Converts an LLVMRef to a raw pointer.
-    fn to_raw(self) -> Result<*mut c_void, PointerError> {
+    fn to_raw(self) -> Result<*mut c_void, SafeLLVMError> {
         let ptr = match self {
             LLVMRef::Context(ptr) => ptr as *mut c_void,
             LLVMRef::Module(ptr) => ptr as *mut c_void,
@@ -45,7 +45,7 @@ impl LLVMRef {
             LLVMRef::Type(ptr) => ptr as *mut c_void,
         };
         if ptr.is_null() {
-            Err(PointerError::InvalidPointer("Attempted to convert a null LLVMRef to a raw pointer".into()))
+            Err(SafeLLVMError::InvalidPointer("Attempted to convert a null LLVMRef to a raw pointer".into()))
         } else {
             Ok(ptr)
         }
@@ -53,9 +53,9 @@ impl LLVMRef {
 
     /// Constructs an LLVMRef from a raw pointer based on the specified kind.
     /// This is unsafe because it assumes the raw pointer is valid and properly typed.
-    unsafe fn from_raw(ptr: *mut c_void, kind: LLVMRefType) -> Result<Self, PointerError> {
+    unsafe fn from_raw(ptr: *mut c_void, kind: LLVMRefType) -> Result<Self, SafeLLVMError> {
         if ptr.is_null() {
-            return Err(PointerError::InvalidPointer("Attempted to convert a null raw pointer to LLVMRef".into()));
+            return Err(SafeLLVMError::InvalidPointer("Attempted to convert a null raw pointer to LLVMRef".into()));
         }
         Ok(match kind {
             LLVMRefType::Context => LLVMRef::Context(ptr as LLVMContextRef),
@@ -77,23 +77,23 @@ pub struct SafeLLVMPointer {
 impl SafeLLVMPointer {
     /// Constructs a new `SafeLLVMPointer` by taking an `LLVMRef` and converting it to a non-null raw pointer.
     /// Returns an `Option` wrapped instance of `SafeLLVMPointer` if the pointer is non-null.
-    pub fn new(llvm_ref: LLVMRef, kind: LLVMRefType) -> Result<Self, PointerError> {
+    pub fn new(llvm_ref: LLVMRef, kind: LLVMRefType) -> Result<Self, SafeLLVMError> {
         let raw_ptr = llvm_ref.to_raw()?;
         NonNull::new(raw_ptr).map(|nn_ptr| SafeLLVMPointer {
             ptr: Arc::new(RwLock::new(nn_ptr)),
             kind
-        }).ok_or(PointerError::InvalidPointer("Failed to create a non-null pointer from LLVMRef".into()))
+        }).ok_or(SafeLLVMError::InvalidPointer("Failed to create a non-null pointer from LLVMRef".into()))
     }
 
     /// Provides read-only access to the pointed-to value.
     /// The read operation is safely performed within the bounds of an `RwLock`, ensuring no concurrent write operations.
     /// A closure receives an immutable reference to the value of `LLVMRef`.
-    pub fn read<F, R>(&self, kind: LLVMRefType, f: F) -> Result<R, PointerError>
+    pub fn read<FnType, ReturnType>(&self, kind: LLVMRefType, f: FnType) -> Result<ReturnType, SafeLLVMError>
     where
-        F: FnOnce(&LLVMRef) -> R,
+        FnType: FnOnce(&LLVMRef) -> ReturnType,
     {
         if kind != self.kind {
-            return Err(PointerError::IncorrectPointerType(format!(
+            return Err(SafeLLVMError::IncorrectPointerType(format!(
                 "Expected: {:?}, Actual: {:?}",
                 self.kind, kind
             )));        
@@ -104,19 +104,19 @@ impl SafeLLVMPointer {
                 let ref_to_value = unsafe { LLVMRef::from_raw(lock.as_ptr(), kind)? };
                 Ok(f(&ref_to_value))
             },
-            Err(e) => Err(PointerError::LockError(format!("Failed to acquire read lock: {}", e))),
+            Err(e) => Err(SafeLLVMError::LockError(format!("Failed to acquire read lock: {}", e))),
         }
     }
 
     /// Provides write access to the pointed-to value.
     /// The write operation ensures exclusive, mutable access via an `RwLock`.
     /// A closure receives a mutable reference to the value of `LLVMRef`.
-    pub fn write<F, R>(&self, kind: LLVMRefType, f: F) -> Result<R, PointerError>
+    pub fn write<FnType, ReturnType>(&self, kind: LLVMRefType, f: FnType) -> Result<ReturnType, SafeLLVMError>
     where
-        F: FnOnce(&mut LLVMRef) -> R,
+        FnType: FnOnce(&mut LLVMRef) -> ReturnType,
     {
         if kind != self.kind {
-            return Err(PointerError::IncorrectPointerType(format!(
+            return Err(SafeLLVMError::IncorrectPointerType(format!(
                 "Expected: {:?}, Actual: {:?}",
                 self.kind, kind
             )));
@@ -127,7 +127,7 @@ impl SafeLLVMPointer {
                 let mut ref_to_mut_value = unsafe { LLVMRef::from_raw(lock.as_ptr(), kind)? };
                 Ok(f(&mut ref_to_mut_value))
             },
-            Err(e) => Err(PointerError::LockError(format!("Failed to acquire write lock: {}", e))),
+            Err(e) => Err(SafeLLVMError::LockError(format!("Failed to acquire write lock: {}", e))),
         }
     }
 }
@@ -152,24 +152,24 @@ impl Drop for SafeLLVMPointer {
 
 // Error type for SafeLLVMPointer operations
 #[derive(Debug)]
-pub enum PointerError {
+pub enum SafeLLVMError {
     InvalidPointer(String),
     IncorrectPointerType(String),
     LockError(String),
 }
 
-impl fmt::Display for PointerError {
+impl fmt::Display for SafeLLVMError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            PointerError::InvalidPointer(msg) => write!(f, "Invalid pointer error: {}", msg),
-            PointerError::LockError(msg) => write!(f, "Lock error: {}", msg),
-            PointerError::IncorrectPointerType(msg) => write!(f, "Incorrect pointer type: {}", msg),
+            SafeLLVMError::InvalidPointer(msg) => write!(f, "Invalid pointer error: {}", msg),
+            SafeLLVMError::LockError(msg) => write!(f, "Lock error: {}", msg),
+            SafeLLVMError::IncorrectPointerType(msg) => write!(f, "Incorrect pointer type: {}", msg),
         }
     }
 }
 
-impl<T> From<PoisonError<T>> for PointerError {
+impl<T> From<PoisonError<T>> for SafeLLVMError {
     fn from(error: PoisonError<T>) -> Self {
-        PointerError::LockError(format!("{}", error))
+        SafeLLVMError::LockError(format!("{}", error))
     }
 }

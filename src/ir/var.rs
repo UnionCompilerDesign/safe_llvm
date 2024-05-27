@@ -39,7 +39,7 @@ impl ResourcePools {
                 }
             })?;
             
-            core::LLVMBuildAlloca(builder_ptr, data_type_ptr, var_name_cstr.as_ptr()) //problem is HERE
+            core::LLVMBuildAlloca(builder_ptr, data_type_ptr, var_name_cstr.as_ptr()) 
         };
 
         if alloca.is_null() {
