@@ -202,12 +202,8 @@ impl LLVMApi for SafeLLVM {
         self.pools.create_null_pointer(ty)
     }
 
-    fn create_continue_statement(&mut self, builder: BuilderTag, continue_block: BasicBlockTag) -> Option<ValueTag> {
-        self.pools.create_continue_statement(builder, continue_block)
-    }
-
-    fn create_break_statement(&mut self, builder: BuilderTag, break_block: BasicBlockTag) -> Option<ValueTag> {
-        self.pools.create_break_statement(builder, break_block)
+    fn create_basic_block_after(&mut self, context_tag: ContextTag, function_tag: ValueTag, target_tag: BasicBlockTag, name: &str) -> Option<BasicBlockTag> {
+        self.pools.create_basic_block_after(context_tag, function_tag, target_tag, name)
     }
 
     /// --- VARIABLES --- ///
