@@ -1,6 +1,5 @@
 /Cargo.lock
 /target/
-/Dockerfile
 /app.log
 /dev_toolchain/target/
 /dev_toolchain/app.log
