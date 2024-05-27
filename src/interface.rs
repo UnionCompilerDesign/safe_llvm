@@ -62,8 +62,6 @@ pub trait LLVMApi {
     fn create_string(&mut self, val: &str) -> Option<ValueTag>;
     fn create_mut_string(&mut self, val: &str, context: ContextTag, builder: BuilderTag) -> Option<ValueTag>;
     fn create_null_pointer(&mut self, ty: TypeTag) -> Option<ValueTag>;
-    fn create_continue_statement(&mut self, builder: BuilderTag, continue_block: BasicBlockTag) -> Option<ValueTag>;
-    fn create_break_statement(&mut self, builder: BuilderTag, break_block: BasicBlockTag) -> Option<ValueTag>;
 
     /// --- VARIABLES --- ///
     fn init_var(&mut self, builder: BuilderTag, var_name: &str, data_type: TypeTag, initial_value: Option<ValueTag>) -> Option<ValueTag>;
