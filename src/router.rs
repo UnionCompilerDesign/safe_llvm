@@ -219,7 +219,7 @@ impl LLVMApi for SafeLLVM {
         self.ir_codegen_impl.reassign_var(builder, variable_alloc, new_value)
     }
 
-    fn get_var(&mut self, builder: BuilderTag, variable_type: TypeTag, variable_alloc: ValueTag) -> Option<ValueTag> {
-        self.ir_codegen_impl.get_var(builder, variable_type, variable_alloc)
+    fn get_var(&mut self, builder: BuilderTag, variable_type: TypeTag, variable_alloc: ValueTag, temp_name: &str) -> Option<ValueTag> {
+        self.ir_codegen_impl.get_var(builder, variable_type, variable_alloc, temp_name)
     }
 }
