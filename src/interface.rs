@@ -67,5 +67,5 @@ pub trait LLVMApi {
     /// --- VARIABLES --- ///
     fn init_var(&mut self, builder: BuilderTag, var_name: &str, data_type: TypeTag, initial_value: Option<ValueTag>) -> Option<ValueTag>;
     fn reassign_var(&mut self, builder: BuilderTag, variable_alloc: ValueTag, new_value: ValueTag) -> Option<()>;
-    fn get_var(&mut self, builder: BuilderTag, variable_type: TypeTag, variable_alloc: ValueTag) -> Option<ValueTag>;
+    fn get_var(&mut self, builder: BuilderTag, variable_type: TypeTag, variable_alloc: ValueTag, temp_name: &str) -> Option<ValueTag>;
 }
