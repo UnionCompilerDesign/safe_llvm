@@ -1,4 +1,4 @@
-name: Rust Project CI
+name: SafeLLVM
 
 on:
   push:
