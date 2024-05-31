@@ -2,9 +2,9 @@ extern crate llvm_sys as llvm;
 
 use llvm::{core, prelude::{LLVMBuilderRef, LLVMTypeRef}};
 
-use crate::memory_management::{resource_pools::{ResourcePools, ContextTag, BuilderTag, TypeTag}, pointer::{LLVMRef, LLVMRefType}};
+use crate::memory_management::{resource_pools::{IRGenerator, ContextTag, BuilderTag, TypeTag}, pointer::{LLVMRef, LLVMRefType}};
 
-impl ResourcePools {
+impl IRGenerator {
     /// Allocates a builder in a specified context and stores it in the resource pool.
     pub fn create_builder(&mut self, context_tag: ContextTag) -> Option<BuilderTag> {
 

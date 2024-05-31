@@ -1,8 +1,8 @@
-use safe_llvm::{analysis::validator::Validator, memory_management::resource_pools::ResourcePools};
+use safe_llvm::{analysis::validator::Validator, memory_management::resource_pools::IRGenerator};
 
 #[test]
 fn test_context_and_module_creation() {
-    let mut llvm_resource_pool = ResourcePools::new();
+    let mut llvm_resource_pool = IRGenerator::new();
 
     for _ in 0..100 {
         let context_tag = llvm_resource_pool.create_context()

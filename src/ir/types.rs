@@ -2,9 +2,9 @@ extern crate llvm_sys as llvm;
 
 use llvm::core;
 
-use crate::memory_management::{pointer::{LLVMRef, LLVMRefType}, resource_pools::{BuilderTag, ContextTag, ResourcePools, TypeTag, ValueTag}};
+use crate::memory_management::{pointer::{LLVMRef, LLVMRefType}, resource_pools::{BuilderTag, ContextTag, IRGenerator, TypeTag, ValueTag}};
 
-impl ResourcePools {
+impl IRGenerator {
     /// Returns the LLVM type for void in a given context.
     pub fn void_type(&mut self, context_tag: ContextTag) -> Option<TypeTag> {
         let context_arc_rwlock = self.get_context(context_tag)?;

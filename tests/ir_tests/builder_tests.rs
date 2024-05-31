@@ -1,8 +1,8 @@
-use safe_llvm::{analysis::validator::Validator, constants::{DEFAULT_BASIC_BLOCK_NAME, DEFAULT_FUNCTION_NAME}, memory_management::resource_pools::{ResourcePools, TypeTag}, utils::utils_struct::Utils};
+use safe_llvm::{analysis::validator::Validator, constants::{DEFAULT_BASIC_BLOCK_NAME, DEFAULT_FUNCTION_NAME}, memory_management::resource_pools::{IRGenerator, TypeTag}, utils};
 
 #[test]
 fn test_builder_creation() {
-    let mut llvm_resource_pool = ResourcePools::new();
+    let mut llvm_resource_pool = IRGenerator::new();
     let context_tag = llvm_resource_pool.create_context()
         .expect("Failed to create context");
 
@@ -12,7 +12,7 @@ fn test_builder_creation() {
 
 #[test]
 fn test_create_function_no_params_void_return() {
-    let mut llvm_resource_pool = ResourcePools::new();
+    let mut llvm_resource_pool = IRGenerator::new();
 
     let context_tag = llvm_resource_pool.create_context().expect("Failed to create context");
     let module_tag = llvm_resource_pool.create_module("test_module", context_tag).expect("Failed to create module");
@@ -28,7 +28,7 @@ fn test_create_function_no_params_void_return() {
 
     let module = llvm_resource_pool.get_module(module_tag).expect("Failed to get module");
 
-    match Utils::write_to_file(module.clone(), "test_create_function_no_params_void_return") {
+    match utils::write_ir::write_to_file(module.clone(), "test_create_function_no_params_void_return") {
         Ok(_) => {}
         Err(e) => {
             eprintln!("File write error: {}", e);
@@ -44,7 +44,7 @@ fn test_create_function_no_params_void_return() {
 }
 #[test]
 fn test_create_function_with_params() {
-    let mut llvm_resource_pool = ResourcePools::new();
+    let mut llvm_resource_pool = IRGenerator::new();
     let context_tag = llvm_resource_pool.create_context().expect("Failed to create context");
     let module_tag = llvm_resource_pool.create_module("test_module_with_params", context_tag).expect("Failed to create module");
     let int_type_tag = llvm_resource_pool.int_type(context_tag, 32).expect("Failed to create integer type");
@@ -61,7 +61,7 @@ fn test_create_function_with_params() {
 
     let module = llvm_resource_pool.get_module(module_tag).expect("Failed to get module");
 
-    match Utils::write_to_file(module.clone(), "test_create_function_with_params") {
+    match utils::write_ir::write_to_file(module.clone(), "test_create_function_with_params") {
         Ok(_) => {}
         Err(e) => {
             eprintln!("File write error: {}", e);

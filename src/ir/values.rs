@@ -4,9 +4,9 @@ use llvm::core;
 
 use std::ffi::CString;
 
-use crate::memory_management::{pointer::{LLVMRef, LLVMRefType}, resource_pools::{BasicBlockTag, BuilderTag, ContextTag, ResourcePools, TypeTag, ValueTag}};
+use crate::memory_management::{pointer::{LLVMRef, LLVMRefType}, resource_pools::{BasicBlockTag, BuilderTag, ContextTag, IRGenerator, TypeTag, ValueTag}};
 
-impl ResourcePools {
+impl IRGenerator {
     /// Creates an integer constant of 64 bits in the specified context.
     pub fn create_integer(&mut self, context_tag: ContextTag, val: i64) -> Option<ValueTag> {
         let context_arc_rwlock = self.get_context(context_tag)?;
@@ -122,16 +122,7 @@ impl ResourcePools {
             self.store_value(pointer_type)
         }
     }
-
     
-    /// Creates a global variable
-    pub fn create_global_variable(&mut self) -> Option<ValueTag> {
-            // core::LLVMAddGlobal()
-            // core::LLVMSetInitializer()
-            todo!("Unimplemented")
-
-    }
-
     /// Creates an immutable (global) string
     pub fn create_string(
         &mut self,

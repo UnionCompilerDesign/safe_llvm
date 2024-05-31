@@ -1,9 +1,16 @@
-use slog::{o, Drain, Duplicate, Fuse, Logger};
-use slog_async::Async;
-use slog_term::{TermDecorator, CompactFormat};
-use slog_json::Json;
+use slog::{error, info, warn, Logger};
 
-use std::fs::File;
+pub fn log_info(logger: &Logger, msg: &str) {
+    info!(logger, "{}", msg);
+}
+
+pub fn log_warning(logger: &Logger, msg: &str) {
+    warn!(logger, "{}", msg);
+}
+
+pub fn log_error(logger: &Logger, msg: &str) {
+    error!(logger, "{}", msg);
+}
 
 pub fn init_logger() -> Logger {
     // Terminal output drain

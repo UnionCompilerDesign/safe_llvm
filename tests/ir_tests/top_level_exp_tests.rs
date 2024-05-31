@@ -1,8 +1,8 @@
-use safe_llvm::{analysis::validator::Validator, memory_management::{pointer::{LLVMRef, LLVMRefType}, resource_pools::ResourcePools}, utils::utils_struct::Utils};
+use safe_llvm::{analysis::validator::Validator, memory_management::{pointer::{LLVMRef, LLVMRefType}, resource_pools::IRGenerator}, utils};
 
 #[test]
 fn test_add_function_to_module() {
-    let mut resource_pools = ResourcePools::new();
+    let mut resource_pools = IRGenerator::new();
 
     let context_tag = resource_pools.create_context().expect("Failed to create context");
     let module_tag = resource_pools.create_module("test_module", context_tag).expect("Failed to create module");
@@ -17,7 +17,7 @@ fn test_add_function_to_module() {
 
     let module = resource_pools.get_module(module_tag).expect("Failed to get module");
 
-    match Utils::write_to_file(module.clone(), "test_add_function_to_module") {
+    match utils::write_ir::write_to_file(module.clone(), "test_add_function_to_module") {
         Ok(_) => {}
         Err(e) => {
             eprintln!("File write error: {}", e);
@@ -34,7 +34,7 @@ fn test_add_function_to_module() {
 
 #[test]
 fn test_get_param() {
-    let mut resource_pools = ResourcePools::new();
+    let mut resource_pools = IRGenerator::new();
 
     let context_tag = resource_pools.create_context().expect("Failed to create context");
     let module_tag = resource_pools.create_module("test_module", context_tag).expect("Failed to create module");
@@ -50,7 +50,7 @@ fn test_get_param() {
 
     let module = resource_pools.get_module(module_tag).expect("Failed to get module");
 
-    match Utils::write_to_file(module.clone(), "test_get_param") {
+    match utils::write_ir::write_to_file(module.clone(), "test_get_param") {
         Ok(_) => {}
         Err(e) => {
             eprintln!("File write error: {}", e);
@@ -66,7 +66,7 @@ fn test_get_param() {
 
 #[test]
 fn test_create_struct() {
-    let mut resource_pools = ResourcePools::new();
+    let mut resource_pools = IRGenerator::new();
 
     let context_tag = resource_pools.create_context().expect("Failed to create context");
 
@@ -94,7 +94,7 @@ fn test_create_struct() {
 
 #[test]
 fn test_create_enum() {
-    let mut resource_pools = ResourcePools::new();
+    let mut resource_pools = IRGenerator::new();
 
     let context_tag = resource_pools.create_context().expect("Failed to create context");
 

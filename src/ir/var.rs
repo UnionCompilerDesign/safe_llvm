@@ -6,10 +6,10 @@ use std::ffi::CString;
 
 use crate::memory_management::{
     pointer::{LLVMRef, LLVMRefType}, 
-    resource_pools::{BuilderTag, ResourcePools, TypeTag, ValueTag}
+    resource_pools::{BuilderTag, IRGenerator, TypeTag, ValueTag}
 };
 
-impl ResourcePools {
+impl IRGenerator {
     /// Initializes a variable
     pub fn init_var(
         &mut self,

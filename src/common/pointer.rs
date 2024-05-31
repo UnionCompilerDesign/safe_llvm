@@ -65,16 +65,16 @@ impl LLVMRef {
 }
 
 /// Thread-safe pointer type for managing raw C pointers in a synchronized context.
-pub struct CPointer {
+pub struct SafeLLVMPointer {
     ptr: Arc<RwLock<NonNull<c_void>>>,
 }
 
-impl CPointer {
-    /// Constructs a new `CPointer` by taking an `LLVMRef` and converting it to a non-null raw pointer.
-    /// Returns an `Option` wrapped instance of `CPointer` if the pointer is non-null.
+impl SafeLLVMPointer {
+    /// Constructs a new `SafeLLVMPointer` by taking an `LLVMRef` and converting it to a non-null raw pointer.
+    /// Returns an `Option` wrapped instance of `SafeLLVMPointer` if the pointer is non-null.
     pub fn new(llvm_ref: LLVMRef) -> Option<Self> {
         let raw_ptr = llvm_ref.to_raw();
-        NonNull::new(raw_ptr).map(|nn_ptr| CPointer {
+        NonNull::new(raw_ptr).map(|nn_ptr| SafeLLVMPointer {
             ptr: Arc::new(RwLock::new(nn_ptr)),
         })
     }

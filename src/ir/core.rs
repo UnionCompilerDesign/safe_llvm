@@ -1,19 +1,21 @@
-/*  
-    A struct for managing resource pools for LLVM pointers using multi-threaded pointers.
-    This struct provides controlled, mutable access to LLVM pointers through the usage of a tag system. 
-*/
-
 extern crate llvm_sys as llvm;
 
-use llvm::prelude::{LLVMBasicBlockRef, LLVMBuilderRef, LLVMContextRef, LLVMModuleRef, LLVMTypeRef, LLVMValueRef};
+use llvm::{core, prelude::{LLVMBasicBlockRef, LLVMBuilderRef, LLVMContextRef, LLVMModuleRef, LLVMTypeRef, LLVMValueRef}};
 
-use std::{borrow::Borrow, collections::HashMap, sync::{Arc, RwLock}};
+use std::{collections::HashMap, ffi::CString, sync::{Arc, RwLock}};
 
-use crate::memory_management::pointer::{LLVMRef, CPointer};
-
-use super::definitions::EnumDefinition;
+use crate::memory_management::pointer::{LLVMRef, LLVMRefType, SafeLLVMPointer};
 
 /// Each tag is unique throughout the course of an application's runtime. 
+pub enum Tag {
+    Context(ContextTag),
+    Module(ModuleTag),
+    Value(ValueTag),
+    BasicBlock(BasicBlockTag),
+    Builder(BuilderTag),
+    Type(TypeTag),
+}
+
 
 /// Gives access to context resources in the pools. 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
@@ -31,7 +33,6 @@ pub struct ValueTag(usize);
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct BasicBlockTag(usize);
 
-
 /// Gives access to value resources in the pools. 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct BuilderTag(usize);
@@ -40,29 +41,50 @@ pub struct BuilderTag(usize);
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct TypeTag(usize);
 
-pub enum Tag {
-    Context(ContextTag),
-    Module(ModuleTag),
-    Value(ValueTag),
-    BasicBlock(BasicBlockTag),
-    Builder(BuilderTag),
-    Type(TypeTag),
+#[derive(Clone)]
+pub struct EnumDefinition {
+    name: String,
+    variant_mapping: HashMap<String, i64>, 
 }
 
-pub struct ResourcePools {
-    contexts: Option<HashMap<ContextTag, Arc<RwLock<CPointer>>>>,
-    modules: Option<HashMap<ModuleTag, Arc<RwLock<CPointer>>>>,
-    values: Option<HashMap<ValueTag, Arc<RwLock<CPointer>>>>,
-    basic_blocks: Option<HashMap<BasicBlockTag, Arc<RwLock<CPointer>>>>,
+impl EnumDefinition {
+    pub fn new(name: String, variant_mapping: HashMap<String, i64>) -> Self {
+        Self {
+            name,
+            variant_mapping,
+        }
+    }
+
+    pub fn get_name(&self) -> &str {
+        &self.name
+    }
+
+    pub fn get_variant(&self, name: &str) -> Option<i64> {
+        self.variant_mapping.iter().find_map(|(var_name, value)| {
+            if var_name == name {
+                Some(*value)
+            } else {
+                None
+            }
+        })
+    }
+}
+
+
+pub struct IRGenerator {
+    contexts: Option<HashMap<ContextTag, Arc<RwLock<SafeLLVMPointer>>>>,
+    modules: Option<HashMap<ModuleTag, Arc<RwLock<SafeLLVMPointer>>>>,
+    values: Option<HashMap<ValueTag, Arc<RwLock<SafeLLVMPointer>>>>,
+    basic_blocks: Option<HashMap<BasicBlockTag, Arc<RwLock<SafeLLVMPointer>>>>,
     basic_block_tag_map: Option<HashMap<LLVMBasicBlockRef, BasicBlockTag>>,
-    builders: Option<HashMap<BuilderTag, Arc<RwLock<CPointer>>>>,
-    types: Option<HashMap<TypeTag, Arc<RwLock<CPointer>>>>,
+    builders: Option<HashMap<BuilderTag, Arc<RwLock<SafeLLVMPointer>>>>,
+    types: Option<HashMap<TypeTag, Arc<RwLock<SafeLLVMPointer>>>>,
     enums: Option<HashMap<TypeTag, EnumDefinition>>,
     next_tag: usize,
 }
 
-impl ResourcePools {
-    /// Constructs a new `ResourcePools` instance.
+impl IRGenerator {
+    /// Constructs a new `IRGenerator` instance.
     pub fn new() -> Self {
         Self {
             contexts: None,
@@ -88,7 +110,7 @@ impl ResourcePools {
         let tag = ContextTag(self.next_tag);
         self.increment_tag();
 
-        let c_pointer = CPointer::new(LLVMRef::Context(context))?;
+        let c_pointer = SafeLLVMPointer::new(LLVMRef::Context(context))?;
 
         let context_map = self.contexts.get_or_insert_with(HashMap::new);
         context_map.insert(tag, Arc::new(RwLock::new(c_pointer)));
@@ -97,7 +119,7 @@ impl ResourcePools {
     }
 
     /// Retrieves a context from the resource pools.
-    pub fn get_context(&self, tag: ContextTag) -> Option<Arc<RwLock<CPointer>>> {
+    pub fn get_context(&self, tag: ContextTag) -> Option<Arc<RwLock<SafeLLVMPointer>>> {
         self.contexts.as_ref()?.get(&tag).cloned()
     }
 
@@ -106,7 +128,7 @@ impl ResourcePools {
         let tag = ModuleTag(self.next_tag);
         self.increment_tag(); 
 
-        let c_pointer = CPointer::new(LLVMRef::Module(module))?;
+        let c_pointer = SafeLLVMPointer::new(LLVMRef::Module(module))?;
 
         let module_map = self.modules.get_or_insert_with(HashMap::new);
         module_map.insert(tag, Arc::new(RwLock::new(c_pointer)));
@@ -115,7 +137,7 @@ impl ResourcePools {
     }
 
     /// Retrieves a module from the resource pools.
-    pub fn get_module(&self, tag: ModuleTag) -> Option<Arc<RwLock<CPointer>>> {
+    pub fn get_module(&self, tag: ModuleTag) -> Option<Arc<RwLock<SafeLLVMPointer>>> {
         self.modules.as_ref()?.get(&tag).cloned()
     }
 
@@ -124,7 +146,7 @@ impl ResourcePools {
         let tag = ValueTag(self.next_tag);
         self.increment_tag();        
 
-        let c_pointer = CPointer::new(LLVMRef::Value(value))?;
+        let c_pointer = SafeLLVMPointer::new(LLVMRef::Value(value))?;
 
         let value_map = self.values.get_or_insert_with(HashMap::new);
         value_map.insert(tag, Arc::new(RwLock::new(c_pointer)));
@@ -133,7 +155,7 @@ impl ResourcePools {
     }
 
     /// Retrieves a value from the resource pools.
-    pub fn get_value(&self, tag: ValueTag) -> Option<Arc<RwLock<CPointer>>> {
+    pub fn get_value(&self, tag: ValueTag) -> Option<Arc<RwLock<SafeLLVMPointer>>> {
         self.values.as_ref()?.get(&tag).cloned()
     }
 
@@ -154,7 +176,7 @@ impl ResourcePools {
 
         self.store_basic_block_tag(basic_block.clone(), tag.clone());
 
-        let c_pointer = CPointer::new(LLVMRef::BasicBlock(basic_block))?;
+        let c_pointer = SafeLLVMPointer::new(LLVMRef::BasicBlock(basic_block))?;
 
         let basic_block_map = self.basic_blocks.get_or_insert_with(HashMap::new);
         basic_block_map.insert(tag, Arc::new(RwLock::new(c_pointer)));
@@ -171,7 +193,7 @@ impl ResourcePools {
     }
 
     /// Retrieves a basic block from the resource pools.
-    pub fn get_basic_block(&self, tag: BasicBlockTag) -> Option<Arc<RwLock<CPointer>>> {
+    pub fn get_basic_block(&self, tag: BasicBlockTag) -> Option<Arc<RwLock<SafeLLVMPointer>>> {
         self.basic_blocks.as_ref()?.get(&tag).cloned()
     }
 
@@ -180,7 +202,7 @@ impl ResourcePools {
         let tag = BuilderTag(self.next_tag);
         self.increment_tag();        
 
-        let c_pointer = CPointer::new(LLVMRef::Builder(builder))?;
+        let c_pointer = SafeLLVMPointer::new(LLVMRef::Builder(builder))?;
 
         let builder_map = self.builders.get_or_insert_with(HashMap::new);
         builder_map.insert(tag, Arc::new(RwLock::new(c_pointer)));
@@ -189,7 +211,7 @@ impl ResourcePools {
     }
 
     /// Retrieves a builder from the resource pools.
-    pub fn get_builder(&self, tag: BuilderTag) -> Option<Arc<RwLock<CPointer>>> {
+    pub fn get_builder(&self, tag: BuilderTag) -> Option<Arc<RwLock<SafeLLVMPointer>>> {
         self.builders.as_ref()?.get(&tag).cloned()
     }
 
@@ -198,7 +220,7 @@ impl ResourcePools {
         let tag = TypeTag(self.next_tag);
         self.increment_tag();    
             
-        let c_pointer = CPointer::new(LLVMRef::Type(type_ref))?;
+        let c_pointer = SafeLLVMPointer::new(LLVMRef::Type(type_ref))?;
         
         let type_map = self.types.get_or_insert_with(HashMap::new);
         type_map.insert(tag, Arc::new(RwLock::new(c_pointer)));
@@ -207,7 +229,7 @@ impl ResourcePools {
     }
 
     /// Retrieves a type from the resource pools.
-    pub fn get_type(&self, tag: TypeTag) -> Option<Arc<RwLock<CPointer>>> {
+    pub fn get_type(&self, tag: TypeTag) -> Option<Arc<RwLock<SafeLLVMPointer>>> {
         self.types.as_ref()?.get(&tag).cloned()
     }
 
@@ -218,5 +240,43 @@ impl ResourcePools {
 
     pub fn get_enum_definition(&self, tag: TypeTag) -> Option<EnumDefinition> {
         self.enums.as_ref()?.get(&tag).cloned()
+    }
+
+    /// Allocates a new LLVM context and stores it in the resource pool.
+    pub fn create_context(&mut self) -> Option<ContextTag> {
+        let raw_ptr: LLVMContextRef = unsafe { core::LLVMContextCreate() };
+
+        if raw_ptr.is_null() {
+            return None;
+        }
+
+        self.store_context(raw_ptr)
+    }
+
+    /// Allocates a new LLVM module in a specified context and stores it in the resource pool.
+    pub fn create_module(&mut self, module_name: &str, context_tag: ContextTag) -> Option<ModuleTag> {
+        let c_module_name: CString = CString::new(module_name).expect("Failed to create CString from module name");
+
+        let context_arc_rwlock = self.get_context(context_tag)?;
+        
+        let context_rwlock = context_arc_rwlock.read().expect("Failed to lock context for reading");
+
+        let context_ptr = context_rwlock.read(LLVMRefType::Context, |context_ref| {
+            if let LLVMRef::Context(ptr) = context_ref {
+                Some(*ptr)  
+            } else {
+                return None;
+            }
+        })?;
+
+        let module_ptr: LLVMModuleRef = unsafe {
+            core::LLVMModuleCreateWithNameInContext(c_module_name.as_ptr(), context_ptr) 
+        }; 
+
+        if module_ptr.is_null() {
+            return None;
+        }
+
+        self.store_module(module_ptr)
     }
 }

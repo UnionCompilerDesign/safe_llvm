@@ -1,13 +1,13 @@
 use safe_llvm::{
     analysis::validator::Validator, 
     constants::{DEFAULT_BASIC_BLOCK_NAME, DEFAULT_FUNCTION_NAME, DEFAULT_MODULE_NAME}, 
-    memory_management::resource_pools::ResourcePools, 
-    utils::utils_struct::Utils
+    memory_management::resource_pools::IRGenerator, 
+    utils
 };
 
 #[test]
 fn test_create_basic_block() {
-    let mut resource_pools = ResourcePools::new();
+    let mut resource_pools = IRGenerator::new();
 
     let context_tag = resource_pools.create_context().expect("Failed to create context");
     let module_tag = resource_pools.create_module(DEFAULT_MODULE_NAME, context_tag).expect("Failed to create module within context");
@@ -23,7 +23,7 @@ fn test_create_basic_block() {
 
     let module = resource_pools.get_module(module_tag).expect("Failed to get module");
 
-    match Utils::write_to_file(module.clone(), "test_basic_block") {
+    match utils::write_ir::write_to_file(module.clone(), "test_basic_block") {
         Ok(_) => {}
         Err(e) => {
             eprintln!("File write error: {}", e);
@@ -42,7 +42,7 @@ fn test_create_basic_block() {
 
 #[test]
 fn test_get_current_block() {
-    let mut resource_pools = ResourcePools::new();
+    let mut resource_pools = IRGenerator::new();
 
     let context_tag = resource_pools.create_context().expect("Failed to create context");
     let module_tag = resource_pools.create_module(DEFAULT_MODULE_NAME, context_tag).expect("Failed to create module within context");
@@ -58,7 +58,7 @@ fn test_get_current_block() {
 
     let module = resource_pools.get_module(module_tag).expect("Failed to get module");
 
-    match Utils::write_to_file(module.clone(), "test_get_current_block") {
+    match utils::write_ir::write_to_file(module.clone(), "test_get_current_block") {
         Ok(_) => {}
         Err(e) => {
             eprintln!("File write error: {}", e);
@@ -75,7 +75,7 @@ fn test_get_current_block() {
 
 #[test]
 fn test_get_next_and_previous_block() {
-    let mut resource_pools = ResourcePools::new();
+    let mut resource_pools = IRGenerator::new();
 
     let context_tag = resource_pools.create_context().expect("Failed to create context");
     let module_tag = resource_pools.create_module(DEFAULT_MODULE_NAME, context_tag).expect("Failed to create module within context");
@@ -95,7 +95,7 @@ fn test_get_next_and_previous_block() {
 
 #[test]
 fn test_create_cond_br() {
-    let mut resource_pools = ResourcePools::new();
+    let mut resource_pools = IRGenerator::new();
 
     let context_tag =  resource_pools.create_context().expect("Failed to create context");
     let module_tag =  resource_pools.create_module(DEFAULT_MODULE_NAME, context_tag).expect("Failed to create module within context");
@@ -117,7 +117,7 @@ fn test_create_cond_br() {
 
     let module = resource_pools.get_module(module_tag).expect("Failed to get module");
 
-    match Utils::write_to_file(module.clone(), "test_create_cond_br") {
+    match utils::write_ir::write_to_file(module.clone(), "test_create_cond_br") {
         Ok(_) => {}
         Err(e) => {
             eprintln!("File write error: {}", e);
@@ -134,7 +134,7 @@ fn test_create_cond_br() {
 
 #[test]
 fn test_create_br() {
-    let mut resource_pools = ResourcePools::new();
+    let mut resource_pools = IRGenerator::new();
 
     let context_tag =  resource_pools.create_context().expect("Failed to create context");
     let module_tag =  resource_pools.create_module(DEFAULT_MODULE_NAME, context_tag).expect("Failed to create module within context");
@@ -152,7 +152,7 @@ fn test_create_br() {
 
     let module = resource_pools.get_module(module_tag).expect("Failed to get module");
 
-    match Utils::write_to_file(module.clone(), "test_create_br") {
+    match utils::write_ir::write_to_file(module.clone(), "test_create_br") {
         Ok(_) => {}
         Err(e) => {
             eprintln!("File write error: {}", e);
@@ -174,7 +174,7 @@ fn test_create_br() {
 
 #[test]
 fn test_insert_before_basic_block() {
-    let mut resource_pools = ResourcePools::new();
+    let mut resource_pools = IRGenerator::new();
 
     let context_tag =  resource_pools.create_context().expect("Failed to create context");
     let module_tag =  resource_pools.create_module(DEFAULT_MODULE_NAME, context_tag).expect("Failed to create module within context");    let function_type = resource_pools.void_type(context_tag).expect("Failed to create function type");
@@ -191,7 +191,7 @@ fn test_insert_before_basic_block() {
     
     let module = resource_pools.get_module(module_tag).expect("Failed to get module");
 
-    match Utils::write_to_file(module.clone(), "test_insert_before_basic_block") {
+    match utils::write_ir::write_to_file(module.clone(), "test_insert_before_basic_block") {
         Ok(_) => {}
         Err(e) => {
             eprintln!("File write error: {}", e);
@@ -213,7 +213,7 @@ fn test_insert_before_basic_block() {
 
 #[test]
 fn test_position_builder() {
-    let mut resource_pools = ResourcePools::new();
+    let mut resource_pools = IRGenerator::new();
 
     let context_tag = resource_pools.create_context().expect("Failed to create context");
     let module_tag = resource_pools.create_module(DEFAULT_MODULE_NAME, context_tag).expect("Failed to create module within context");
@@ -232,7 +232,7 @@ fn test_position_builder() {
 
     let module = resource_pools.get_module(module_tag).expect("Failed to get module");
 
-    match Utils::write_to_file(module.clone(), "test_position_builder") {
+    match utils::write_ir::write_to_file(module.clone(), "test_position_builder") {
         Ok(_) => {}
         Err(e) => {
             eprintln!("File write error: {}", e);
@@ -250,7 +250,7 @@ fn test_position_builder() {
 
 #[test]
 fn test_delete_basic_block() {
-    let mut resource_pools = ResourcePools::new();
+    let mut resource_pools = IRGenerator::new();
 
     let context_tag = resource_pools.create_context().expect("Failed to create context");
     let module_tag = resource_pools.create_module(DEFAULT_MODULE_NAME, context_tag).expect("Failed to create module within context");
@@ -267,7 +267,7 @@ fn test_delete_basic_block() {
 
     let module = resource_pools.get_module(module_tag).expect("Failed to get module");
 
-    match Utils::write_to_file(module.clone(), "test_delete_basic_block") {
+    match utils::write_ir::write_to_file(module.clone(), "test_delete_basic_block") {
         Ok(_) => {}
         Err(e) => {
             eprintln!("File write error: {}", e);
@@ -287,7 +287,7 @@ fn test_delete_basic_block() {
 
 #[test]
 fn test_get_first_instruction() {
-    let mut resource_pools = ResourcePools::new();
+    let mut resource_pools = IRGenerator::new();
 
     let context_tag = resource_pools.create_context().expect("Failed to create context");
     let module_tag = resource_pools.create_module(DEFAULT_MODULE_NAME, context_tag).expect("Failed to create module within context");
@@ -304,7 +304,7 @@ fn test_get_first_instruction() {
 
     let module = resource_pools.get_module(module_tag).expect("Failed to get module");
 
-    match Utils::write_to_file(module.clone(), "test_get_first_instruction") {
+    match utils::write_ir::write_to_file(module.clone(), "test_get_first_instruction") {
         Ok(_) => {}
         Err(e) => {
             eprintln!("File write error: {}", e);
@@ -323,7 +323,7 @@ fn test_get_first_instruction() {
 
 #[test]
 fn test_get_last_instruction() {
-    let mut resource_pools = ResourcePools::new();
+    let mut resource_pools = IRGenerator::new();
 
     let context_tag = resource_pools.create_context().expect("Failed to create context");
     let module_tag = resource_pools.create_module(DEFAULT_MODULE_NAME, context_tag).expect("Failed to create module within context");
@@ -340,7 +340,7 @@ fn test_get_last_instruction() {
 
     let module = resource_pools.get_module(module_tag).expect("Failed to get module");
 
-    match Utils::write_to_file(module.clone(), "test_get_last_instruction") {
+    match utils::write_ir::write_to_file(module.clone(), "test_get_last_instruction") {
         Ok(_) => {}
         Err(e) => {
             eprintln!("File write error: {}", e);

@@ -6,10 +6,10 @@ use std::ffi::CString;
 
 use crate::memory_management::{ 
     pointer::{LLVMRef, LLVMRefType}, 
-    resource_pools::{BasicBlockTag, BuilderTag, ContextTag, ResourcePools, ValueTag}
+    resource_pools::{BasicBlockTag, BuilderTag, ContextTag, IRGenerator, ValueTag}
 };
 
-impl ResourcePools {
+impl IRGenerator {
     /// Creates a basic block in the specified function and context.
     pub fn create_basic_block(
         &mut self,
@@ -391,72 +391,140 @@ impl ResourcePools {
         }
     }
 
-    // /// Creates a PHI node in the specified basic block
-    // pub fn create_phi(&mut self, builder_tag: BuilderTag, possible_values: &[(ValueTag, BasicBlockTag)], name: &str) -> Option<ValueTag> {
-    //     let builder_arc_rwlock = self.get_builder(builder_tag)?;
-    //     let builder_ptr: LLVMBuilderRef = unsafe {
-    //         let builder_rwlock = builder_arc_rwlock.read().expect("Failed to lock builder for reading");
-    //         let builder_ref = builder_rwlock.read(LLVMRefType::Builder, |builder_ref| {
-    //             if let LLVMRef::Builder(ptr) = builder_ref {
-    //                 Some(*ptr)
-    //             } else {
-    //                 None
-    //             }
-    //         })?;
-    //         builder_ref
-    //     };
+    /// Gets a parameter from a function by its index.
+    pub fn get_param(&mut self, function_tag: ValueTag, index: u32) -> Option<ValueTag> {
+        let function_arc_rwlock = self.get_value(function_tag)?;
+        
+        let param = {
+            let function_rwlock = function_arc_rwlock.read().expect("Failed to lock function for reading");
+            let function_ptr = function_rwlock.read(LLVMRefType::Value, |value_ref| {
+                if let LLVMRef::Value(ptr) = value_ref {
+                    Some(*ptr)
+                } else {
+                    None
+                }
+            })?;
 
-    //     let first_value_tag = possible_values.get(0).map(|(val_tag, _)| *val_tag).expect("No values provided for PHI node");
-    //     let first_value_arc_rwlock = self.get_value(first_value_tag)?;
-    //     let phi_type = unsafe {
-    //         let first_value_rwlock = first_value_arc_rwlock.read().expect("Failed to lock value for reading");
-    //         let first_value_ref = first_value_rwlock.read(LLVMRefType::Value, |value_ref| {
-    //             if let LLVMRef::Value(ptr) = value_ref {
-    //                 Some(core::LLVMTypeOf(*ptr))
-    //             } else {
-    //                 None
-    //             }
-    //         })?;
-    //         first_value_ref
-    //     };
+            unsafe { core::LLVMGetParam(function_ptr, index) }
+        };
 
-    //     let c_name = CString::new(name).expect("Failed to create CString");
+        if param.is_null() {
+            None
+        } else {
+            self.store_value(param)
+        }
+    }
 
-    //     let phi_node = unsafe {
-    //         core::LLVMBuildPhi(builder_ptr, phi_type, c_name.as_ptr())
-    //     };
+    /// Adds a function to a module. 
+    pub fn add_function_to_module(&mut self, module_tag: ModuleTag, function_name: &str, function_type_tag: TypeTag) -> Option<ValueTag> {
+        let module_arc_rwlock = self.get_module(module_tag)?;
+        let function_type_arc_rwlock = self.get_type(function_type_tag)?;
 
-    //     if phi_node.is_null() {
-    //         None
-    //     } else {
-    //         let mut values = Vec::new();
-    //         let mut blocks = Vec::new();
-    //         for &(val_tag, block_tag) in possible_values {
-    //             let value_ptr = self.get_value(val_tag)?.read(LLVMRefType::Value, |value_ref| {
-    //                 if let LLVMRef::Value(ptr) = value_ref {
-    //                     Some(unsafe { *ptr })
-    //                 } else {
-    //                     None
-    //                 }
-    //             })?;
+        let c_name = CString::new(function_name).expect("Failed to create CString for function name");
 
-    //             let block_ptr = self.get_basic_block(block_tag)?.read(LLVMRefType::BasicBlock, |block_ref| {
-    //                 if let LLVMRef::BasicBlock(ptr) = block_ref {
-    //                     Some(unsafe { *ptr })
-    //                 } else {
-    //                     None
-    //                 }
-    //             })?;
+        let function = {
+            let module_rwlock = module_arc_rwlock.read().expect("Failed to lock module for reading");
+            let module_ptr = module_rwlock.read(LLVMRefType::Module, |module_ref| {
+                if let LLVMRef::Module(ptr) = module_ref {
+                    Some(*ptr)
+                } else {
+                    None
+                }
+            })?;
 
-    //             values.push(value_ptr);
-    //             blocks.push(block_ptr);
-    //         }
+            let function_type_ptr = {
+                let function_type_rwlock = function_type_arc_rwlock.read().expect("Failed to lock function type for reading");
+                function_type_rwlock.read(LLVMRefType::Type, |type_ref| {
+                    if let LLVMRef::Type(ptr) = type_ref {
+                        Some(*ptr)
+                    } else {
+                        None
+                    }
+                })?
+            };
 
-    //         unsafe {
-    //             core::LLVMAddIncoming(phi_node, values.as_mut_ptr(), blocks.as_mut_ptr(), values.len() as u32);
-    //         }
+            unsafe { core::LLVMAddFunction(module_ptr, c_name.as_ptr(), function_type_ptr) }
+        };
 
-    //         self.store_value(phi_node)
-    //     }
-    // }
+        if function.is_null() {
+            None
+        } else {
+            self.store_value(function)
+        }
+    }
+
+    /// Creates a new struct type in the LLVM context.
+    pub fn create_struct(&mut self, context_tag: ContextTag, member_types: Vec<TypeTag>, packed: bool) -> Option<TypeTag> {
+        let mut member_llvm_types: Vec<LLVMTypeRef> = member_types.iter()
+            .map(|type_tag| {
+                let type_arc_rwlock = self.get_type(*type_tag)?;
+                let type_ptr = {
+                    let type_rwlock = type_arc_rwlock.read().expect("Failed to lock type for reading");
+                    type_rwlock.read(LLVMRefType::Type, |type_ref| {
+                        if let LLVMRef::Type(ptr) = type_ref {
+                            Some(*ptr)
+                        } else {
+                            None
+                        }
+                    })?
+                };
+                Some(type_ptr)
+            })
+            .collect::<Option<Vec<_>>>()?;
+
+            let context_arc_rwlock = self.get_context(context_tag)?;
+            let context_ptr = {
+                let context_rwlock = context_arc_rwlock.read().expect("Failed to lock context for reading");
+                context_rwlock.read(LLVMRefType::Context, |context_ref| {
+                    if let LLVMRef::Context(ptr) = context_ref {
+                        Some(*ptr)
+                    } else {
+                        None
+                    }
+                })?
+            };
+
+        let struct_type = unsafe {
+            llvm::core::LLVMStructTypeInContext(context_ptr, member_llvm_types.as_mut_ptr(), member_llvm_types.len() as u32, packed as i32)
+        };
+
+        if struct_type.is_null() {
+            None
+        } else {
+            self.store_type(struct_type)
+        }
+    }
+    /// Creates an enum type represented by an integer of specified bit width and associated variants.
+    /// Each variant is internally mapped to an integer value starting from 0.
+    pub fn create_enum(&mut self, context_tag: ContextTag, num_bits: u32, name: &str, variants: &[String]) -> Option<TypeTag> {
+        let context_arc_rwlock = self.get_context(context_tag)?;
+        let context_ptr = {
+            let context_rwlock = context_arc_rwlock.read().expect("Failed to lock context for reading");
+            context_rwlock.read(LLVMRefType::Context, |context_ref| {
+                if let LLVMRef::Context(ptr) = context_ref {
+                    Some(*ptr)
+                } else {
+                    None
+                }
+            })?
+        };
+
+        let enum_type_ptr = unsafe { llvm::core::LLVMIntTypeInContext(context_ptr, num_bits) };
+        
+        if enum_type_ptr.is_null() {
+            None
+        } else {
+            let type_tag = self.store_type(enum_type_ptr).expect("Failed to store type tag");
+            let mut variant_map = HashMap::new();
+
+            for (index, variant) in variants.iter().enumerate() {
+                variant_map.insert(variant.clone(), index as i64);
+            }
+
+            self.store_enum_definition(type_tag, EnumDefinition::new(name.to_string(), variant_map));
+
+
+            Some(type_tag)
+        }
+    }
 }

@@ -11,14 +11,14 @@ use slog::Logger;
 use crate::{
     jit::target::{GeneralTargetConfigurator, TargetConfigurator},
     logger::*, 
-    memory_management::pointer::{CPointer, LLVMRef, LLVMRefType},
+    memory_management::pointer::{SafeLLVMPointer, LLVMRef, LLVMRefType},
 };
 
 
 /// Represents an LLVM execution engine for a multi-threaded environment.
 /// This struct encapsulates all necessary LLVM components: context, module, and execution engine.
 pub struct ExecutionEngine {
-    engine: Arc<RwLock<CPointer>>,
+    engine: Arc<RwLock<SafeLLVMPointer>>,
     logger: Option<Logger>,
 }
 
@@ -27,9 +27,9 @@ impl ExecutionEngine {
     /// Initializes a new LLVM context and module, and optionally sets up debugging information.
     ///
     /// # Arguments
-    /// * 'module` - A thread safe `CPointer` containing an LLVMModuleRef
+    /// * 'module` - A thread safe `SafeLLVMPointer` containing an LLVMModuleRef
     /// * `debug_info` - If true, enables logging for this engine.
-    pub fn new(module: Arc<RwLock<CPointer>>, debug_info: bool) -> Self {
+    pub fn new(module: Arc<RwLock<SafeLLVMPointer>>, debug_info: bool) -> Self {
         GeneralTargetConfigurator.configure();
 
         let mut engine_ref: execution_engine::LLVMExecutionEngineRef = std::ptr::null_mut();
@@ -55,7 +55,7 @@ impl ExecutionEngine {
             }
         });
 
-        let engine_cptr = CPointer::new(LLVMRef::ExecutionEngine(engine_ref)).expect("Engine cannot be null");
+        let engine_cptr = SafeLLVMPointer::new(LLVMRef::ExecutionEngine(engine_ref)).expect("Engine cannot be null");
 
         let logger = if debug_info {
             Some(init::init_logger())
