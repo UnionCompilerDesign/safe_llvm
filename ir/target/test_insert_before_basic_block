@@ -1,0 +1,10 @@
+; ModuleID = 'main'
+source_filename = "main"
+
+define void @main() {
+entry:
+  br label %target
+
+target:                                           ; preds = %entry
+  ret void
+}

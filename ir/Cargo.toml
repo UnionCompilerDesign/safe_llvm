@@ -10,3 +10,4 @@ path = "src/lib.rs"
 [dependencies]
 llvm-sys = "170"
 common = { path = "../common" }
+analysis = { path = "../analysis" }

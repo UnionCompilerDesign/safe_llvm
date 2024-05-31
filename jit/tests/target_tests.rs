@@ -1,6 +1,7 @@
-use safe_llvm::{
-    analysis::validator::Validator, common::{self, target::*}, constants::{DEFAULT_BASIC_BLOCK_NAME, DEFAULT_FUNCTION_NAME, DEFAULT_MODULE_NAME}, ir::core::IRGenerator, jit::execution_engine::ExecutionEngine
-};
+use analysis::validator::Validator;
+use common::{constants::{DEFAULT_BASIC_BLOCK_NAME, DEFAULT_FUNCTION_NAME, DEFAULT_MODULE_NAME}, target::*};
+use ir::core::IRGenerator;
+use jit::core::ExecutionEngine;
 
 #[test]
 fn test_execution_engine_with_general_targeting() {

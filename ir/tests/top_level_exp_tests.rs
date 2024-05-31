@@ -1,4 +1,6 @@
-use safe_llvm::{analysis::validator::Validator, common::{self, pointer::{LLVMRef, LLVMRefType}}, ir::core::IRGenerator};
+use analysis::validator::Validator;
+use common::pointer::{LLVMRef, LLVMRefType};
+use ir::core::IRGenerator;
 
 #[test]
 fn test_add_function_to_module() {

@@ -1,4 +1,4 @@
-use safe_llvm::ir::core::IRGenerator;
+use ir::core::IRGenerator;
 
 
 #[test]

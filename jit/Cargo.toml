@@ -13,3 +13,5 @@ slog = "2.7"
 
 common = { path = "../common" }
 logging = { path = "../logging" }
+analysis = { path = "../analysis" }
+ir = { path = "../ir" }
