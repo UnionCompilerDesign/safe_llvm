@@ -5,7 +5,7 @@ pub mod builder;
 pub mod values;
 
 /// Create operations
-pub mod binary_operations;
+pub mod operations;
 
 /// Create a type
 pub mod types;

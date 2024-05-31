@@ -119,19 +119,19 @@ impl ExecutionEngine {
     
     fn log_info(&self, msg: &str) {
         if let Some(log) = &self.logger {
-            log::log_info(log, msg)
+            core::log_info(log, msg)
         }
     }
 
     fn log_warning(&self, msg: &str) {
         if let Some(log) = &self.logger {
-            log::log_warning(log, msg)
+            core::log_warning(log, msg)
         }
     }
 
     fn log_error(&self, msg: &str) {
         if let Some(log) = &self.logger {
-            log::log_error(log, msg)
+            core::log_error(log, msg)
         }
     }
 }

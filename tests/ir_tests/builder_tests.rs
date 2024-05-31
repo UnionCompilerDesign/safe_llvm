@@ -1,4 +1,4 @@
-use safe_llvm::{analysis::validator::Validator, constants::{DEFAULT_BASIC_BLOCK_NAME, DEFAULT_FUNCTION_NAME}, memory_management::resource_pools::{IRGenerator, TypeTag}, utils};
+use safe_llvm::{analysis::validator::Validator, constants::{DEFAULT_BASIC_BLOCK_NAME, DEFAULT_FUNCTION_NAME}, memory_management::resource_pools::{IRGenerator, TypeTag}, common};
 
 #[test]
 fn test_builder_creation() {
@@ -28,7 +28,7 @@ fn test_create_function_no_params_void_return() {
 
     let module = llvm_resource_pool.get_module(module_tag).expect("Failed to get module");
 
-    match utils::write_ir::write_to_file(module.clone(), "test_create_function_no_params_void_return") {
+    match common::write_ir::write_to_file(module.clone(), "test_create_function_no_params_void_return") {
         Ok(_) => {}
         Err(e) => {
             eprintln!("File write error: {}", e);
@@ -61,7 +61,7 @@ fn test_create_function_with_params() {
 
     let module = llvm_resource_pool.get_module(module_tag).expect("Failed to get module");
 
-    match utils::write_ir::write_to_file(module.clone(), "test_create_function_with_params") {
+    match common::write_ir::write_to_file(module.clone(), "test_create_function_with_params") {
         Ok(_) => {}
         Err(e) => {
             eprintln!("File write error: {}", e);

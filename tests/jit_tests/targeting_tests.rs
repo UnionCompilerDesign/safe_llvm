@@ -1,5 +1,5 @@
 use safe_llvm::{
-    analysis::validator::Validator, constants::{DEFAULT_BASIC_BLOCK_NAME, DEFAULT_FUNCTION_NAME, DEFAULT_MODULE_NAME}, jit::{execution_engine::ExecutionEngine, target::*}, memory_management::resource_pools::IRGenerator, utils
+    analysis::validator::Validator, constants::{DEFAULT_BASIC_BLOCK_NAME, DEFAULT_FUNCTION_NAME, DEFAULT_MODULE_NAME}, jit::{execution_engine::ExecutionEngine, target::*}, memory_management::resource_pools::IRGenerator, common
 };
 
 #[test]
@@ -20,7 +20,7 @@ fn test_execution_engine_with_general_targeting() {
 
     let module = resource_pools.get_module(module_tag).expect("Failed to retrieve module");
 
-    match utils::write_ir::write_to_file(module.clone(), "test_execution_engine_with_general_targeting") {
+    match common::write_ir::write_to_file(module.clone(), "test_execution_engine_with_general_targeting") {
         Ok(_) => {}
         Err(e) => {
             eprintln!("File write error: {}", e);
@@ -61,7 +61,7 @@ fn test_execution_engine_with_arm_targeting() {
 
     let module = resource_pools.get_module(module_tag).expect("Failed to retrieve module");
 
-    match utils::write_ir::write_to_file(module.clone(), "test_execution_engine_with_general_targeting") {
+    match common::write_ir::write_to_file(module.clone(), "test_execution_engine_with_general_targeting") {
         Ok(_) => {}
         Err(e) => {
             eprintln!("File write error: {}", e);
@@ -102,7 +102,7 @@ fn test_execution_engine_with_x86_targeting() {
 
     let module = resource_pools.get_module(module_tag).expect("Failed to retrieve module");
 
-    match utils::write_ir::write_to_file(module.clone(), "test_execution_engine_with_general_targeting") {
+    match common::write_ir::write_to_file(module.clone(), "test_execution_engine_with_general_targeting") {
         Ok(_) => {}
         Err(e) => {
             eprintln!("File write error: {}", e);
@@ -143,7 +143,7 @@ fn test_execution_engine_with_mips_targeting() {
 
     let module = resource_pools.get_module(module_tag).expect("Failed to retrieve module");
 
-    match utils::write_ir::write_to_file(module.clone(), "test_execution_engine_with_general_targeting") {
+    match common::write_ir::write_to_file(module.clone(), "test_execution_engine_with_general_targeting") {
         Ok(_) => {}
         Err(e) => {
             eprintln!("File write error: {}", e);
@@ -184,7 +184,7 @@ fn test_execution_engine_with_rv_targeting() {
 
     let module = resource_pools.get_module(module_tag).expect("Failed to retrieve module");
 
-    match utils::write_ir::write_to_file(module.clone(), "test_execution_engine_with_general_targeting") {
+    match common::write_ir::write_to_file(module.clone(), "test_execution_engine_with_general_targeting") {
         Ok(_) => {}
         Err(e) => {
             eprintln!("File write error: {}", e);
@@ -225,7 +225,7 @@ fn test_execution_engine_with_wasm_targeting() {
 
     let module = resource_pools.get_module(module_tag).expect("Failed to retrieve module");
 
-    match utils::write_ir::write_to_file(module.clone(), "test_execution_engine_with_general_targeting") {
+    match common::write_ir::write_to_file(module.clone(), "test_execution_engine_with_general_targeting") {
         Ok(_) => {}
         Err(e) => {
             eprintln!("File write error: {}", e);
@@ -266,7 +266,7 @@ fn test_execution_engine_with_ppc_targeting() {
 
     let module = resource_pools.get_module(module_tag).expect("Failed to retrieve module");
 
-    match utils::write_ir::write_to_file(module.clone(), "test_execution_engine_with_general_targeting") {
+    match common::write_ir::write_to_file(module.clone(), "test_execution_engine_with_general_targeting") {
         Ok(_) => {}
         Err(e) => {
             eprintln!("File write error: {}", e);
@@ -307,7 +307,7 @@ fn test_execution_engine_with_sparc_targeting() {
 
     let module = resource_pools.get_module(module_tag).expect("Failed to retrieve module");
 
-    match utils::write_ir::write_to_file(module.clone(), "test_execution_engine_with_general_targeting") {
+    match common::write_ir::write_to_file(module.clone(), "test_execution_engine_with_general_targeting") {
         Ok(_) => {}
         Err(e) => {
             eprintln!("File write error: {}", e);
@@ -348,7 +348,7 @@ fn test_execution_engine_with_systemz_targeting() {
 
     let module = resource_pools.get_module(module_tag).expect("Failed to retrieve module");
 
-    match utils::write_ir::write_to_file(module.clone(), "test_execution_engine_with_general_targeting") {
+    match common::write_ir::write_to_file(module.clone(), "test_execution_engine_with_general_targeting") {
         Ok(_) => {}
         Err(e) => {
             eprintln!("File write error: {}", e);
@@ -389,7 +389,7 @@ fn test_execution_engine_with_aarch64_targeting() {
 
     let module = resource_pools.get_module(module_tag).expect("Failed to retrieve module");
 
-    match utils::write_ir::write_to_file(module.clone(), "test_execution_engine_with_general_targeting") {
+    match common::write_ir::write_to_file(module.clone(), "test_execution_engine_with_general_targeting") {
         Ok(_) => {}
         Err(e) => {
             eprintln!("File write error: {}", e);
@@ -430,7 +430,7 @@ fn test_execution_engine_with_amdgpu_targeting() {
 
     let module = resource_pools.get_module(module_tag).expect("Failed to retrieve module");
 
-    match utils::write_ir::write_to_file(module.clone(), "test_execution_engine_with_general_targeting") {
+    match common::write_ir::write_to_file(module.clone(), "test_execution_engine_with_general_targeting") {
         Ok(_) => {}
         Err(e) => {
             eprintln!("File write error: {}", e);
@@ -471,7 +471,7 @@ fn test_execution_engine_with_bpf_targeting() {
 
     let module = resource_pools.get_module(module_tag).expect("Failed to retrieve module");
 
-    match utils::write_ir::write_to_file(module.clone(), "test_execution_engine_with_general_targeting") {
+    match common::write_ir::write_to_file(module.clone(), "test_execution_engine_with_general_targeting") {
         Ok(_) => {}
         Err(e) => {
             eprintln!("File write error: {}", e);

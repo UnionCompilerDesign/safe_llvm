@@ -1,4 +1,4 @@
-use safe_llvm::{analysis::validator::Validator, memory_management::{pointer::{LLVMRef, LLVMRefType}, resource_pools::IRGenerator}, utils};
+use safe_llvm::{analysis::validator::Validator, memory_management::{pointer::{LLVMRef, LLVMRefType}, resource_pools::IRGenerator}, common};
 
 #[test]
 fn test_add_function_to_module() {
@@ -17,7 +17,7 @@ fn test_add_function_to_module() {
 
     let module = resource_pools.get_module(module_tag).expect("Failed to get module");
 
-    match utils::write_ir::write_to_file(module.clone(), "test_add_function_to_module") {
+    match common::write_ir::write_to_file(module.clone(), "test_add_function_to_module") {
         Ok(_) => {}
         Err(e) => {
             eprintln!("File write error: {}", e);
@@ -50,7 +50,7 @@ fn test_get_param() {
 
     let module = resource_pools.get_module(module_tag).expect("Failed to get module");
 
-    match utils::write_ir::write_to_file(module.clone(), "test_get_param") {
+    match common::write_ir::write_to_file(module.clone(), "test_get_param") {
         Ok(_) => {}
         Err(e) => {
             eprintln!("File write error: {}", e);
