@@ -3,7 +3,7 @@
 extern crate llvm_sys as llvm; 
 use std::sync::{Arc, RwLock}; 
 use llvm::{analysis, core}; 
-use crate::memory_management::pointer::{SafeLLVMPointer, LLVMRef, LLVMRefType}; 
+use crate::common::pointer::{SafeLLVMPointer, LLVMRef, LLVMRefType}; 
 
 /// A Validator struct that encapsulates an LLVM module within a thread-safe, reference-counted pointer.
 pub struct Validator {

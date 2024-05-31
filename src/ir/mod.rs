@@ -16,7 +16,4 @@ pub mod var;
 /// Maintain block constructions
 pub mod block;
 
-/// TLE related utilities
-pub mod top_level_exp;
-
 pub mod core;

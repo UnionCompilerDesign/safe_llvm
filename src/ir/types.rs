@@ -2,7 +2,9 @@ extern crate llvm_sys as llvm;
 
 use llvm::core;
 
-use crate::memory_management::{pointer::{LLVMRef, LLVMRefType}, resource_pools::{BuilderTag, ContextTag, IRGenerator, TypeTag, ValueTag}};
+use crate::common::pointer::{LLVMRef, LLVMRefType};
+
+use super::core::{BuilderTag, ContextTag, IRGenerator, TypeTag, ValueTag};
 
 impl IRGenerator {
     /// Returns the LLVM type for void in a given context.

@@ -5,4 +5,6 @@ pub mod write_ir;
 /// https://doc.rust-lang.org/std/ffi/struct.CString.html
 pub mod cstring;
 
-pub mod utils_struct;
+pub mod pointer;
+
+pub mod target;

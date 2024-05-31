@@ -4,10 +4,9 @@ use llvm::core;
 
 use std::ffi::CString;
 
-use crate::memory_management::{
-    pointer::{LLVMRef, LLVMRefType}, 
-    resource_pools::{BuilderTag, IRGenerator, TypeTag, ValueTag}
-};
+use crate::common::pointer::{LLVMRef, LLVMRefType};
+
+use super::core::{BuilderTag, IRGenerator, TypeTag, ValueTag};
 
 impl IRGenerator {
     /// Initializes a variable

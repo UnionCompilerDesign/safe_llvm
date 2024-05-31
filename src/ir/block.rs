@@ -1,13 +1,12 @@
 extern crate llvm_sys as llvm;
 
-use llvm::{core, prelude::{LLVMBasicBlockRef, LLVMBuilderRef, LLVMContextRef, LLVMValueRef}, };
+use llvm::{core, prelude::{LLVMBasicBlockRef, LLVMBuilderRef, LLVMContextRef, LLVMTypeRef, LLVMValueRef}, };
 
-use std::ffi::CString;
+use std::{collections::HashMap, ffi::CString};
 
-use crate::memory_management::{ 
-    pointer::{LLVMRef, LLVMRefType}, 
-    resource_pools::{BasicBlockTag, BuilderTag, ContextTag, IRGenerator, ValueTag}
-};
+use crate::common::pointer::{LLVMRef, LLVMRefType};
+
+use super::core::{BasicBlockTag, BuilderTag, ContextTag, EnumDefinition, IRGenerator, ModuleTag, TypeTag, ValueTag};
 
 impl IRGenerator {
     /// Creates a basic block in the specified function and context.
@@ -29,7 +28,7 @@ impl IRGenerator {
                 }
             })?;
             context_ref
-        };
+        }; 
     
         let function_ptr: LLVMValueRef = {
             let function_rwlock = function_arc_rwlock.read().expect("Failed to lock function for reading");

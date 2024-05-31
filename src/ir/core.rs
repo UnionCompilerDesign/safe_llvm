@@ -4,7 +4,7 @@ use llvm::{core, prelude::{LLVMBasicBlockRef, LLVMBuilderRef, LLVMContextRef, LL
 
 use std::{collections::HashMap, ffi::CString, sync::{Arc, RwLock}};
 
-use crate::memory_management::pointer::{LLVMRef, LLVMRefType, SafeLLVMPointer};
+use crate::common::pointer::{LLVMRef, LLVMRefType, SafeLLVMPointer};
 
 /// Each tag is unique throughout the course of an application's runtime. 
 pub enum Tag {

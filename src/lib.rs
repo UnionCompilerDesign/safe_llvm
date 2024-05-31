@@ -13,7 +13,7 @@ pub mod ir;
 pub mod jit;
 
 /// Logging utilities to support internal debugging.
-pub mod logger;
+pub mod logging;
 
 pub mod common;
 

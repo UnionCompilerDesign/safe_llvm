@@ -4,7 +4,9 @@ use llvm::core;
 
 use std::ffi::CString;
 
-use crate::memory_management::{pointer::{LLVMRef, LLVMRefType}, resource_pools::{BasicBlockTag, BuilderTag, ContextTag, IRGenerator, TypeTag, ValueTag}};
+use crate::common::pointer::{LLVMRef, LLVMRefType};
+
+use super::core::{BasicBlockTag, BuilderTag, ContextTag, IRGenerator, TypeTag, ValueTag};
 
 impl IRGenerator {
     /// Creates an integer constant of 64 bits in the specified context.

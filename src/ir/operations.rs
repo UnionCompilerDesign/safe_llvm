@@ -4,10 +4,9 @@ use llvm::{core, LLVMIntPredicate};
 
 use std::ffi::CString;
 
-use crate::memory_management::{
-    pointer::{LLVMRef, LLVMRefType}, 
-    resource_pools::{BuilderTag, ContextTag, IRGenerator, ValueTag}
-};
+use crate::common::pointer::{LLVMRef, LLVMRefType};
+
+use super::core::{BuilderTag, ContextTag, IRGenerator, ValueTag};
 
 impl IRGenerator {
     /// Basic addition

@@ -1,4 +1,9 @@
-use slog::{error, info, warn, Logger};
+use std::fs::File;
+
+use slog::{error, info, o, warn, Drain, Duplicate, Fuse, Logger};
+use slog_async::Async;
+use slog_json::Json;
+use slog_term::{CompactFormat, TermDecorator};
 
 pub fn log_info(logger: &Logger, msg: &str) {
     info!(logger, "{}", msg);

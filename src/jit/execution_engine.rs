@@ -8,11 +8,7 @@ use std::{ffi::{c_char, CStr, CString}, sync::{Arc, RwLock}};
 
 use slog::Logger;
 
-use crate::{
-    jit::target::{GeneralTargetConfigurator, TargetConfigurator},
-    logger::*, 
-    memory_management::pointer::{SafeLLVMPointer, LLVMRef, LLVMRefType},
-};
+use crate::{common::{pointer::{LLVMRef, LLVMRefType, SafeLLVMPointer}, target::{GeneralTargetConfigurator, TargetConfigurator}}, logging};
 
 
 /// Represents an LLVM execution engine for a multi-threaded environment.
@@ -58,7 +54,7 @@ impl ExecutionEngine {
         let engine_cptr = SafeLLVMPointer::new(LLVMRef::ExecutionEngine(engine_ref)).expect("Engine cannot be null");
 
         let logger = if debug_info {
-            Some(init::init_logger())
+            Some(logging::core::init_logger())
         } else {
             None
         };
@@ -119,19 +115,19 @@ impl ExecutionEngine {
     
     fn log_info(&self, msg: &str) {
         if let Some(log) = &self.logger {
-            core::log_info(log, msg)
+            logging::core::log_info(log, msg)
         }
     }
 
     fn log_warning(&self, msg: &str) {
         if let Some(log) = &self.logger {
-            core::log_warning(log, msg)
+            logging::core::log_warning(log, msg)
         }
     }
 
     fn log_error(&self, msg: &str) {
         if let Some(log) = &self.logger {
-            core::log_error(log, msg)
+            logging::core::log_error(log, msg)
         }
     }
 }

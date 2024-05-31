@@ -4,9 +4,9 @@ use std::{fs, path::Path, sync::{Arc, RwLock}};
 
 use llvm::core;
 
-use crate::{
-    memory_management::pointer::{SafeLLVMPointer, LLVMRef, LLVMRefType}, 
-    common::cstring
+use crate::common::{
+    pointer::{SafeLLVMPointer, LLVMRef, LLVMRefType},
+    cstring
 };
 
 /// Writes an LLVM module to a file
