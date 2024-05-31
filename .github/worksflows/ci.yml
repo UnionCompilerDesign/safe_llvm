@@ -1,0 +1,53 @@
+name: Rust Project CI
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+  pull_request:
+    branches:
+      - main
+      - dev
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Install Dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y ca-certificates wget curl gnupg software-properties-common build-essential cmake libfreetype6-dev libfontconfig1-dev xclip valgrind libzstd-dev
+        wget -qO - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
+        sudo apt-add-repository "deb http://apt.llvm.org/focal/ llvm-toolchain-focal-17 main"
+        sudo apt-get update
+        sudo apt-get install -y clang-17 llvm-17 llvm-17-dev llvm-17-tools libpolly-17-dev
+
+    - name: Install Rust
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        profile: minimal
+        components: rustfmt, clippy
+        override: true
+
+    - name: Set Environment Variables
+      run: |
+        echo "LLVM_SYS_170_PREFIX=/usr/lib/llvm-17" >> $GITHUB_ENV
+        echo "PATH=$PATH:/root/.cargo/bin:/usr/lib/llvm-17/bin" >> $GITHUB_ENV
+
+    - name: Build Project
+      uses: actions-rs/cargo@v1
+      with:
+        command: build
+        args: --all --verbose
+
+    - name: Run Tests
+      uses: actions-rs/cargo@v1
+      with:
+        command: test
+        args: --all --verbose

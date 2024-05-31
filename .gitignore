@@ -4,3 +4,4 @@
 /dev_toolchain/target/
 /dev_toolchain/app.log
 /dev_toolchain/Cargo.lock
+/.vscode/
