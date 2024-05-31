@@ -1,5 +1,5 @@
 use safe_llvm::{
-    analysis::validator::Validator, constants::{DEFAULT_BASIC_BLOCK_NAME, DEFAULT_FUNCTION_NAME, DEFAULT_MODULE_NAME}, jit::{execution_engine::ExecutionEngine, target::*}, memory_management::resource_pools::IRGenerator, common
+    analysis::validator::Validator, common::{self, target::*}, constants::{DEFAULT_BASIC_BLOCK_NAME, DEFAULT_FUNCTION_NAME, DEFAULT_MODULE_NAME}, ir::core::IRGenerator, jit::execution_engine::ExecutionEngine
 };
 
 #[test]

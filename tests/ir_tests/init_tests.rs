@@ -1,4 +1,4 @@
-use safe_llvm::{analysis::validator::Validator, memory_management::resource_pools::IRGenerator};
+use safe_llvm::{analysis::validator::Validator, ir::core::IRGenerator};
 
 #[test]
 fn test_context_and_module_creation() {

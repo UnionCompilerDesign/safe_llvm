@@ -1,4 +1,4 @@
-use safe_llvm::memory_management::resource_pools::IRGenerator;
+use safe_llvm::ir::core::IRGenerator;
 
 
 #[test]
