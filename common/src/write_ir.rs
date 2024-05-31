@@ -4,10 +4,7 @@ use std::{fs, path::Path, sync::{Arc, RwLock}};
 
 use llvm::core;
 
-use crate::common::{
-    pointer::{SafeLLVMPointer, LLVMRef, LLVMRefType},
-    cstring
-};
+use crate::{cstring, pointer::{LLVMRef, LLVMRefType, SafeLLVMPointer}};
 
 /// Writes an LLVM module to a file
 pub fn write_to_file(module: Arc<RwLock<SafeLLVMPointer>>, file_name: &str) -> Result<(), String> {

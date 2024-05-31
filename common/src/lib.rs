@@ -8,3 +8,5 @@ pub mod cstring;
 pub mod pointer;
 
 pub mod target;
+
+pub mod constants;

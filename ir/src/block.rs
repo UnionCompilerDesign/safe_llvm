@@ -4,7 +4,7 @@ use llvm::{core, prelude::{LLVMBasicBlockRef, LLVMBuilderRef, LLVMContextRef, LL
 
 use std::{collections::HashMap, ffi::CString};
 
-use crate::common::pointer::{LLVMRef, LLVMRefType};
+use common::pointer::{LLVMRef, LLVMRefType};
 
 use super::core::{BasicBlockTag, BuilderTag, ContextTag, EnumDefinition, IRGenerator, ModuleTag, TypeTag, ValueTag};
 

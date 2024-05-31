@@ -4,7 +4,7 @@ use llvm::core;
 
 use std::ffi::CString;
 
-use crate::common::pointer::{LLVMRef, LLVMRefType};
+use common::pointer::{LLVMRef, LLVMRefType};
 
 use super::core::{BuilderTag, IRGenerator, TypeTag, ValueTag};
 

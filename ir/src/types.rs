@@ -2,7 +2,7 @@ extern crate llvm_sys as llvm;
 
 use llvm::core;
 
-use crate::common::pointer::{LLVMRef, LLVMRefType};
+use common::pointer::{LLVMRef, LLVMRefType};
 
 use super::core::{BuilderTag, ContextTag, IRGenerator, TypeTag, ValueTag};
 

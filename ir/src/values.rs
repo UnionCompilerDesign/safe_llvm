@@ -4,7 +4,7 @@ use llvm::{core, LLVMIntPredicate};
 
 use std::ffi::CString;
 
-use crate::common::pointer::{LLVMRef, LLVMRefType};
+use common::pointer::{LLVMRef, LLVMRefType};
 
 use super::core::{BasicBlockTag, BuilderTag, ContextTag, IRGenerator, TypeTag, ValueTag};
 

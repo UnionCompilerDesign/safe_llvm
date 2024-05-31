@@ -8,7 +8,7 @@ use std::{ffi::{c_char, CStr, CString}, sync::{Arc, RwLock}};
 
 use slog::Logger;
 
-use crate::{common::{pointer::{LLVMRef, LLVMRefType, SafeLLVMPointer}, target::{GeneralTargetConfigurator, TargetConfigurator}}, logging};
+use common::{pointer::{LLVMRef, LLVMRefType, SafeLLVMPointer}, target::{GeneralTargetConfigurator, TargetConfigurator}};
 
 
 /// Represents an LLVM execution engine for a multi-threaded environment.
