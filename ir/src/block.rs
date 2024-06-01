@@ -1,15 +1,25 @@
+//! This module provides functionality for creating and managing basic blocks for generating LLVM's Intermediate Representation (IR).
+//!
+//! Basic blocks are the core components of functions in LLVM IR, consisting of a sequence of instructions that execute sequentially. 
+//! This module allows manipulation of these basic blocks, including creation, insertion, and query operations within a given LLVM context and function.
+
 extern crate llvm_sys as llvm;
 
-use llvm::{core, prelude::{LLVMBasicBlockRef, LLVMBuilderRef, LLVMContextRef, LLVMTypeRef, LLVMValueRef}, };
-
-use std::{collections::HashMap, ffi::CString};
-
+use llvm::{core, prelude::{LLVMBasicBlockRef, LLVMBuilderRef, LLVMContextRef, LLVMValueRef}};
+use std::ffi::CString;
 use common::pointer::{LLVMRef, LLVMRefType};
-
-use super::core::{BasicBlockTag, BuilderTag, ContextTag, EnumDefinition, IRGenerator, ModuleTag, TypeTag, ValueTag};
+use crate::core::{BasicBlockTag, BuilderTag, ContextTag, IRGenerator, ValueTag};
 
 impl IRGenerator {
     /// Creates a basic block in the specified function and context.
+    ///
+    /// # Parameters
+    /// * `context_tag` - Context within which the basic block is created.
+    /// * `function_tag` - Function to which the basic block will be attached.
+    /// * `name` - Name for the new basic block.
+    ///
+    /// # Returns
+    /// Option<BasicBlockTag> - The tag of the newly created basic block, or None if creation fails.
     pub fn create_basic_block(
         &mut self,
         context_tag: ContextTag,
@@ -54,7 +64,15 @@ impl IRGenerator {
         }
     }
 
-    /// Inserts a basic block before the specified target block in the given context.
+    /// Inserts a basic block before a specified target block in a given context.
+    ///
+    /// # Parameters
+    /// * `context_tag` - Context within which the operation is performed.
+    /// * `before_target_tag` - BasicBlockTag before which the new block will be inserted.
+    /// * `name` - Name for the new basic block.
+    ///
+    /// # Returns
+    /// Option<BasicBlockTag> - The tag of the inserted basic block, or None if insertion fails.
     pub fn insert_before_basic_block(&mut self, context_tag: ContextTag, before_target_tag: BasicBlockTag, name: &str) -> Option<BasicBlockTag> {
         let context_arc_rwlock = self.get_context(context_tag)?;
         let before_target_arc_rwlock = self.get_basic_block(before_target_tag)?;
@@ -94,7 +112,13 @@ impl IRGenerator {
         }
     }
 
-    /// Retrieves the current insertion block. 
+    /// Retrieves the currently active insertion block based on the builder tag.
+    ///
+    /// # Parameters
+    /// * `builder_tag` - BuilderTag used to identify the current builder state.
+    ///
+    /// # Returns
+    /// Option<BasicBlockTag> - The tag of the current basic block, or None if no block is active.
     pub fn get_current_block(&mut self, builder_tag: BuilderTag) -> Option<BasicBlockTag> {
         let builder_arc_rwlock = self.get_builder(builder_tag)?;
 
@@ -120,7 +144,13 @@ impl IRGenerator {
         }
     }
 
-    /// Retrieves the next basic block after the current one. 
+    /// Retrieves the next basic block following the current one in sequence.
+    ///
+    /// # Parameters
+    /// * `builder_tag` - BuilderTag used to identify the current builder state.
+    ///
+    /// # Returns
+    /// Option<BasicBlockTag> - The tag of the next basic block, or None if there is no subsequent block.
     pub fn get_next_block(&mut self, builder_tag: BuilderTag) -> Option<BasicBlockTag> {
         let builder_arc_rwlock = self.get_builder(builder_tag)?;
 
@@ -151,7 +181,13 @@ impl IRGenerator {
 
     }
 
-    /// Retrieves the next basic block after the current one. 
+    /// Retrieves the previous basic block relative to the current one.
+    ///
+    /// # Parameters
+    /// * `builder_tag` - BuilderTag used to navigate the block structure.
+    ///
+    /// # Returns
+    /// Option<BasicBlockTag> - The tag of the previous basic block, or None if there is no preceding block.
     pub fn get_previous_block(&mut self, builder_tag: BuilderTag) -> Option<BasicBlockTag> {
         let builder_arc_rwlock = self.get_builder(builder_tag)?;
 
@@ -182,7 +218,16 @@ impl IRGenerator {
 
     }
     
-    /// Creates a conditional branch to two different blocks. 
+    /// Creates a conditional branch to two different blocks.
+    ///
+    /// # Parameters
+    /// * `builder_tag` - BuilderTag indicating the current position.
+    /// * `condition_tag` - ValueTag representing the condition for branching.
+    /// * `then_bb_tag` - BasicBlockTag for the 'then' branch.
+    /// * `else_bb_tag` - BasicBlockTag for the 'else' branch.
+    ///
+    /// # Returns
+    /// Option<ValueTag> - The resulting branch instruction tag, or None if the branch creation fails.
     pub fn create_cond_br(&mut self, builder_tag: BuilderTag, condition_tag: ValueTag, then_bb_tag: BasicBlockTag, else_bb_tag: BasicBlockTag) -> Option<ValueTag> {
         let builder_arc_rwlock = self.get_builder(builder_tag)?;
         let condition_arc_rwlock = self.get_value(condition_tag)?;
@@ -244,7 +289,14 @@ impl IRGenerator {
         }
     }
 
-    /// Creates an unconditional branch instruction to a target block. 
+    /// Creates an unconditional branch instruction to a target block.
+    ///
+    /// # Parameters
+    /// * `builder_tag` - BuilderTag indicating the current position.
+    /// * `target_bb_tag` - BasicBlockTag of the target block for the branch.
+    ///
+    /// # Returns
+    /// Option<ValueTag> - The tag of the created branch instruction, or None if the operation fails.
     pub fn create_br(&mut self, builder_tag: BuilderTag, target_bb_tag: BasicBlockTag) -> Option<ValueTag> {
         let builder_arc_rwlock = self.get_builder(builder_tag)?;
         let target_bb_arc_rwlock = self.get_basic_block(target_bb_tag)?;
@@ -282,7 +334,14 @@ impl IRGenerator {
         }
     }
     
-    /// Positions the builder at the end of a block
+    /// Positions the builder at the end of a specified block for further instruction insertion.
+    ///
+    /// # Parameters
+    /// * `builder_tag` - BuilderTag used for position management.
+    /// * `bb_tag` - BasicBlockTag where the builder will be positioned.
+    ///
+    /// # Returns
+    /// Option<()> - None if the operation fails, or an empty Option if successful.
     pub fn position_builder(&mut self, builder_tag: BuilderTag, bb_tag: BasicBlockTag) -> Option<()> {
         let builder_arc_rwlock = self.get_builder(builder_tag)?;
         let bb_arc_rwlock = self.get_basic_block(bb_tag)?;
@@ -316,7 +375,13 @@ impl IRGenerator {
         Some(())
     }
 
-    /// Deletes a specified block.
+    /// Deletes a specified basic block from the function.
+    ///
+    /// # Parameters
+    /// * `bb_tag` - BasicBlockTag of the block to be deleted.
+    ///
+    /// # Returns
+    /// Option<()> - None if the deletion fails, or an empty Option if successful.
     pub fn delete_basic_block(&mut self, bb_tag: BasicBlockTag) -> Option<()> {
         let bb_arc_rwlock = self.get_basic_block(bb_tag)?;
 
@@ -338,7 +403,13 @@ impl IRGenerator {
         Some(())
     }
 
-    /// Retrieves the first instruction in a target block. 
+    /// Retrieves the first instruction within a target basic block.
+    ///
+    /// # Parameters
+    /// * `bb_tag` - BasicBlockTag identifying the block of interest.
+    ///
+    /// # Returns
+    /// Option<ValueTag> - The tag of the first instruction in the block, or None if there are no instructions.
     pub fn get_first_instruction(&mut self, bb_tag: BasicBlockTag) -> Option<ValueTag> {
         let bb_arc_rwlock = self.get_basic_block(bb_tag)?;
 
@@ -364,7 +435,13 @@ impl IRGenerator {
         }
     }
 
-    /// Retrieves the last instruction in a target block. 
+    /// Retrieves the last instruction within a target basic block.
+    ///
+    /// # Parameters
+    /// * `bb_tag` - BasicBlockTag identifying the block of interest.
+    ///
+    /// # Returns
+    /// Option<ValueTag> - The tag of the last instruction in the block, or None if there are no instructions.
     pub fn get_last_instruction(&mut self, bb_tag: BasicBlockTag) -> Option<ValueTag> {
         let bb_arc_rwlock = self.get_basic_block(bb_tag)?;
 
@@ -387,143 +464,6 @@ impl IRGenerator {
             None
         } else {
             self.store_value(instruction)
-        }
-    }
-
-    /// Gets a parameter from a function by its index.
-    pub fn get_param(&mut self, function_tag: ValueTag, index: u32) -> Option<ValueTag> {
-        let function_arc_rwlock = self.get_value(function_tag)?;
-        
-        let param = {
-            let function_rwlock = function_arc_rwlock.read().expect("Failed to lock function for reading");
-            let function_ptr = function_rwlock.read(LLVMRefType::Value, |value_ref| {
-                if let LLVMRef::Value(ptr) = value_ref {
-                    Some(*ptr)
-                } else {
-                    None
-                }
-            })?;
-
-            unsafe { core::LLVMGetParam(function_ptr, index) }
-        };
-
-        if param.is_null() {
-            None
-        } else {
-            self.store_value(param)
-        }
-    }
-
-    /// Adds a function to a module. 
-    pub fn add_function_to_module(&mut self, module_tag: ModuleTag, function_name: &str, function_type_tag: TypeTag) -> Option<ValueTag> {
-        let module_arc_rwlock = self.get_module(module_tag)?;
-        let function_type_arc_rwlock = self.get_type(function_type_tag)?;
-
-        let c_name = CString::new(function_name).expect("Failed to create CString for function name");
-
-        let function = {
-            let module_rwlock = module_arc_rwlock.read().expect("Failed to lock module for reading");
-            let module_ptr = module_rwlock.read(LLVMRefType::Module, |module_ref| {
-                if let LLVMRef::Module(ptr) = module_ref {
-                    Some(*ptr)
-                } else {
-                    None
-                }
-            })?;
-
-            let function_type_ptr = {
-                let function_type_rwlock = function_type_arc_rwlock.read().expect("Failed to lock function type for reading");
-                function_type_rwlock.read(LLVMRefType::Type, |type_ref| {
-                    if let LLVMRef::Type(ptr) = type_ref {
-                        Some(*ptr)
-                    } else {
-                        None
-                    }
-                })?
-            };
-
-            unsafe { core::LLVMAddFunction(module_ptr, c_name.as_ptr(), function_type_ptr) }
-        };
-
-        if function.is_null() {
-            None
-        } else {
-            self.store_value(function)
-        }
-    }
-
-    /// Creates a new struct type in the LLVM context.
-    pub fn create_struct(&mut self, context_tag: ContextTag, member_types: Vec<TypeTag>, packed: bool) -> Option<TypeTag> {
-        let mut member_llvm_types: Vec<LLVMTypeRef> = member_types.iter()
-            .map(|type_tag| {
-                let type_arc_rwlock = self.get_type(*type_tag)?;
-                let type_ptr = {
-                    let type_rwlock = type_arc_rwlock.read().expect("Failed to lock type for reading");
-                    type_rwlock.read(LLVMRefType::Type, |type_ref| {
-                        if let LLVMRef::Type(ptr) = type_ref {
-                            Some(*ptr)
-                        } else {
-                            None
-                        }
-                    })?
-                };
-                Some(type_ptr)
-            })
-            .collect::<Option<Vec<_>>>()?;
-
-            let context_arc_rwlock = self.get_context(context_tag)?;
-            let context_ptr = {
-                let context_rwlock = context_arc_rwlock.read().expect("Failed to lock context for reading");
-                context_rwlock.read(LLVMRefType::Context, |context_ref| {
-                    if let LLVMRef::Context(ptr) = context_ref {
-                        Some(*ptr)
-                    } else {
-                        None
-                    }
-                })?
-            };
-
-        let struct_type = unsafe {
-            llvm::core::LLVMStructTypeInContext(context_ptr, member_llvm_types.as_mut_ptr(), member_llvm_types.len() as u32, packed as i32)
-        };
-
-        if struct_type.is_null() {
-            None
-        } else {
-            self.store_type(struct_type)
-        }
-    }
-    /// Creates an enum type represented by an integer of specified bit width and associated variants.
-    /// Each variant is internally mapped to an integer value starting from 0.
-    pub fn create_enum(&mut self, context_tag: ContextTag, num_bits: u32, name: &str, variants: &[String]) -> Option<TypeTag> {
-        let context_arc_rwlock = self.get_context(context_tag)?;
-        let context_ptr = {
-            let context_rwlock = context_arc_rwlock.read().expect("Failed to lock context for reading");
-            context_rwlock.read(LLVMRefType::Context, |context_ref| {
-                if let LLVMRef::Context(ptr) = context_ref {
-                    Some(*ptr)
-                } else {
-                    None
-                }
-            })?
-        };
-
-        let enum_type_ptr = unsafe { llvm::core::LLVMIntTypeInContext(context_ptr, num_bits) };
-        
-        if enum_type_ptr.is_null() {
-            None
-        } else {
-            let type_tag = self.store_type(enum_type_ptr).expect("Failed to store type tag");
-            let mut variant_map = HashMap::new();
-
-            for (index, variant) in variants.iter().enumerate() {
-                variant_map.insert(variant.clone(), index as i64);
-            }
-
-            self.store_enum_definition(type_tag, EnumDefinition::new(name.to_string(), variant_map));
-
-
-            Some(type_tag)
         }
     }
 }

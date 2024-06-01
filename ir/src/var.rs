@@ -1,15 +1,25 @@
+//! This module provides functionality for handling variables within the IR generator.
+//!
+//! It includes operations for initializing, reassigning, and retrieving variables as well as managing their storage and retrieval in memory.
+
 extern crate llvm_sys as llvm;
 
 use llvm::core;
-
 use std::ffi::CString;
-
 use common::pointer::{LLVMRef, LLVMRefType};
-
 use super::core::{BuilderTag, IRGenerator, TypeTag, ValueTag};
 
 impl IRGenerator {
-    /// Initializes a variable
+    /// Initializes a variable with an optional initial value in the specified builder context.
+    ///
+    /// # Parameters
+    /// * `builder_tag` - Tag of the builder to use for variable initialization.
+    /// * `var_name` - Name of the variable.
+    /// * `data_type_tag` - Type tag of the variable.
+    /// * `initial_value_tag` - Optional tag of the initial value to assign to the variable.
+    ///
+    /// # Returns
+    /// Option<ValueTag> - The tag of the allocated variable or None if the initialization fails.
     pub fn init_var(
         &mut self,
         builder_tag: BuilderTag, 
@@ -72,7 +82,15 @@ impl IRGenerator {
         }
     }
 
-    /// Reassigns a variable
+    /// Reassigns a new value to an existing variable.
+    ///
+    /// # Parameters
+    /// * `builder_tag` - Tag of the builder used for variable assignment.
+    /// * `variable_alloc_tag` - Tag of the variable allocation to be reassigned.
+    /// * `new_value_tag` - Tag of the new value to assign.
+    ///
+    /// # Returns
+    /// Option<()> - None if the reassignment is successful, or an error if it fails.
     pub fn reassign_var(
         &mut self,
         builder_tag: BuilderTag, 
@@ -114,7 +132,15 @@ impl IRGenerator {
         Some(())
     }
 
-    /// Gets a variable
+    /// Retrieves a variable's current value.
+    ///
+    /// # Parameters
+    /// * `builder_tag` - Tag of the builder to use for retrieving the variable.
+    /// * `variable_type_tag` - Type tag of the variable being retrieved.
+    /// * `variable_alloc_tag` - Tag of the variable allocation from which to load the value.
+    ///
+    /// # Returns
+    /// Option<ValueTag> - The tag of the loaded value or None if the retrieval fails.
     pub fn get_var(
         &mut self,
         builder_tag: BuilderTag, 
