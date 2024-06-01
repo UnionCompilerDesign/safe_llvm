@@ -1,0 +1,7 @@
+; ModuleID = 'test_module'
+source_filename = "test_module"
+
+define i64 @main() {
+entry:
+  ret i64 64
+}

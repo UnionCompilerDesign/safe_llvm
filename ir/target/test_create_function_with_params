@@ -1,0 +1,7 @@
+; ModuleID = 'test_module_with_params'
+source_filename = "test_module_with_params"
+
+define i64 @main(i32 %0) {
+entry:
+  ret i64 32
+}

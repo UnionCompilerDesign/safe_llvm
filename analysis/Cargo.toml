@@ -1,0 +1,12 @@
+[package]
+name = "analysis"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "analysis"
+path = "src/lib.rs"
+
+[dependencies]
+llvm-sys = "170"
+common = { path = "../common" }

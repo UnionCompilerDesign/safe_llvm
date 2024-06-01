@@ -5,16 +5,29 @@ edition = "2021"
 
 [dependencies]
 llvm-sys = "170"
-mockall = "0.10.2"
 slog = "2.7"
 slog-async = "2.6"
 slog-term = "2.8"
 slog-json = "2.4"
 
+ir = { path = "./ir" }
+analysis = { path = "./analysis" }
+common = { path = "./common" }
+jit = { path = "./jit" }
+logging = { path = "./logging" }
+
 [dev-dependencies]
 llvm-sys = "170"
-mockall = "0.10.2"
 slog = "2.7"
 slog-async = "2.6"
 slog-term = "2.8"
 slog-json = "2.4"
+
+[workspace]
+members = [
+    "./ir",
+    "./analysis",
+    "./common",
+    "./jit",
+    "./logging",
+]
