@@ -342,7 +342,7 @@ impl IRGenerator {
     ///
     /// # Returns
     /// Option<()> - None if the operation fails, or an empty Option if successful.
-    pub fn position_builder(&mut self, builder_tag: BuilderTag, bb_tag: BasicBlockTag) -> Option<()> {
+    pub fn position_builder_at_end(&mut self, builder_tag: BuilderTag, bb_tag: BasicBlockTag) -> Option<()> {
         let builder_arc_rwlock = self.get_builder(builder_tag)?;
         let bb_arc_rwlock = self.get_basic_block(bb_tag)?;
 

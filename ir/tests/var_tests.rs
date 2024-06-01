@@ -14,7 +14,7 @@ fn test_init_var() {
     let function_value_tag = resource_pools.add_function_to_module(module_tag, "testFunction", function_type_tag).expect("Failed to add function to module");
 
     let block_tag = resource_pools.create_basic_block(context_tag, function_value_tag, "entry").expect("Failed to create basic block");
-    resource_pools.position_builder(builder_tag, block_tag).expect("Failed to position builder");
+    resource_pools.position_builder_at_end(builder_tag, block_tag).expect("Failed to position builder");
 
     let var_tag = resource_pools.init_var(builder_tag, "myVar", int_type_tag, Some(initial_value_tag));
     assert!(var_tag.is_some(), "Variable should be initialized successfully");
@@ -34,7 +34,7 @@ fn test_reassign_var() {
     let function_type_tag = resource_pools.create_function(Some(int_type_tag), &[], false, context_tag).expect("Failed to create function type");
     let function_value_tag = resource_pools.add_function_to_module(module_tag, "testFunction", function_type_tag).expect("Failed to add function to module");
     let block_tag = resource_pools.create_basic_block(context_tag, function_value_tag, "entry").expect("Failed to create basic block");
-    resource_pools.position_builder(builder_tag, block_tag).expect("Failed to position builder");
+    resource_pools.position_builder_at_end(builder_tag, block_tag).expect("Failed to position builder");
 
     let var_tag = resource_pools.init_var(builder_tag, "myVar", int_type_tag, Some(initial_value_tag)).expect("Variable should be initialized successfully");
     let new_value_tag = resource_pools.create_integer(context_tag, 100).expect("Failed to create new value");
@@ -57,7 +57,7 @@ fn test_get_var() {
     let function_type_tag = resource_pools.create_function(Some(int_type_tag), &[], false, context_tag).expect("Failed to create function type");
     let function_value_tag = resource_pools.add_function_to_module(module_tag, "testFunction", function_type_tag).expect("Failed to add function to module");
     let block_tag = resource_pools.create_basic_block(context_tag, function_value_tag, "entry").expect("Failed to create basic block");
-    resource_pools.position_builder(builder_tag, block_tag).expect("Failed to position builder");
+    resource_pools.position_builder_at_end(builder_tag, block_tag).expect("Failed to position builder");
 
     let var_tag = resource_pools.init_var(builder_tag, "myVar", int_type_tag, Some(initial_value_tag)).expect("Variable should be initialized successfully");
     let retrieved_var_tag = resource_pools.get_var(builder_tag, int_type_tag, var_tag);

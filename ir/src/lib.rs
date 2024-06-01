@@ -22,7 +22,7 @@ pub mod types;
 /// This module provides functionality to declare and manipulate variables in LLVM IR.
 /// This includes creating global and local variables, and managing their lifetimes
 /// within the IR.
-pub mod var;
+pub mod variables;
 
 /// This module provides functionality to create and manage basic blocks.
 pub mod block;

@@ -16,7 +16,7 @@ fn test_execution_engine_with_general_targeting() {
     let entry_bb_tag = resource_pools.create_basic_block(context_tag, function_tag, DEFAULT_BASIC_BLOCK_NAME).expect("Failed to create entry block");
     let return_value = resource_pools.create_integer(context_tag, 0).expect("Failed to create return val");
 
-    resource_pools.position_builder(builder_tag, entry_bb_tag);
+    resource_pools.position_builder_at_end(builder_tag, entry_bb_tag);
     resource_pools.nonvoid_return(builder_tag, return_value);
 
     let module = resource_pools.get_module(module_tag).expect("Failed to retrieve module");
@@ -57,7 +57,7 @@ fn test_execution_engine_with_arm_targeting() {
     let entry_bb_tag = resource_pools.create_basic_block(context_tag, function_tag, DEFAULT_BASIC_BLOCK_NAME).expect("Failed to create entry block");
     let return_value = resource_pools.create_integer(context_tag, 0).expect("Failed to create return val");
 
-    resource_pools.position_builder(builder_tag, entry_bb_tag);
+    resource_pools.position_builder_at_end(builder_tag, entry_bb_tag);
     resource_pools.nonvoid_return(builder_tag, return_value);
 
     let module = resource_pools.get_module(module_tag).expect("Failed to retrieve module");
@@ -98,7 +98,7 @@ fn test_execution_engine_with_x86_targeting() {
     let entry_bb_tag = resource_pools.create_basic_block(context_tag, function_tag, DEFAULT_BASIC_BLOCK_NAME).expect("Failed to create entry block");
     let return_value = resource_pools.create_integer(context_tag, 0).expect("Failed to create return val");
 
-    resource_pools.position_builder(builder_tag, entry_bb_tag);
+    resource_pools.position_builder_at_end(builder_tag, entry_bb_tag);
     resource_pools.nonvoid_return(builder_tag, return_value);
 
     let module = resource_pools.get_module(module_tag).expect("Failed to retrieve module");
@@ -139,7 +139,7 @@ fn test_execution_engine_with_mips_targeting() {
     let entry_bb_tag = resource_pools.create_basic_block(context_tag, function_tag, DEFAULT_BASIC_BLOCK_NAME).expect("Failed to create entry block");
     let return_value = resource_pools.create_integer(context_tag, 0).expect("Failed to create return val");
 
-    resource_pools.position_builder(builder_tag, entry_bb_tag);
+    resource_pools.position_builder_at_end(builder_tag, entry_bb_tag);
     resource_pools.nonvoid_return(builder_tag, return_value);
 
     let module = resource_pools.get_module(module_tag).expect("Failed to retrieve module");
@@ -180,7 +180,7 @@ fn test_execution_engine_with_rv_targeting() {
     let entry_bb_tag = resource_pools.create_basic_block(context_tag, function_tag, DEFAULT_BASIC_BLOCK_NAME).expect("Failed to create entry block");
     let return_value = resource_pools.create_integer(context_tag, 0).expect("Failed to create return val");
 
-    resource_pools.position_builder(builder_tag, entry_bb_tag);
+    resource_pools.position_builder_at_end(builder_tag, entry_bb_tag);
     resource_pools.nonvoid_return(builder_tag, return_value);
 
     let module = resource_pools.get_module(module_tag).expect("Failed to retrieve module");
@@ -221,7 +221,7 @@ fn test_execution_engine_with_wasm_targeting() {
     let entry_bb_tag = resource_pools.create_basic_block(context_tag, function_tag, DEFAULT_BASIC_BLOCK_NAME).expect("Failed to create entry block");
     let return_value = resource_pools.create_integer(context_tag, 0).expect("Failed to create return val");
 
-    resource_pools.position_builder(builder_tag, entry_bb_tag);
+    resource_pools.position_builder_at_end(builder_tag, entry_bb_tag);
     resource_pools.nonvoid_return(builder_tag, return_value);
 
     let module = resource_pools.get_module(module_tag).expect("Failed to retrieve module");
@@ -262,7 +262,7 @@ fn test_execution_engine_with_ppc_targeting() {
     let entry_bb_tag = resource_pools.create_basic_block(context_tag, function_tag, DEFAULT_BASIC_BLOCK_NAME).expect("Failed to create entry block");
     let return_value = resource_pools.create_integer(context_tag, 0).expect("Failed to create return val");
 
-    resource_pools.position_builder(builder_tag, entry_bb_tag);
+    resource_pools.position_builder_at_end(builder_tag, entry_bb_tag);
     resource_pools.nonvoid_return(builder_tag, return_value);
 
     let module = resource_pools.get_module(module_tag).expect("Failed to retrieve module");
@@ -303,7 +303,7 @@ fn test_execution_engine_with_sparc_targeting() {
     let entry_bb_tag = resource_pools.create_basic_block(context_tag, function_tag, DEFAULT_BASIC_BLOCK_NAME).expect("Failed to create entry block");
     let return_value = resource_pools.create_integer(context_tag, 0).expect("Failed to create return val");
 
-    resource_pools.position_builder(builder_tag, entry_bb_tag);
+    resource_pools.position_builder_at_end(builder_tag, entry_bb_tag);
     resource_pools.nonvoid_return(builder_tag, return_value);
 
     let module = resource_pools.get_module(module_tag).expect("Failed to retrieve module");
@@ -344,7 +344,7 @@ fn test_execution_engine_with_systemz_targeting() {
     let entry_bb_tag = resource_pools.create_basic_block(context_tag, function_tag, DEFAULT_BASIC_BLOCK_NAME).expect("Failed to create entry block");
     let return_value = resource_pools.create_integer(context_tag, 0).expect("Failed to create return val");
 
-    resource_pools.position_builder(builder_tag, entry_bb_tag);
+    resource_pools.position_builder_at_end(builder_tag, entry_bb_tag);
     resource_pools.nonvoid_return(builder_tag, return_value);
 
     let module = resource_pools.get_module(module_tag).expect("Failed to retrieve module");
@@ -385,7 +385,7 @@ fn test_execution_engine_with_aarch64_targeting() {
     let entry_bb_tag = resource_pools.create_basic_block(context_tag, function_tag, DEFAULT_BASIC_BLOCK_NAME).expect("Failed to create entry block");
     let return_value = resource_pools.create_integer(context_tag, 0).expect("Failed to create return val");
 
-    resource_pools.position_builder(builder_tag, entry_bb_tag);
+    resource_pools.position_builder_at_end(builder_tag, entry_bb_tag);
     resource_pools.nonvoid_return(builder_tag, return_value);
 
     let module = resource_pools.get_module(module_tag).expect("Failed to retrieve module");
@@ -426,7 +426,7 @@ fn test_execution_engine_with_amdgpu_targeting() {
     let entry_bb_tag = resource_pools.create_basic_block(context_tag, function_tag, DEFAULT_BASIC_BLOCK_NAME).expect("Failed to create entry block");
     let return_value = resource_pools.create_integer(context_tag, 0).expect("Failed to create return val");
 
-    resource_pools.position_builder(builder_tag, entry_bb_tag);
+    resource_pools.position_builder_at_end(builder_tag, entry_bb_tag);
     resource_pools.nonvoid_return(builder_tag, return_value);
 
     let module = resource_pools.get_module(module_tag).expect("Failed to retrieve module");
@@ -467,7 +467,7 @@ fn test_execution_engine_with_bpf_targeting() {
     let entry_bb_tag = resource_pools.create_basic_block(context_tag, function_tag, DEFAULT_BASIC_BLOCK_NAME).expect("Failed to create entry block");
     let return_value = resource_pools.create_integer(context_tag, 0).expect("Failed to create return val");
 
-    resource_pools.position_builder(builder_tag, entry_bb_tag);
+    resource_pools.position_builder_at_end(builder_tag, entry_bb_tag);
     resource_pools.nonvoid_return(builder_tag, return_value);
 
     let module = resource_pools.get_module(module_tag).expect("Failed to retrieve module");

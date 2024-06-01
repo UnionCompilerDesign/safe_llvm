@@ -8,7 +8,7 @@ The `common` module provides essential functionalities that support the broader 
 - **CString Utilities:** Supports converting paths to instances of `CString`.
 - **Pointer Safety:** Offers abstractions to manage raw LLVM pointers safely.
 - **Target Configuration:** Assists in setting up and managing LLVM target configurations.
-- **Constants:** Centralizes important constants that are reused throughout the SafeLLVM project.
+- **Constants:** Centralizes constants that are reused throughout the SafeLLVM project.
 
 ## Usage
 Here's how to use the modules within the `common` module:

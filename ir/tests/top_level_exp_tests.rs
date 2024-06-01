@@ -14,7 +14,7 @@ fn test_add_function_to_module() {
     let builder_tag = resource_pools.create_builder(context_tag).expect("Failed to create builder");
     let entry_bb_tag = resource_pools.create_basic_block(context_tag, added_function_tag, "entry").expect("Failed to create entry block");
 
-    resource_pools.position_builder(builder_tag, entry_bb_tag);
+    resource_pools.position_builder_at_end(builder_tag, entry_bb_tag);
     resource_pools.void_return(builder_tag);
 
     let module = resource_pools.get_module(module_tag).expect("Failed to get module");
@@ -47,7 +47,7 @@ fn test_get_param() {
     let entry_bb_tag = resource_pools.create_basic_block(context_tag, added_function_tag, "entry").expect("Failed to create entry block");
     let return_val = resource_pools.get_param(added_function_tag, 0).expect("Failed to get parameter");
 
-    resource_pools.position_builder(builder_tag, entry_bb_tag);
+    resource_pools.position_builder_at_end(builder_tag, entry_bb_tag);
     resource_pools.nonvoid_return(builder_tag, return_val);
 
     let module = resource_pools.get_module(module_tag).expect("Failed to get module");

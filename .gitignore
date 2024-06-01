@@ -7,3 +7,5 @@
 /.vscode/
 /jit/target/
 /jit/app.log
+/ir/target/
+/ir/app.log

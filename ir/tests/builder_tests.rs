@@ -25,7 +25,7 @@ fn test_create_function_no_params_void_return() {
     let entry_bb_tag = llvm_resource_pool.create_basic_block(context_tag, function_tag, DEFAULT_BASIC_BLOCK_NAME).expect("Failed to create entry block");
     let return_val = llvm_resource_pool.create_integer(context_tag, 64).expect("Failed to create value");
     
-    llvm_resource_pool.position_builder(builder_tag, entry_bb_tag);
+    llvm_resource_pool.position_builder_at_end(builder_tag, entry_bb_tag);
     llvm_resource_pool.nonvoid_return(builder_tag, return_val);
 
     let module = llvm_resource_pool.get_module(module_tag).expect("Failed to get module");
@@ -58,7 +58,7 @@ fn test_create_function_with_params() {
     let entry_bb_tag = llvm_resource_pool.create_basic_block(context_tag, function_tag, DEFAULT_BASIC_BLOCK_NAME).expect("Failed to create entry block");
     let return_val = llvm_resource_pool.create_integer(context_tag, 32).expect("Failed to create return value");
 
-    llvm_resource_pool.position_builder(builder_tag, entry_bb_tag);
+    llvm_resource_pool.position_builder_at_end(builder_tag, entry_bb_tag);
     llvm_resource_pool.nonvoid_return(builder_tag, return_val);
 
     let module = llvm_resource_pool.get_module(module_tag).expect("Failed to get module");
