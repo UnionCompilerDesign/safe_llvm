@@ -10,12 +10,13 @@ List the main features of the module:
 
 ## Usage
 Explain how to use the module with examples:
-    ```
+
+```
     use safe_llvm::module_name::{function1, function2};
 
     function1();  // Example usage of function1
     function2();  // Example usage of function2
-    ```
+```
 
 Provide any necessary warnings or special instructions for using the module correctly.
 
