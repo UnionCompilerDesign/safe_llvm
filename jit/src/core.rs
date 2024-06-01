@@ -90,10 +90,10 @@ impl ExecutionEngine {
     /// Returns `Ok(())` if the function is executed successfully, or `Err(String)` if an error occurs,
     /// which could include the function not being found or an execution error.
     /// Executes a specified function.
-    pub fn execute<ArgType, ReturnType>(&mut self, function_name: &str, args: ArgType) -> Result<ReturnType, String>
+    pub fn execute<ReturnType, ArgType>(&mut self, function_name: &str, args: ArgType) -> Result<ReturnType, String>
     where
-        ArgType: Any + Send + Sync,     
-        ReturnType: 'static 
+        ReturnType: 'static, 
+        ArgType: Any + Send + Sync, 
     {
         let engine_lock = self.engine.read().map_err(|e| format!("Failed to obtain read lock on engine: {}", e))?;
         let result = engine_lock.read(LLVMRefType::ExecutionEngine, |engine_ref| {
@@ -118,11 +118,11 @@ impl ExecutionEngine {
         });
 
         match result {
-            Ok(result) => {
+            Ok(value) => {
                 if let Some(logger) = &self.logger {
                     logging::core::log_info(&logger, &format!("Function '{}' executed successfully.", function_name));
                 }
-                Ok(result)
+                Ok(value)
             },
             Err(e) => {
                 if let Some(logger) = &self.logger {
