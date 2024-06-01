@@ -18,14 +18,6 @@ use crate::{cstring, pointer::{LLVMRef, LLVMRefType, SafeLLVMPointer}};
 /// Returns `Ok(())` if the module is successfully written to the file.
 /// Returns `Err(String)` if there are issues obtaining locks, converting paths, creating directories,
 /// or in the LLVM API call to write the module.
-///
-/// # Errors
-/// This function returns an error if:
-/// - It fails to acquire a read lock on the LLVM module.
-/// - It cannot extract the LLVM module reference from the `SafeLLVMPointer`.
-/// - The output directory does not exist and cannot be created.
-/// - The file path conversion to `CString` fails.
-/// - The LLVM API function `LLVMPrintModuleToFile` returns a non-zero value indicating failure.
 pub fn write_ir_to_file(module: Arc<RwLock<SafeLLVMPointer>>, file_name: &str) -> Result<(), String> {
     let module_ref_rwlock = module.read().map_err(|_| "Failed to obtain read lock on module".to_string())?;
 
