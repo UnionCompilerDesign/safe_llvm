@@ -6,6 +6,13 @@ Caleb L'Italien, John Daly
 ## Overview
 SafeLLVM is a Rust-based library designed to provide a safe and user-friendly interface to llvm-sys. It is developed specifically for the Simple Instructional C99 Compiler (SICC). The library aims to encapsulate the complexity of LLVM’s API, making it accessible for undergraduate work.
 
+## Disclaimer
+
+SafeLLVM is designed for educational purposes and is not intended for production use. If you are looking for a production-level LLVM crate for Rust projects, consider using the following crates:
+
+- **[Inkwell](https://github.com/TheDan64/inkwell)**
+- **[llvm-ir](https://github.com/cdisselkoen/llvm-ir)**
+
 ## Project Structure
 - `analysis/`: Tools for performing various analyses on LLVM IR.
 - `common/`: Common utilities and helper functions shared across the project.
