@@ -8,9 +8,8 @@ The Analysis module is a component of the SafeLLVM project for checking the corr
 - **Function Validator**: Determines if an LLVM function is well-formed.
 
 ## Usage
-1. Import the module by including it in your project.
-2. Initialize the Validator with a module: Create a Validator instance by passing a protected reference to the LLVM module you wish to validate.
-3. Validate Functions or Modules: 
+1. Initialize the Validator with a module: Create a Validator instance by passing a protected reference to the LLVM module you wish to validate.
+2. Validate Functions or Modules: 
    - To validate an LLVM module, call the is_valid_module() method on your Validator instance:
         ```
         let validator = Validator::new(module_pointer);
