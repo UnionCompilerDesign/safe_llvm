@@ -15,13 +15,13 @@ The Analysis module is a component of the SafeLLVM project for checking the corr
         ```
         let validator = Validator::new(module_pointer);
         let is_module_valid = validator.is_valid_module();
-        eprintln!("Module is/isn't valid: ", is_module_valid);
+        eprintln!("Module is valid: ", is_module_valid);
         ```
    - Similarly, to validate a specific function within a module, provide a protected reference to the LLVM function to the is_valid_function() method:
         ```
         let validator = Validator::new(module_pointer);
         let is_function_valid = validator.is_valid_function(function_pointer);
-        eprintln!("Function is/isn't valid: ", is_function_valid);
+        eprintln!("Function is valid: ", is_function_valid);
         ```
 
 Provide any necessary warnings or special instructions for using the module correctly, such as ensuring that pointers are correctly managed and threads are safely handled due to the use of Arc and RwLock.
