@@ -24,7 +24,7 @@ To use SafeLLVM in your Rust projects, you can include it directly via Cargo by 
     safe_llvm = { git = "git@github.com:UnionCompilerDesign/safe_llvm.git", branch = "main" }
     ```
 
-2. **Refer to specific READMEs in each directory:**
+2. **Refer to specific `README`s in each directory:**
 For more specific usage details, please refer to the READMEs located in each directory. These documents provide further instructions and examples on how to use the components within SafeLLVM.
 
 ### How to Contribute
