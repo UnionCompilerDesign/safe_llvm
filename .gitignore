@@ -5,3 +5,5 @@
 /dev_toolchain/app.log
 /dev_toolchain/Cargo.lock
 /.vscode/
+/jit/target/
+/jit/app.log

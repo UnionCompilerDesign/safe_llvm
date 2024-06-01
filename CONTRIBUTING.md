@@ -15,15 +15,15 @@ Before contributing, please make sure to familiarize yourself with the project s
 
 ### Setting Up Your Development Environment
 
-0. **Install the prerequisites found in README.md**
+1. **Install the prerequisites found in README.md**
 
-1. **Fork and clone the repository:**
+2. **Fork and clone the repository:**
     Start by cloning the SafeLLVM repository to your local machine.
     ```
     git clone git@github.com:UnionCompilerDesign/safe_llvm.git
     ```
 
-2. **Build and test the project:**
+3. **Build and test the project:**
     ```
     cd safe_llvm
     cargo build --all

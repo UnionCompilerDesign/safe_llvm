@@ -1,3 +1,3 @@
-//! Analysis Tools.
+//! Analysis Toolchain.
 
 pub mod validator;

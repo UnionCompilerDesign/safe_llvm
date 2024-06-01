@@ -30,7 +30,7 @@ fn test_create_function_no_params_void_return() {
 
     let module = llvm_resource_pool.get_module(module_tag).expect("Failed to get module");
 
-    match common::write_ir::write_to_file(module.clone(), "test_create_function_no_params_void_return") {
+    match common::io::write_ir_to_file(module.clone(), "test_create_function_no_params_void_return") {
         Ok(_) => {}
         Err(e) => {
             eprintln!("File write error: {}", e);
@@ -63,7 +63,7 @@ fn test_create_function_with_params() {
 
     let module = llvm_resource_pool.get_module(module_tag).expect("Failed to get module");
 
-    match common::write_ir::write_to_file(module.clone(), "test_create_function_with_params") {
+    match common::io::write_ir_to_file(module.clone(), "test_create_function_with_params") {
         Ok(_) => {}
         Err(e) => {
             eprintln!("File write error: {}", e);

@@ -1,15 +1,10 @@
-/// The ExecutionEngine class manages the initialization and operation of an LLVM execution engine, along with its context and module.
+//! The ExecutionEngine class manages the initialization and operation of an LLVM execution engine, along with its context and module.
 
 extern crate llvm_sys as llvm;
-
 use llvm::{core, execution_engine};
-
 use std::{ffi::{c_char, CStr, CString}, sync::{Arc, RwLock}};
-
 use slog::Logger;
-
 use common::{pointer::{LLVMRef, LLVMRefType, SafeLLVMPointer}, target::{GeneralTargetConfigurator, TargetConfigurator}};
-
 
 /// Represents an LLVM execution engine for a multi-threaded environment.
 /// This struct encapsulates all necessary LLVM components: context, module, and execution engine.
@@ -19,12 +14,17 @@ pub struct ExecutionEngine {
 }
 
 impl ExecutionEngine {
-    /// Constructs a new ExecutionEngine.
-    /// Initializes a new LLVM context and module, and optionally sets up debugging information.
+    /// Constructs a new `ExecutionEngine`.
     ///
-    /// # Arguments
-    /// * 'module` - A thread safe `SafeLLVMPointer` containing an LLVMModuleRef
-    /// * `debug_info` - If true, enables logging for this engine.
+    /// This method initializes a new LLVM context and module, configures the general target,
+    /// and optionally sets up a logger for debugging information based on the `debug_info` parameter.
+    ///
+    /// # Parameters
+    /// * `module` - A thread-safe `SafeLLVMPointer` containing an `LLVMModuleRef`.
+    /// * `debug_info` - If true, initializes a logger to record debugging information.
+    ///
+    /// # Returns
+    /// A new instance of `ExecutionEngine`.
     pub fn new(module: Arc<RwLock<SafeLLVMPointer>>, debug_info: bool) -> Self {
         GeneralTargetConfigurator.configure();
 
@@ -67,18 +67,28 @@ impl ExecutionEngine {
 
     /// Configures the LLVM execution engine using a specified target configurator.
     ///
-    /// # Arguments
+    /// # Parameters
     /// * `target_configurator` - The target configurator to setup necessary LLVM targets.
     ///
     /// # Returns
-    /// Returns `Ok(())` on successful configuration and initialization, or `Err(String)` on failure.
-    pub fn init_target<T: TargetConfigurator>(&mut self, target_configurator: T) -> Result<(), String> {
+    /// Returns `Ok(())` on successful configuration and initialization, or `Err(String)` on failure,
+    /// including detailed error messages.
+    pub fn initialize_target<T: TargetConfigurator>(&mut self, target_configurator: T) -> Result<(), String> {
         target_configurator.configure();
-        self.log_info("Target configured.");
+        if let Some(logger) = &self.logger {
+            logging::core::log_info(&logger, "Target configured.");
+        }
         Ok(())
     }
 
-    /// Executes a specified function.
+    /// Executes a specified function within the module.
+    ///
+    /// # Parameters
+    /// * `function_name` - The name of the function to be executed.
+    ///
+    /// # Returns
+    /// Returns `Ok(())` if the function is executed successfully, or `Err(String)` if an error occurs,
+    /// which could include the function not being found or an execution error.
     pub fn execute(&mut self, function_name: &str) -> Result<(), String> {
         let engine_lock = self.engine.read().map_err(|e| format!("Failed to obtain read lock on engine: {}", e))?;
 
@@ -88,7 +98,9 @@ impl ExecutionEngine {
                 let function_address = unsafe { execution_engine::LLVMGetFunctionAddress(*engine_ptr, function_name_c.as_ptr()) };
                 
                 if function_address == 0 {
-                    self.log_warning(&format!("Function \"{}\" not found.", function_name));
+                    if let Some(logger) = &self.logger {
+                        logging::core::log_warning(&logger, &format!("Function \"{}\" not found.", function_name));
+                    }
                     return Err("Function not found in given module.".to_string());
                 }
 
@@ -103,31 +115,17 @@ impl ExecutionEngine {
     
         match result {
             Ok(_) => {
-                self.log_info(&format!("Function '{}' executed successfully.", function_name));
+                if let Some(logger) = &self.logger {
+                    logging::core::log_info(&logger, &format!("Function '{}' executed successfully.", function_name));
+                }
                 Ok(())
             },
             Err(e) => {
-                self.log_error(&format!("Execution error: {}", e));
+                if let Some(logger) = &self.logger {
+                    logging::core::log_error(&logger, &format!("Execution error: {}", e));
+                }
                 Err(e)
             }
-        }
-    }
-    
-    fn log_info(&self, msg: &str) {
-        if let Some(log) = &self.logger {
-            logging::core::log_info(log, msg)
-        }
-    }
-
-    fn log_warning(&self, msg: &str) {
-        if let Some(log) = &self.logger {
-            logging::core::log_warning(log, msg)
-        }
-    }
-
-    fn log_error(&self, msg: &str) {
-        if let Some(log) = &self.logger {
-            logging::core::log_error(log, msg)
         }
     }
 }

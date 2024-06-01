@@ -21,7 +21,7 @@ fn test_execution_engine_with_general_targeting() {
 
     let module = resource_pools.get_module(module_tag).expect("Failed to retrieve module");
 
-    match common::write_ir::write_to_file(module.clone(), "test_execution_engine_with_general_targeting") {
+    match common::io::write_ir_to_file(module.clone(), "test_execution_engine_with_general_targeting") {
         Ok(_) => {}
         Err(e) => {
             eprintln!("File write error: {}", e);
@@ -36,7 +36,7 @@ fn test_execution_engine_with_general_targeting() {
     assert!(validator.is_valid_function(function), "Invalid function");
 
     let mut engine = ExecutionEngine::new( module, true);
-    engine.init_target(GeneralTargetConfigurator {}).expect("Failed to configure engine");
+    engine.initialize_target(GeneralTargetConfigurator {}).expect("Failed to configure engine");
 
     let result = engine.execute(DEFAULT_FUNCTION_NAME);
 
@@ -62,7 +62,7 @@ fn test_execution_engine_with_arm_targeting() {
 
     let module = resource_pools.get_module(module_tag).expect("Failed to retrieve module");
 
-    match common::write_ir::write_to_file(module.clone(), "test_execution_engine_with_general_targeting") {
+    match common::io::write_ir_to_file(module.clone(), "test_execution_engine_with_general_targeting") {
         Ok(_) => {}
         Err(e) => {
             eprintln!("File write error: {}", e);
@@ -77,7 +77,7 @@ fn test_execution_engine_with_arm_targeting() {
     assert!(validator.is_valid_function(function), "Invalid function");
 
     let mut engine = ExecutionEngine::new( module, true);
-    engine.init_target(ARMTargetConfigurator {}).expect("Failed to configure engine");
+    engine.initialize_target(ARMTargetConfigurator {}).expect("Failed to configure engine");
 
     let result = engine.execute(DEFAULT_FUNCTION_NAME);
 
@@ -103,7 +103,7 @@ fn test_execution_engine_with_x86_targeting() {
 
     let module = resource_pools.get_module(module_tag).expect("Failed to retrieve module");
 
-    match common::write_ir::write_to_file(module.clone(), "test_execution_engine_with_general_targeting") {
+    match common::io::write_ir_to_file(module.clone(), "test_execution_engine_with_general_targeting") {
         Ok(_) => {}
         Err(e) => {
             eprintln!("File write error: {}", e);
@@ -118,7 +118,7 @@ fn test_execution_engine_with_x86_targeting() {
     assert!(validator.is_valid_function(function), "Invalid function");
 
     let mut engine = ExecutionEngine::new( module, true);
-    engine.init_target(X86TargetConfigurator {}).expect("Failed to configure engine");
+    engine.initialize_target(X86TargetConfigurator {}).expect("Failed to configure engine");
 
     let result = engine.execute(DEFAULT_FUNCTION_NAME);
 
@@ -144,7 +144,7 @@ fn test_execution_engine_with_mips_targeting() {
 
     let module = resource_pools.get_module(module_tag).expect("Failed to retrieve module");
 
-    match common::write_ir::write_to_file(module.clone(), "test_execution_engine_with_general_targeting") {
+    match common::io::write_ir_to_file(module.clone(), "test_execution_engine_with_general_targeting") {
         Ok(_) => {}
         Err(e) => {
             eprintln!("File write error: {}", e);
@@ -159,7 +159,7 @@ fn test_execution_engine_with_mips_targeting() {
     assert!(validator.is_valid_function(function), "Invalid function");
 
     let mut engine = ExecutionEngine::new( module, true);
-    engine.init_target(MIPSTargetConfigurator {}).expect("Failed to configure engine");
+    engine.initialize_target(MIPSTargetConfigurator {}).expect("Failed to configure engine");
 
     let result = engine.execute(DEFAULT_FUNCTION_NAME);
 
@@ -185,7 +185,7 @@ fn test_execution_engine_with_rv_targeting() {
 
     let module = resource_pools.get_module(module_tag).expect("Failed to retrieve module");
 
-    match common::write_ir::write_to_file(module.clone(), "test_execution_engine_with_general_targeting") {
+    match common::io::write_ir_to_file(module.clone(), "test_execution_engine_with_general_targeting") {
         Ok(_) => {}
         Err(e) => {
             eprintln!("File write error: {}", e);
@@ -200,7 +200,7 @@ fn test_execution_engine_with_rv_targeting() {
     assert!(validator.is_valid_function(function), "Invalid function");
 
     let mut engine = ExecutionEngine::new( module, true);
-    engine.init_target(RVTargetConfigurator {}).expect("Failed to configure engine");
+    engine.initialize_target(RVTargetConfigurator {}).expect("Failed to configure engine");
 
     let result = engine.execute(DEFAULT_FUNCTION_NAME);
 
@@ -226,7 +226,7 @@ fn test_execution_engine_with_wasm_targeting() {
 
     let module = resource_pools.get_module(module_tag).expect("Failed to retrieve module");
 
-    match common::write_ir::write_to_file(module.clone(), "test_execution_engine_with_general_targeting") {
+    match common::io::write_ir_to_file(module.clone(), "test_execution_engine_with_general_targeting") {
         Ok(_) => {}
         Err(e) => {
             eprintln!("File write error: {}", e);
@@ -241,7 +241,7 @@ fn test_execution_engine_with_wasm_targeting() {
     assert!(validator.is_valid_function(function), "Invalid function");
 
     let mut engine = ExecutionEngine::new( module, true);
-    engine.init_target(WasmTargetConfigurator {}).expect("Failed to configure engine");
+    engine.initialize_target(WasmTargetConfigurator {}).expect("Failed to configure engine");
 
     let result = engine.execute(DEFAULT_FUNCTION_NAME);
 
@@ -267,7 +267,7 @@ fn test_execution_engine_with_ppc_targeting() {
 
     let module = resource_pools.get_module(module_tag).expect("Failed to retrieve module");
 
-    match common::write_ir::write_to_file(module.clone(), "test_execution_engine_with_general_targeting") {
+    match common::io::write_ir_to_file(module.clone(), "test_execution_engine_with_general_targeting") {
         Ok(_) => {}
         Err(e) => {
             eprintln!("File write error: {}", e);
@@ -282,7 +282,7 @@ fn test_execution_engine_with_ppc_targeting() {
     assert!(validator.is_valid_function(function), "Invalid function");
 
     let mut engine = ExecutionEngine::new(module, true);
-    engine.init_target(PPCTargetConfigurator {}).expect("Failed to configure engine");
+    engine.initialize_target(PPCTargetConfigurator {}).expect("Failed to configure engine");
 
     let result = engine.execute(DEFAULT_FUNCTION_NAME);
 
@@ -308,7 +308,7 @@ fn test_execution_engine_with_sparc_targeting() {
 
     let module = resource_pools.get_module(module_tag).expect("Failed to retrieve module");
 
-    match common::write_ir::write_to_file(module.clone(), "test_execution_engine_with_general_targeting") {
+    match common::io::write_ir_to_file(module.clone(), "test_execution_engine_with_general_targeting") {
         Ok(_) => {}
         Err(e) => {
             eprintln!("File write error: {}", e);
@@ -323,7 +323,7 @@ fn test_execution_engine_with_sparc_targeting() {
     assert!(validator.is_valid_function(function), "Invalid function");
 
     let mut engine = ExecutionEngine::new( module, true);
-    engine.init_target(SparcTargetConfigurator {}).expect("Failed to configure engine");
+    engine.initialize_target(SparcTargetConfigurator {}).expect("Failed to configure engine");
 
     let result = engine.execute(DEFAULT_FUNCTION_NAME);
 
@@ -349,7 +349,7 @@ fn test_execution_engine_with_systemz_targeting() {
 
     let module = resource_pools.get_module(module_tag).expect("Failed to retrieve module");
 
-    match common::write_ir::write_to_file(module.clone(), "test_execution_engine_with_general_targeting") {
+    match common::io::write_ir_to_file(module.clone(), "test_execution_engine_with_general_targeting") {
         Ok(_) => {}
         Err(e) => {
             eprintln!("File write error: {}", e);
@@ -364,7 +364,7 @@ fn test_execution_engine_with_systemz_targeting() {
     assert!(validator.is_valid_function(function), "Invalid function");
 
     let mut engine = ExecutionEngine::new(module, true);
-    engine.init_target(SystemZTargetConfigurator {}).expect("Failed to configure engine");
+    engine.initialize_target(SystemZTargetConfigurator {}).expect("Failed to configure engine");
 
     let result = engine.execute(DEFAULT_FUNCTION_NAME);
 
@@ -390,7 +390,7 @@ fn test_execution_engine_with_aarch64_targeting() {
 
     let module = resource_pools.get_module(module_tag).expect("Failed to retrieve module");
 
-    match common::write_ir::write_to_file(module.clone(), "test_execution_engine_with_general_targeting") {
+    match common::io::write_ir_to_file(module.clone(), "test_execution_engine_with_general_targeting") {
         Ok(_) => {}
         Err(e) => {
             eprintln!("File write error: {}", e);
@@ -405,7 +405,7 @@ fn test_execution_engine_with_aarch64_targeting() {
     assert!(validator.is_valid_function(function), "Invalid function");
 
     let mut engine = ExecutionEngine::new( module, true);
-    engine.init_target(AArch64TargetConfigurator {}).expect("Failed to configure engine");
+    engine.initialize_target(AArch64TargetConfigurator {}).expect("Failed to configure engine");
 
     let result = engine.execute(DEFAULT_FUNCTION_NAME);
 
@@ -431,7 +431,7 @@ fn test_execution_engine_with_amdgpu_targeting() {
 
     let module = resource_pools.get_module(module_tag).expect("Failed to retrieve module");
 
-    match common::write_ir::write_to_file(module.clone(), "test_execution_engine_with_general_targeting") {
+    match common::io::write_ir_to_file(module.clone(), "test_execution_engine_with_general_targeting") {
         Ok(_) => {}
         Err(e) => {
             eprintln!("File write error: {}", e);
@@ -446,7 +446,7 @@ fn test_execution_engine_with_amdgpu_targeting() {
     assert!(validator.is_valid_function(function), "Invalid function");
 
     let mut engine = ExecutionEngine::new( module, true);
-    engine.init_target(AMDGPUTargetConfigurator {}).expect("Failed to configure engine");
+    engine.initialize_target(AMDGPUTargetConfigurator {}).expect("Failed to configure engine");
 
     let result = engine.execute(DEFAULT_FUNCTION_NAME);
 
@@ -472,7 +472,7 @@ fn test_execution_engine_with_bpf_targeting() {
 
     let module = resource_pools.get_module(module_tag).expect("Failed to retrieve module");
 
-    match common::write_ir::write_to_file(module.clone(), "test_execution_engine_with_general_targeting") {
+    match common::io::write_ir_to_file(module.clone(), "test_execution_engine_with_general_targeting") {
         Ok(_) => {}
         Err(e) => {
             eprintln!("File write error: {}", e);
@@ -487,7 +487,7 @@ fn test_execution_engine_with_bpf_targeting() {
     assert!(validator.is_valid_function(function), "Invalid function");
 
     let mut engine = ExecutionEngine::new( module, true);
-    engine.init_target(BPFTargetConfigurator {}).expect("Failed to configure engine");
+    engine.initialize_target(BPFTargetConfigurator {}).expect("Failed to configure engine");
 
     let result = engine.execute(DEFAULT_FUNCTION_NAME);
 

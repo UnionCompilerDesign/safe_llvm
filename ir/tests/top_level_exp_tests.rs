@@ -19,7 +19,7 @@ fn test_add_function_to_module() {
 
     let module = resource_pools.get_module(module_tag).expect("Failed to get module");
 
-    match common::write_ir::write_to_file(module.clone(), "test_add_function_to_module") {
+    match common::io::write_ir_to_file(module.clone(), "test_add_function_to_module") {
         Ok(_) => {}
         Err(e) => {
             eprintln!("File write error: {}", e);
@@ -52,7 +52,7 @@ fn test_get_param() {
 
     let module = resource_pools.get_module(module_tag).expect("Failed to get module");
 
-    match common::write_ir::write_to_file(module.clone(), "test_get_param") {
+    match common::io::write_ir_to_file(module.clone(), "test_get_param") {
         Ok(_) => {}
         Err(e) => {
             eprintln!("File write error: {}", e);

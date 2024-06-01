@@ -2,8 +2,6 @@ use analysis::validator::Validator;
 use common::constants::{DEFAULT_BASIC_BLOCK_NAME, DEFAULT_FUNCTION_NAME, DEFAULT_MODULE_NAME};
 use ir::core::IRGenerator;
 
- 
-
 #[test]
 fn test_create_basic_block() {
     let mut resource_pools = IRGenerator::new();
@@ -22,7 +20,7 @@ fn test_create_basic_block() {
 
     let module = resource_pools.get_module(module_tag).expect("Failed to get module");
 
-    match common::write_ir::write_to_file(module.clone(), "test_basic_block") {
+    match common::io::write_ir_to_file(module.clone(), "test_basic_block") {
         Ok(_) => {}
         Err(e) => {
             eprintln!("File write error: {}", e);
@@ -57,7 +55,7 @@ fn test_get_current_block() {
 
     let module = resource_pools.get_module(module_tag).expect("Failed to get module");
 
-    match common::write_ir::write_to_file(module.clone(), "test_get_current_block") {
+    match common::io::write_ir_to_file(module.clone(), "test_get_current_block") {
         Ok(_) => {}
         Err(e) => {
             eprintln!("File write error: {}", e);
@@ -116,7 +114,7 @@ fn test_create_cond_br() {
 
     let module = resource_pools.get_module(module_tag).expect("Failed to get module");
 
-    match common::write_ir::write_to_file(module.clone(), "test_create_cond_br") {
+    match common::io::write_ir_to_file(module.clone(), "test_create_cond_br") {
         Ok(_) => {}
         Err(e) => {
             eprintln!("File write error: {}", e);
@@ -151,7 +149,7 @@ fn test_create_br() {
 
     let module = resource_pools.get_module(module_tag).expect("Failed to get module");
 
-    match common::write_ir::write_to_file(module.clone(), "test_create_br") {
+    match common::io::write_ir_to_file(module.clone(), "test_create_br") {
         Ok(_) => {}
         Err(e) => {
             eprintln!("File write error: {}", e);
@@ -190,7 +188,7 @@ fn test_insert_before_basic_block() {
     
     let module = resource_pools.get_module(module_tag).expect("Failed to get module");
 
-    match common::write_ir::write_to_file(module.clone(), "test_insert_before_basic_block") {
+    match common::io::write_ir_to_file(module.clone(), "test_insert_before_basic_block") {
         Ok(_) => {}
         Err(e) => {
             eprintln!("File write error: {}", e);
@@ -231,7 +229,7 @@ fn test_position_builder() {
 
     let module = resource_pools.get_module(module_tag).expect("Failed to get module");
 
-    match common::write_ir::write_to_file(module.clone(), "test_position_builder") {
+    match common::io::write_ir_to_file(module.clone(), "test_position_builder") {
         Ok(_) => {}
         Err(e) => {
             eprintln!("File write error: {}", e);
@@ -266,7 +264,7 @@ fn test_delete_basic_block() {
 
     let module = resource_pools.get_module(module_tag).expect("Failed to get module");
 
-    match common::write_ir::write_to_file(module.clone(), "test_delete_basic_block") {
+    match common::io::write_ir_to_file(module.clone(), "test_delete_basic_block") {
         Ok(_) => {}
         Err(e) => {
             eprintln!("File write error: {}", e);
@@ -303,7 +301,7 @@ fn test_get_first_instruction() {
 
     let module = resource_pools.get_module(module_tag).expect("Failed to get module");
 
-    match common::write_ir::write_to_file(module.clone(), "test_get_first_instruction") {
+    match common::io::write_ir_to_file(module.clone(), "test_get_first_instruction") {
         Ok(_) => {}
         Err(e) => {
             eprintln!("File write error: {}", e);
@@ -339,7 +337,7 @@ fn test_get_last_instruction() {
 
     let module = resource_pools.get_module(module_tag).expect("Failed to get module");
 
-    match common::write_ir::write_to_file(module.clone(), "test_get_last_instruction") {
+    match common::io::write_ir_to_file(module.clone(), "test_get_last_instruction") {
         Ok(_) => {}
         Err(e) => {
             eprintln!("File write error: {}", e);

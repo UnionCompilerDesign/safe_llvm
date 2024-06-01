@@ -1,13 +1,32 @@
+//! Input/Output utilities for LLVM modules in the IR generator.
+
 extern crate llvm_sys as llvm;
-
 use std::{fs, path::Path, sync::{Arc, RwLock}};
-
 use llvm::core;
-
 use crate::{cstring, pointer::{LLVMRef, LLVMRefType, SafeLLVMPointer}};
 
-/// Writes an LLVM module to a file
-pub fn write_to_file(module: Arc<RwLock<SafeLLVMPointer>>, file_name: &str) -> Result<(), String> {
+/// Writes an LLVM module to a file.
+///
+/// This function serializes an LLVM module, contained inside a `SafeLLVMPointer`, to a specified file.
+///
+/// # Parameters
+/// * `module` - An `Arc<RwLock<SafeLLVMPointer>>` pointing to the LLVM module to be written.
+/// * `file_name` - The name of the file where the LLVM IR should be saved.
+///
+/// # Returns
+/// A `Result<(), String>` indicating the success or failure of the operation.
+/// Returns `Ok(())` if the module is successfully written to the file.
+/// Returns `Err(String)` if there are issues obtaining locks, converting paths, creating directories,
+/// or in the LLVM API call to write the module.
+///
+/// # Errors
+/// This function returns an error if:
+/// - It fails to acquire a read lock on the LLVM module.
+/// - It cannot extract the LLVM module reference from the `SafeLLVMPointer`.
+/// - The output directory does not exist and cannot be created.
+/// - The file path conversion to `CString` fails.
+/// - The LLVM API function `LLVMPrintModuleToFile` returns a non-zero value indicating failure.
+pub fn write_ir_to_file(module: Arc<RwLock<SafeLLVMPointer>>, file_name: &str) -> Result<(), String> {
     let module_ref_rwlock = module.read().map_err(|_| "Failed to obtain read lock on module".to_string())?;
 
     // Extract the LLVMModuleRef from the SafeLLVMPointer
