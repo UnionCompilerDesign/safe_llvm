@@ -4,22 +4,19 @@
 Caleb L'Italien, John Daly
 
 ## Overview
-SafeLLVM is a Rust-based library designed to provide a safe and user-friendly interface to the LLVM backend. It acts as the underlying architecture for the Simple Instructional C99 Compiler (SICC), which is developed as part of a computer science curriculum at Union College. The library aims to abstract and encapsulate the complexity of LLVM’s API, making it accessible and manageable for educational purposes.
+SafeLLVM is a Rust-based library designed to provide a safe and user-friendly interface to llvm-sys. It is developed specifically for the Simple Instructional C99 Compiler (SICC). The library aims to encapsulate the complexity of LLVM’s API, making it accessible for undergraduate work.
 
 ## Project Structure
-- `analysis/`: Tools for performing various analyses on LLVM IR, aiding in optimization and correctness assessments.
-- `common/`: Common utilities and helper functions shared across the project, including error handling and configuration settings.
-- `ir/`: Manages the representation and manipulation of LLVM Intermediate Representation (IR), crucial for code generation and optimization.
-- `jit/`: Implements JIT compilation capabilities, allowing for dynamic compilation and execution of LLVM IR.
-- `logging/`: Handles logging functionalities to assist in debugging and tracking the operations of the compiler interactions with LLVM.
-
+- `analysis/`: Tools for performing various analyses on LLVM IR.
+- `common/`: Common utilities and helper functions shared across the project.
+- `ir/`: Manages the creation of LLVM Intermediate Representation (IR).
+- `jit/`: Implements an ExecutionEngine for execution of pre-compiled LLVM modules.
+- `logging/`: Handles logging functionalities for debugging.
 
 ## Getting Started
 
 ### Usage
-To use SafeLLVM in your Rust projects, you can include it directly via Cargo by adding it as a dependency in your `Cargo.toml` file using its GitHub repository URL. This is particularly useful if you want to leverage the most recent updates from a specific branch, tag, or commit.
-
-Here's how to set it up:
+To use SafeLLVM in your Rust projects, you can include it directly via Cargo by adding it as a dependency in your `Cargo.toml` file using its GitHub repository URL. Here's how to do it:
 
 1. **Add SafeLLVM as a dependency in your `Cargo.toml`:**
     ```toml
@@ -41,4 +38,3 @@ Special thanks to Professor Aaron Cass of Union College for his guidance and exp
 
 ### Contact
 For any inquiries, contact Caleb L'Italien at litaliencaleb@gmail.com.
-
