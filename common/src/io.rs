@@ -1,7 +1,7 @@
 //! Input/Output utilities for LLVM modules in the IR generator.
 
 extern crate llvm_sys as llvm;
-use std::{fs, path::Path, sync::{Arc, RwLock}};
+use std::{ffi::{c_char, CStr}, fs, path::Path, sync::{Arc, RwLock}};
 use llvm::core;
 use crate::{cstring, pointer::{LLVMRef, LLVMRefType, SafeLLVMPointer}};
 
@@ -63,4 +63,42 @@ pub fn write_ir_to_file(module: Arc<RwLock<SafeLLVMPointer>>, file_name: &str) -
     } else {
         Err("LLVMPrintModuleToFile failed".into())
     }
+}
+
+/// Writes the LLVM module to a string.
+///
+/// This function serializes an LLVM module, contained inside a `SafeLLVMPointer`, to a string.
+///
+/// # Parameters
+/// * `module` - An `Arc<RwLock<SafeLLVMPointer>>` pointing to the LLVM module to be serialized.
+///
+/// # Returns
+/// A `Result<String, String>` containing the serialized LLVM IR as a string if successful,
+/// or an error message if the operation fails.
+///
+pub fn write_to_string(module: Arc<RwLock<SafeLLVMPointer>>) -> Result<String, String> {
+    let module_ref_rwlock = module.read().map_err(|_| "Failed to obtain read lock on module".to_string())?;
+
+    // Extract the LLVMModuleRef from the SafeLLVMPointer
+    let module_ptr = module_ref_rwlock.read(LLVMRefType::Module, |llvm_ref| {
+        if let LLVMRef::Module(ptr) = llvm_ref {
+            Some(*ptr)
+        } else {
+            None
+        }
+    }).ok_or_else(|| "Failed to extract LLVM module reference".to_string())?;
+
+    // Print the module to a C style string and convert to &str
+    let str_result: Result<&str, std::str::Utf8Error> = unsafe {
+        let raw_ptr_str: *mut c_char = core::LLVMPrintModuleToString(module_ptr);
+        let c_str_representation: &CStr = CStr::from_ptr(raw_ptr_str);
+        c_str_representation.to_str()
+    };
+    
+    // Handle the result of the conversion
+    match str_result {
+        Ok(string) => Ok(string.to_string()),
+        Err(_error) => Err("Writing module to string failed!".into())
+    }
+
 }
