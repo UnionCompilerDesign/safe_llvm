@@ -2,13 +2,6 @@
 
 Welcome to the SafeLLVM project! We appreciate your interest in contributing to SafeLLVM, a wrapper around **[llvm-sys](https://github.com/tari/llvm-sys.rs)** designed to serve as the backend for the Simple Instructional C99 Compiler (SICC).
 
-## Disclaimer
-
-SafeLLVM is designed for educational purposes and is not intended for production use. If you are looking for a production-level LLVM crate for Rust projects, consider using the following crates:
-
-- **[Inkwell](https://github.com/TheDan64/inkwell)**
-- **[llvm-ir](https://github.com/cdisselkoen/llvm-ir)**
-
 ## Getting Started
 
 Before contributing, please make sure to familiarize yourself with the project structure and the goals of both SafeLLVM and SICC. This understanding will help you make meaningful contributions that align with the project's objectives.

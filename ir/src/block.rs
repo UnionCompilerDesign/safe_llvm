@@ -64,6 +64,72 @@ impl IRGenerator {
         }
     }
 
+    /// Creates a new basic block after a specified target block in a given context and function.
+    ///
+    /// # Parameters
+    /// * `context_tag` - The context within which the basic block is created.
+    /// * `function_tag` - The function to which the basic block will be attached.
+    /// * `target_tag` - The basic block after which the new basic block will be inserted.
+    /// * `name` - The name for the new basic block.
+    ///
+    /// # Returns
+    /// Option<BasicBlockTag> - The tag of the newly created basic block, or None if creation fails.
+    pub fn create_basic_block_after(&mut self, context_tag: ContextTag, function_tag: ValueTag, target_tag: BasicBlockTag, name: &str) -> Option<BasicBlockTag> {
+        let context_arc_rwlock = self.get_context(context_tag)?;
+        let function_arc_rwlock = self.get_value(function_tag)?;
+        let bb_arc_rwlock = self.get_basic_block(target_tag)?;
+
+        let context_ptr: LLVMContextRef = {
+            let context_rwlock = context_arc_rwlock.read().expect("Failed to lock context for reading");
+            let context_ref = context_rwlock.read(LLVMRefType::Context, |context_ref| {
+                match context_ref {
+                    LLVMRef::Context(ptr) => Some(*ptr),
+                    _ => None
+                }
+            })?;
+            context_ref
+        };
+    
+        let function_ptr: LLVMValueRef = {
+            let function_rwlock = function_arc_rwlock.read().expect("Failed to lock function for reading");
+            let function_ref = function_rwlock.read(LLVMRefType::Value, |function_ref| {
+                match function_ref {
+                    LLVMRef::Value(ptr) => Some(*ptr),
+                    _ => None
+                }
+            })?;
+            function_ref
+        };
+
+        let bb_ptr: LLVMBasicBlockRef = {
+            let bb_rwlock = bb_arc_rwlock.read().expect("Failed to lock then_bb for reading");
+            bb_rwlock.read(LLVMRefType::BasicBlock, |bb_ref| {
+                if let LLVMRef::BasicBlock(ptr) = bb_ref {
+                    Some(*ptr)
+                } else {
+                    None
+                }
+            })?    
+        };
+    
+        // Create the basic block
+        let c_name = CString::new(name).expect("Failed to create CString");
+        let basic_block = unsafe {
+            core::LLVMAppendBasicBlockInContext(context_ptr, function_ptr, c_name.as_ptr())
+        };
+        
+        if !basic_block.is_null() {
+            let return_val = self.store_basic_block(basic_block);
+
+            unsafe {
+                core::LLVMMoveBasicBlockAfter(basic_block, bb_ptr);
+            }
+            return return_val
+        } else {
+            return None
+        }
+    }
+
     /// Inserts a basic block before a specified target block in a given context.
     ///
     /// # Parameters

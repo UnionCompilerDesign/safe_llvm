@@ -145,13 +145,14 @@ impl IRGenerator {
         &mut self,
         builder_tag: BuilderTag, 
         variable_type_tag: TypeTag, 
-        variable_alloc_tag: ValueTag
+        variable_alloc_tag: ValueTag,
+        temp_name: &str
     ) -> Option<ValueTag> {
         let builder_arc_rwlock = self.get_builder(builder_tag)?;
         let variable_type_arc_rwlock = self.get_type(variable_type_tag)?;
         let variable_alloc_arc_rwlock = self.get_value(variable_alloc_tag)?;
 
-        let tmp_load_cstr = CString::new("tmpload").expect("Failed to create CString for tmpload");
+        let tmp_load_cstr = CString::new(temp_name).expect("Failed to create CString for tmpload");
 
         let raw_ptr = unsafe {
             let builder_ptr = builder_arc_rwlock.read().expect("Failed to lock builder for reading").read(LLVMRefType::Builder, |builder_ref| {

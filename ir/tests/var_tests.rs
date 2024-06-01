@@ -40,7 +40,7 @@ fn test_reassign_var() {
     let new_value_tag = resource_pools.create_integer(context_tag, 100).expect("Failed to create new value");
     resource_pools.reassign_var(builder_tag, var_tag, new_value_tag).expect("Variable reassignment failed");
 
-    assert!(resource_pools.get_var(builder_tag, int_type_tag, var_tag).is_some(), "Variable should be reassigned successfully");
+    assert!(resource_pools.get_var(builder_tag, int_type_tag, var_tag, "tmp").is_some(), "Variable should be reassigned successfully");
 }
 
 
@@ -60,7 +60,7 @@ fn test_get_var() {
     resource_pools.position_builder_at_end(builder_tag, block_tag).expect("Failed to position builder");
 
     let var_tag = resource_pools.init_var(builder_tag, "myVar", int_type_tag, Some(initial_value_tag)).expect("Variable should be initialized successfully");
-    let retrieved_var_tag = resource_pools.get_var(builder_tag, int_type_tag, var_tag);
+    let retrieved_var_tag = resource_pools.get_var(builder_tag, int_type_tag, var_tag, "tmp");
 
     assert!(retrieved_var_tag.is_some(), "Variable should be retrieved successfully");
 }
