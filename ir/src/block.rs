@@ -8,9 +8,9 @@ extern crate llvm_sys as llvm;
 use llvm::{core, prelude::{LLVMBasicBlockRef, LLVMBuilderRef, LLVMContextRef, LLVMValueRef}};
 use std::ffi::CString;
 use common::pointer::{LLVMRef, LLVMRefType};
-use crate::core::{BasicBlockTag, BuilderTag, ContextTag, IRGenerator, ValueTag};
+use crate::core::{BasicBlockTag, BuilderTag, ContextTag, IRManager, ValueTag};
 
-impl IRGenerator {
+impl IRManager {
     /// Creates a basic block in the specified function and context.
     ///
     /// # Parameters

@@ -1,8 +1,8 @@
-use ir::core::IRGenerator;
+use ir::core::IRManager;
 
 #[test]
 fn test_build_add() {
-    let mut resource_pools = IRGenerator::new();
+    let mut resource_pools = IRManager::new();
 
     let context_tag = resource_pools.create_context().expect("Failed to create context");
     let builder_tag = resource_pools.create_builder(context_tag).expect("Failed to create builder");
@@ -15,7 +15,7 @@ fn test_build_add() {
 
 #[test]
 fn test_build_sub() {
-    let mut resource_pools = IRGenerator::new();
+    let mut resource_pools = IRManager::new();
 
     let context_tag = resource_pools.create_context().expect("Failed to create context");
     let builder_tag = resource_pools.create_builder(context_tag).expect("Failed to create builder");
@@ -28,7 +28,7 @@ fn test_build_sub() {
 
 #[test]
 fn test_build_mul() {
-    let mut resource_pools = IRGenerator::new();
+    let mut resource_pools = IRManager::new();
     
     let context_tag = resource_pools.create_context().expect("Failed to create context");
     let builder_tag = resource_pools.create_builder(context_tag).expect("Failed to create builder");
@@ -41,7 +41,7 @@ fn test_build_mul() {
 
 #[test]
 fn test_build_div() {
-    let mut resource_pools = IRGenerator::new();
+    let mut resource_pools = IRManager::new();
 
     let context_tag = resource_pools.create_context().expect("Failed to create context");
     let builder_tag = resource_pools.create_builder(context_tag).expect("Failed to create builder");
@@ -54,7 +54,7 @@ fn test_build_div() {
 
 #[test]
 fn test_build_rem() {
-    let mut resource_pools = IRGenerator::new();
+    let mut resource_pools = IRManager::new();
 
     let context_tag = resource_pools.create_context().expect("Failed to create context");
     let builder_tag = resource_pools.create_builder(context_tag).expect("Failed to create builder");
@@ -67,7 +67,7 @@ fn test_build_rem() {
 
 #[test]
 fn test_build_and() {
-    let mut resource_pools = IRGenerator::new();
+    let mut resource_pools = IRManager::new();
 
     let context_tag = resource_pools.create_context().expect("Failed to create context");
     let builder_tag = resource_pools.create_builder(context_tag).expect("Failed to create builder");
@@ -80,7 +80,7 @@ fn test_build_and() {
 
 #[test]
 fn test_build_or() {
-    let mut resource_pools = IRGenerator::new();
+    let mut resource_pools = IRManager::new();
 
     let context_tag = resource_pools.create_context().expect("Failed to create context");
     let builder_tag = resource_pools.create_builder(context_tag).expect("Failed to create builder");
@@ -93,7 +93,7 @@ fn test_build_or() {
 
 #[test]
 fn test_build_xor() {
-    let mut resource_pools = IRGenerator::new();
+    let mut resource_pools = IRManager::new();
 
     let context_tag = resource_pools.create_context().expect("Failed to create context");
     let builder_tag = resource_pools.create_builder(context_tag).expect("Failed to create builder");
@@ -106,7 +106,7 @@ fn test_build_xor() {
 
 #[test]
 fn test_build_shl() {
-    let mut resource_pools = IRGenerator::new();
+    let mut resource_pools = IRManager::new();
     let context_tag = resource_pools.create_context().expect("Failed to create context");
     let builder_tag = resource_pools.create_builder(context_tag).expect("Failed to create builder");
     let param_a_tag = resource_pools.create_integer( context_tag, 1).expect("Failed to create param a");
@@ -117,7 +117,7 @@ fn test_build_shl() {
 
 #[test]
 fn test_build_shr() {
-    let mut resource_pools = IRGenerator::new();
+    let mut resource_pools = IRManager::new();
     let context_tag = resource_pools.create_context().expect("Failed to create context");
     let builder_tag = resource_pools.create_builder(context_tag).expect("Failed to create builder");
     let param_a_tag = resource_pools.create_integer( context_tag, 4).expect("Failed to create param a");
@@ -128,7 +128,7 @@ fn test_build_shr() {
 
 #[test]
 fn test_build_icmp_gt() {
-    let mut resource_pools = IRGenerator::new();
+    let mut resource_pools = IRManager::new();
 
     let context_tag = resource_pools.create_context().expect("Failed to create context");
     let builder_tag = resource_pools.create_builder(context_tag).expect("Failed to create builder");
@@ -141,7 +141,7 @@ fn test_build_icmp_gt() {
 
 #[test]
 fn test_build_icmp_lt() {
-    let mut resource_pools = IRGenerator::new();
+    let mut resource_pools = IRManager::new();
 
     let context_tag = resource_pools.create_context().expect("Failed to create context");
     let builder_tag = resource_pools.create_builder(context_tag).expect("Failed to create builder");
@@ -153,7 +153,7 @@ fn test_build_icmp_lt() {
 }
 #[test]
 fn test_build_icmp_eq() {
-    let mut resource_pools = IRGenerator::new();
+    let mut resource_pools = IRManager::new();
 
     let context_tag = resource_pools.create_context().expect("Failed to create context");
     let builder_tag = resource_pools.create_builder(context_tag).expect("Failed to create builder");
@@ -166,7 +166,7 @@ fn test_build_icmp_eq() {
 
 #[test]
 fn test_build_negation() {
-    let mut resource_pools = IRGenerator::new();
+    let mut resource_pools = IRManager::new();
     let context_tag = resource_pools.create_context().expect("Failed to create context");
     let builder_tag = resource_pools.create_builder(context_tag).expect("Failed to create builder");
     let param_a_tag = resource_pools.create_integer(context_tag, 10).expect("Failed to create param a");
@@ -176,7 +176,7 @@ fn test_build_negation() {
 
 #[test]
 fn test_build_bitwise_not() {
-    let mut resource_pools = IRGenerator::new();
+    let mut resource_pools = IRManager::new();
     let context_tag = resource_pools.create_context().expect("Failed to create context");
     let builder_tag = resource_pools.create_builder(context_tag).expect("Failed to create builder");
     let param_a_tag = resource_pools.create_integer(context_tag, 0xF0).expect("Failed to create param a");
@@ -186,7 +186,7 @@ fn test_build_bitwise_not() {
 
 #[test]
 fn test_build_logical_not() {
-    let mut resource_pools = IRGenerator::new();
+    let mut resource_pools = IRManager::new();
     let context_tag = resource_pools.create_context().expect("Failed to create context");
     let builder_tag = resource_pools.create_builder(context_tag).expect("Failed to create builder");
     let param_a_tag = resource_pools.create_boolean(context_tag, true).expect("Failed to create param a");

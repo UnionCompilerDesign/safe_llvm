@@ -7,9 +7,9 @@ extern crate llvm_sys as llvm;
 use llvm::core;
 use std::ffi::CString;
 use common::pointer::{LLVMRef, LLVMRefType};
-use super::core::{BasicBlockTag, BuilderTag, ContextTag, IRGenerator, TypeTag, ValueTag};
+use super::core::{BasicBlockTag, BuilderTag, ContextTag, IRManager, TypeTag, ValueTag};
 
-impl IRGenerator {
+impl IRManager {
     /// Creates a 64-bit integer constant in a specified context.
     ///
     /// # Parameters

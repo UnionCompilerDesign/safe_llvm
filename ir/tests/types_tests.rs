@@ -1,9 +1,9 @@
-use ir::core::IRGenerator;
+use ir::core::IRManager;
 
 
 #[test]
 fn test_void_type() {
-    let mut resource_pools = IRGenerator::new();
+    let mut resource_pools = IRManager::new();
 
     let context_tag = resource_pools.create_context().expect("Failed to create context");
     let void_type_tag = resource_pools.void_type(context_tag);
@@ -13,7 +13,7 @@ fn test_void_type() {
 
 #[test]
 fn test_int_type() {
-    let mut resource_pools = IRGenerator::new();
+    let mut resource_pools = IRManager::new();
 
     let context_tag = resource_pools.create_context().expect("Failed to create context");
     let int_type_tag = resource_pools.int_type(context_tag, 32);
@@ -23,7 +23,7 @@ fn test_int_type() {
 
 #[test]
 fn test_float_type() {
-    let mut resource_pools = IRGenerator::new();
+    let mut resource_pools = IRManager::new();
 
     let context_tag = resource_pools.create_context().expect("Failed to create context");
     let float_type_tag = resource_pools.float_type(context_tag);
@@ -33,7 +33,7 @@ fn test_float_type() {
 
 #[test]
 fn test_boolean_type() {
-    let mut resource_pools = IRGenerator::new();
+    let mut resource_pools = IRManager::new();
 
     let context_tag = resource_pools.create_context().expect("Failed to create context");
     let boolean_type_tag = resource_pools.boolean_type(context_tag);
@@ -43,7 +43,7 @@ fn test_boolean_type() {
 
 #[test]
 fn test_pointer_type() {
-    let mut resource_pools = IRGenerator::new();
+    let mut resource_pools = IRManager::new();
 
     let context_tag = resource_pools.create_context().expect("Failed to create context");
     let int_type_tag = resource_pools.int_type(context_tag, 32).expect("Failed to create integer type");
@@ -54,7 +54,7 @@ fn test_pointer_type() {
 
 #[test]
 fn test_array_type() {
-    let mut resource_pools = IRGenerator::new();
+    let mut resource_pools = IRManager::new();
 
     let context_tag = resource_pools.create_context().expect("Failed to create context");
     let int_type_tag = resource_pools.int_type(context_tag, 32).expect("Failed to create integer type");
@@ -65,7 +65,7 @@ fn test_array_type() {
 
 #[test]
 fn test_struct_type() {
-    let mut resource_pools = IRGenerator::new();
+    let mut resource_pools = IRManager::new();
 
     let context_tag = resource_pools.create_context().expect("Failed to create context");
     let int_type_tag = resource_pools.int_type(context_tag, 32).expect("Failed to create integer type");

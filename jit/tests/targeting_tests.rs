@@ -1,11 +1,11 @@
 // use analysis::validator::Validator;
 // use common::{constants::{DEFAULT_BASIC_BLOCK_NAME, DEFAULT_FUNCTION_NAME, DEFAULT_MODULE_NAME}, target::*};
-// use ir::core::IRGenerator;
+// use ir::core::IRManager;
 // use jit::core::ExecutionEngine;
 
 // #[test]
 // fn test_execution_engine_with_general_targeting() {
-//     let mut resource_pools = IRGenerator::new();
+//     let mut resource_pools = IRManager::new();
 
 //     let context_tag = resource_pools.create_context().expect("Failed to create context");
 //     let module_tag = resource_pools.create_module(DEFAULT_MODULE_NAME, context_tag).expect("Failed to create module");
@@ -46,7 +46,7 @@
 
 // #[test]
 // fn test_execution_engine_with_arm_targeting() {
-//     let mut resource_pools = IRGenerator::new();
+//     let mut resource_pools = IRManager::new();
 
 //     let context_tag = resource_pools.create_context().expect("Failed to create context");
 //     let module_tag = resource_pools.create_module(DEFAULT_MODULE_NAME, context_tag).expect("Failed to create module");
@@ -87,7 +87,7 @@
 
 // #[test]
 // fn test_execution_engine_with_x86_targeting() {
-//     let mut resource_pools = IRGenerator::new();
+//     let mut resource_pools = IRManager::new();
 
 //     let context_tag = resource_pools.create_context().expect("Failed to create context");
 //     let module_tag = resource_pools.create_module(DEFAULT_MODULE_NAME, context_tag).expect("Failed to create module");
@@ -128,7 +128,7 @@
 
 // #[test]
 // fn test_execution_engine_with_mips_targeting() {
-//     let mut resource_pools = IRGenerator::new();
+//     let mut resource_pools = IRManager::new();
 
 //     let context_tag = resource_pools.create_context().expect("Failed to create context");
 //     let module_tag = resource_pools.create_module(DEFAULT_MODULE_NAME, context_tag).expect("Failed to create module");
@@ -169,7 +169,7 @@
 
 // #[test]
 // fn test_execution_engine_with_rv_targeting() {
-//     let mut resource_pools = IRGenerator::new();
+//     let mut resource_pools = IRManager::new();
 
 //     let context_tag = resource_pools.create_context().expect("Failed to create context");
 //     let module_tag = resource_pools.create_module(DEFAULT_MODULE_NAME, context_tag).expect("Failed to create module");
@@ -210,7 +210,7 @@
 
 // #[test]
 // fn test_execution_engine_with_wasm_targeting() {
-//     let mut resource_pools = IRGenerator::new();
+//     let mut resource_pools = IRManager::new();
 
 //     let context_tag = resource_pools.create_context().expect("Failed to create context");
 //     let module_tag = resource_pools.create_module(DEFAULT_MODULE_NAME, context_tag).expect("Failed to create module");
@@ -251,7 +251,7 @@
 
 // #[test]
 // fn test_execution_engine_with_ppc_targeting() {
-//     let mut resource_pools = IRGenerator::new();
+//     let mut resource_pools = IRManager::new();
 
 //     let context_tag = resource_pools.create_context().expect("Failed to create context");
 //     let module_tag = resource_pools.create_module(DEFAULT_MODULE_NAME, context_tag).expect("Failed to create module");
@@ -292,7 +292,7 @@
 
 // #[test]
 // fn test_execution_engine_with_sparc_targeting() {
-//     let mut resource_pools = IRGenerator::new();
+//     let mut resource_pools = IRManager::new();
 
 //     let context_tag = resource_pools.create_context().expect("Failed to create context");
 //     let module_tag = resource_pools.create_module(DEFAULT_MODULE_NAME, context_tag).expect("Failed to create module");
@@ -333,7 +333,7 @@
 
 // #[test]
 // fn test_execution_engine_with_systemz_targeting() {
-//     let mut resource_pools = IRGenerator::new();
+//     let mut resource_pools = IRManager::new();
 
 //     let context_tag = resource_pools.create_context().expect("Failed to create context");
 //     let module_tag = resource_pools.create_module(DEFAULT_MODULE_NAME, context_tag).expect("Failed to create module");
@@ -374,7 +374,7 @@
 
 // #[test]
 // fn test_execution_engine_with_aarch64_targeting() {
-//     let mut resource_pools = IRGenerator::new();
+//     let mut resource_pools = IRManager::new();
 
 //     let context_tag = resource_pools.create_context().expect("Failed to create context");
 //     let module_tag = resource_pools.create_module(DEFAULT_MODULE_NAME, context_tag).expect("Failed to create module");
@@ -415,7 +415,7 @@
 
 // #[test]
 // fn test_execution_engine_with_amdgpu_targeting() {
-//     let mut resource_pools = IRGenerator::new();
+//     let mut resource_pools = IRManager::new();
 
 //     let context_tag = resource_pools.create_context().expect("Failed to create context");
 //     let module_tag = resource_pools.create_module(DEFAULT_MODULE_NAME, context_tag).expect("Failed to create module");
@@ -457,7 +457,7 @@
 
 // #[test]
 // fn test_execution_engine_with_bpf_targeting() {
-//     let mut resource_pools = IRGenerator::new();
+//     let mut resource_pools = IRManager::new();
 
 //     let context_tag = resource_pools.create_context().expect("Failed to create context");
 //     let module_tag = resource_pools.create_module(DEFAULT_MODULE_NAME, context_tag).expect("Failed to create module");

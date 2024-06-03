@@ -8,9 +8,9 @@ extern crate llvm_sys as llvm;
 use std::ffi::CString;
 use llvm::{core, prelude::LLVMBuilderRef, LLVMIntPredicate};
 use common::pointer::{LLVMRef, LLVMRefType};
-use crate::core::{BuilderTag, ContextTag, IRGenerator, ModuleTag, TypeTag, ValueTag};
+use crate::core::{BuilderTag, ContextTag, IRManager, ModuleTag, TypeTag, ValueTag};
 
-impl IRGenerator {
+impl IRManager {
     /// Allocates a builder in a specified context and stores it in the resource pool.
     ///
     /// # Parameters

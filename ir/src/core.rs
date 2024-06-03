@@ -17,17 +17,17 @@ pub struct EnumDefinition {
 }
 
 /// Tag associated with an LLVM Context.
-/// Provides access to stored context resources within the IRGenerator pools.
+/// Provides access to stored context resources within the IRManager pools.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct ContextTag(usize);
 
 /// Tag associated with an LLVM Module.
-/// Allows for retrieval and management of module resources in the IRGenerator pools.
+/// Allows for retrieval and management of module resources in the IRManager pools.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct ModuleTag(usize);
 
 /// Tag associated with an LLVM Value.
-/// Used for accessing and manipulating value resources in the IRGenerator pools.
+/// Used for accessing and manipulating value resources in the IRManager pools.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct ValueTag(usize);
 
@@ -37,12 +37,12 @@ pub struct ValueTag(usize);
 pub struct BasicBlockTag(usize);
 
 /// Tag associated with an LLVM Builder.
-/// Used to access builder resources stored within the IRGenerator pools.
+/// Used to access builder resources stored within the IRManager pools.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct BuilderTag(usize);
 
 /// Tag associated with an LLVM Type.
-/// Enables the handling and retrieval of type resources from the IRGenerator pools.
+/// Enables the handling and retrieval of type resources from the IRManager pools.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct TypeTag(usize);
 
@@ -89,10 +89,10 @@ impl EnumDefinition {
 }
 
 
-/// Enum representing unique tags for various types of LLVM objects managed within the IRGenerator.
+/// Enum representing unique tags for various types of LLVM objects managed within the IRManager.
 /// Each tag is unique and provides a way to retrieve specific LLVM objects from internal resource pools.
 pub enum Tag {
-    /// Tag for identifying and retrieving LLVM `Context` objects from the IRGenerator's resource pools.
+    /// Tag for identifying and retrieving LLVM `Context` objects from the IRManager's resource pools.
     /// Contexts represent environments in which LLVM IR generation and manipulation occur.
     Context(ContextTag),
 
@@ -119,7 +119,7 @@ pub enum Tag {
 }
 
 /// Core structure for managing IR generation. This includes creation, storage, and retrieval of LLVM related objects.
-pub struct IRGenerator {
+pub struct IRManager {
     contexts: Option<HashMap<ContextTag, Arc<RwLock<SafeLLVMPointer>>>>,
     modules: Option<HashMap<ModuleTag, Arc<RwLock<SafeLLVMPointer>>>>,
     values: Option<HashMap<ValueTag, Arc<RwLock<SafeLLVMPointer>>>>,
@@ -131,11 +131,11 @@ pub struct IRGenerator {
     next_tag: usize,
 }
 
-impl IRGenerator {
-    /// Constructs a new instance of `IRGenerator`.
+impl IRManager {
+    /// Constructs a new instance of `IRManager`.
     ///
     /// # Returns
-    /// A new `IRGenerator` instance with empty pools and a tag counter initialized to zero.
+    /// A new `IRManager` instance with empty pools and a tag counter initialized to zero.
     pub fn new() -> Self {
         Self {
             contexts: None,
