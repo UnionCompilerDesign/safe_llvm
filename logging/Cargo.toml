@@ -1,0 +1,16 @@
+[package]
+name = "logging"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "logging"
+path = "src/lib.rs"
+
+[dependencies]
+llvm-sys = "170"
+common = { path = "../common" }
+slog = "2.7"
+slog-async = "2.6"
+slog-term = "2.8"
+slog-json = "2.4"

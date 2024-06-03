@@ -1,0 +1,7 @@
+; ModuleID = 'test_module'
+source_filename = "test_module"
+
+define void @function_name() {
+entry:
+  ret void
+}

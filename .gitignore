@@ -1,7 +1,11 @@
 /Cargo.lock
 /target/
-/Dockerfile
 /app.log
 /dev_toolchain/target/
 /dev_toolchain/app.log
 /dev_toolchain/Cargo.lock
+/.vscode/
+/jit/target/
+/jit/app.log
+/ir/target/
+/ir/app.log

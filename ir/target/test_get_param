@@ -1,0 +1,7 @@
+; ModuleID = 'test_module'
+source_filename = "test_module"
+
+define i32 @function_name(i32 %0) {
+entry:
+  ret i32 %0
+}
