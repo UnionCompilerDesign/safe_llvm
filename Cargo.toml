@@ -31,3 +31,6 @@ members = [
     "./jit",
     "./logging",
 ]
+
+[build-dependencies]
+pkg-config = "0.3"
