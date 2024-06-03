@@ -7,9 +7,9 @@ extern crate llvm_sys as llvm;
 use std::collections::HashMap;
 use llvm::{core, prelude::LLVMTypeRef};
 use common::pointer::{LLVMRef, LLVMRefType};
-use super::core::{EnumDefinition, BuilderTag, ContextTag, IRGenerator, TypeTag, ValueTag};
+use super::core::{EnumDefinition, BuilderTag, ContextTag, IRManager, TypeTag, ValueTag};
 
-impl IRGenerator {
+impl IRManager {
     /// Returns the LLVM type for void in a specified context.
     ///
     /// # Parameters

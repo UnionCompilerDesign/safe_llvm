@@ -16,7 +16,7 @@ The `core` submodule of the `ir` module is primarily intended for internal usage
 
 #### Creating a new Context
 ```rust
-    let ir_gen = IRGenerator::new();
+    let ir_gen = IRManager::new();
     let context_tag = ir_gen.create_context().expect("Failed to create context");
 ```
 

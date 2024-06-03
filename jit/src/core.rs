@@ -16,7 +16,7 @@ pub struct ExecutionEngine {
 impl ExecutionEngine {
     /// Constructs a new `ExecutionEngine`.
     ///
-    /// This method initializes a new LLVM context and module, configures the general target,
+    /// This method initializes a new LLVM ExecutionEngine, configures the general target,
     /// and optionally sets up a logger for debugging information based on the `debug_info` parameter.
     ///
     /// # Parameters
@@ -27,12 +27,13 @@ impl ExecutionEngine {
     /// A new instance of `ExecutionEngine`.
     pub fn new(module: Arc<RwLock<SafeLLVMPointer>>, debug_info: bool) -> Self {
         GeneralTargetConfigurator.configure();
-
+        
         let mut engine_ref: execution_engine::LLVMExecutionEngineRef = std::ptr::null_mut();
         let mut out_error: *mut c_char = std::ptr::null_mut();
         let engine_ptr = &mut engine_ref;
 
-        module.read().unwrap().read(LLVMRefType::Module, |module_ref| {
+        let module_rw_lock = module.try_read().expect("Failed to read module");
+        module_rw_lock.write(LLVMRefType::Module, |module_ref| {
             if let LLVMRef::Module(module_ptr) = module_ref {
                 unsafe {
                     if execution_engine::LLVMCreateExecutionEngineForModule(engine_ptr, *module_ptr, &mut out_error) != 0 {
@@ -95,8 +96,8 @@ impl ExecutionEngine {
         ReturnType: 'static, 
         ArgType: Any + Send + Sync, 
     {
-        let engine_lock = self.engine.read().map_err(|e| format!("Failed to obtain read lock on engine: {}", e))?;
-        let result = engine_lock.read(LLVMRefType::ExecutionEngine, |engine_ref| {
+        let engine_lock = self.engine.try_read().map_err(|e| format!("Failed to obtain read lock on engine: {}", e))?;
+        let result = engine_lock.write(LLVMRefType::ExecutionEngine, |engine_ref| {
             if let LLVMRef::ExecutionEngine(engine_ptr) = engine_ref {
                 let function_name_c = CString::new(function_name).map_err(|_| "Failed to create CString for function name.")?;
                 let function_address = unsafe { execution_engine::LLVMGetFunctionAddress(*engine_ptr, function_name_c.as_ptr()) };

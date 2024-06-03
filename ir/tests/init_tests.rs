@@ -1,9 +1,9 @@
 use analysis::validator::Validator;
-use ir::core::IRGenerator;
+use ir::core::IRManager;
 
 #[test]
 fn test_context_and_module_creation() {
-    let mut llvm_resource_pool = IRGenerator::new();
+    let mut llvm_resource_pool = IRManager::new();
 
     for _ in 0..100 {
         let context_tag = llvm_resource_pool.create_context()

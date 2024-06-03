@@ -7,9 +7,9 @@ extern crate llvm_sys as llvm;
 use llvm::core;
 use std::ffi::CString;
 use common::pointer::{LLVMRef, LLVMRefType};
-use super::core::{BuilderTag, IRGenerator, TypeTag, ValueTag};
+use super::core::{BuilderTag, IRManager, TypeTag, ValueTag};
 
-impl IRGenerator {
+impl IRManager {
     /// Initializes a variable with an optional initial value in the specified builder context.
     ///
     /// # Parameters

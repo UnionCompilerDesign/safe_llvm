@@ -1,8 +1,8 @@
-use ir::core::IRGenerator;
+use ir::core::IRManager;
 
 #[test]
 fn test_init_var() {
-    let mut resource_pools = IRGenerator::new();
+    let mut resource_pools = IRManager::new();
 
     let context_tag = resource_pools.create_context().expect("Failed to create context");
     let module_tag = resource_pools.create_module("MyModule", context_tag).expect("Failed to create module");
@@ -23,7 +23,7 @@ fn test_init_var() {
 
 #[test]
 fn test_reassign_var() {
-    let mut resource_pools = IRGenerator::new();
+    let mut resource_pools = IRManager::new();
 
     let context_tag = resource_pools.create_context().expect("Failed to create context");
     let module_tag = resource_pools.create_module("MyModule", context_tag).expect("Failed to create module");
@@ -46,7 +46,7 @@ fn test_reassign_var() {
 
 #[test]
 fn test_get_var() {
-    let mut resource_pools = IRGenerator::new();
+    let mut resource_pools = IRManager::new();
 
     let context_tag = resource_pools.create_context().expect("Failed to create context");
     let module_tag = resource_pools.create_module("MyModule", context_tag).expect("Failed to create module");

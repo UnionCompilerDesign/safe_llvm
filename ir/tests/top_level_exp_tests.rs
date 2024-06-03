@@ -1,10 +1,10 @@
 use analysis::validator::Validator;
 use common::pointer::{LLVMRef, LLVMRefType};
-use ir::core::IRGenerator;
+use ir::core::IRManager;
 
 #[test]
 fn test_add_function_to_module() {
-    let mut resource_pools = IRGenerator::new();
+    let mut resource_pools = IRManager::new();
 
     let context_tag = resource_pools.create_context().expect("Failed to create context");
     let module_tag = resource_pools.create_module("test_module", context_tag).expect("Failed to create module");
@@ -36,7 +36,7 @@ fn test_add_function_to_module() {
 
 #[test]
 fn test_get_param() {
-    let mut resource_pools = IRGenerator::new();
+    let mut resource_pools = IRManager::new();
 
     let context_tag = resource_pools.create_context().expect("Failed to create context");
     let module_tag = resource_pools.create_module("test_module", context_tag).expect("Failed to create module");
@@ -68,7 +68,7 @@ fn test_get_param() {
 
 #[test]
 fn test_create_struct() {
-    let mut resource_pools = IRGenerator::new();
+    let mut resource_pools = IRManager::new();
 
     let context_tag = resource_pools.create_context().expect("Failed to create context");
 
@@ -96,7 +96,7 @@ fn test_create_struct() {
 
 #[test]
 fn test_create_enum() {
-    let mut resource_pools = IRGenerator::new();
+    let mut resource_pools = IRManager::new();
 
     let context_tag = resource_pools.create_context().expect("Failed to create context");
 
