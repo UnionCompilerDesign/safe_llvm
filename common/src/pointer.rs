@@ -4,7 +4,8 @@
 //! encapsulating them within `Arc` and `RwLock` for concurrent access.
 
 extern crate llvm_sys as llvm;
-use llvm::{execution_engine::LLVMExecutionEngineRef, prelude::{LLVMBasicBlockRef, LLVMBuilderRef, LLVMContextRef, LLVMModuleRef, LLVMTypeRef, LLVMValueRef}};
+use llvm::{execution_engine::{self, LLVMExecutionEngineRef}, prelude::{LLVMBasicBlockRef, LLVMBuilderRef, LLVMContextRef, LLVMModuleRef, LLVMTypeRef, LLVMValueRef}};
+use llvm_sys::core::LLVMContextDispose;
 use std::{ffi::c_void, ptr::NonNull, sync::{Arc, RwLock}};
 
 /// Enum to represent various LLVM references for type management.
@@ -34,7 +35,7 @@ pub enum LLVMRef {
 }
 
 /// Represents types of LLVM references for runtime conversion.
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum LLVMRefType {
     /// Refers to an LLVM context, which is an environment in which LLVM IR
     /// generation and optimizations occur. All LLVM entities (modules, types, values)
@@ -106,6 +107,7 @@ impl LLVMRef {
 /// Thread-safe pointer type for managing raw C pointers in a synchronized context.
 pub struct SafeLLVMPointer {
     ptr: Arc<RwLock<NonNull<c_void>>>,
+    kind: LLVMRefType,
 }
 
 impl SafeLLVMPointer {
@@ -116,10 +118,11 @@ impl SafeLLVMPointer {
     /// 
     /// # Returns
     /// An `Option` wrapped `SafeLLVMPointer` if the pointer is non-null, `None` otherwise.
-    pub fn new(llvm_ref: LLVMRef) -> Option<Self> {
+    pub fn new(llvm_ref: LLVMRef, kind: LLVMRefType) -> Option<Self> {
         let raw_ptr = llvm_ref.to_raw();
         NonNull::new(raw_ptr).map(|nn_ptr| SafeLLVMPointer {
             ptr: Arc::new(RwLock::new(nn_ptr)),
+            kind,
         })
     }
 
@@ -144,9 +147,12 @@ impl SafeLLVMPointer {
     where
         Closure: FnOnce(&LLVMRef) -> ReturnType,
     {
-        let lock = self.ptr.read().expect("RwLock has been poisoned");
-        let ref_to_value = unsafe { LLVMRef::from_raw(lock.as_ptr(), kind) };
-        closure(&ref_to_value)
+        if kind == self.kind {
+            let lock = self.ptr.read().expect("RwLock has been poisoned");
+            let ref_to_value = unsafe { LLVMRef::from_raw(lock.as_ptr(), kind) };
+            return closure(&ref_to_value);
+        }
+        panic!("Incorrect type for read.")
     }
 
     /// Provides write access to the pointed-to value.
@@ -164,8 +170,44 @@ impl SafeLLVMPointer {
     where
         Closure: FnOnce(&mut LLVMRef) -> ReturnType,
     {
-        let lock = self.ptr.write().expect("RwLock has been poisoned");
-        let mut ref_to_mut_value = unsafe { LLVMRef::from_raw(lock.as_ptr(), kind) };
-        closure(&mut ref_to_mut_value)
+        if kind == self.kind {
+            let lock = self.ptr.write().expect("RwLock has been poisoned");
+            let mut ref_to_mut_value = unsafe { LLVMRef::from_raw(lock.as_ptr(), kind) };
+            return closure(&mut ref_to_mut_value);
+        }
+        panic!("Incorrect type for read.")
+    }
+}
+
+impl Drop for SafeLLVMPointer {
+    fn drop(&mut self) {
+        if let Ok(lock) = self.ptr.write() {
+            let raw_ptr = lock.as_ptr();
+            if !raw_ptr.is_null() {
+                match self.kind {
+                    LLVMRefType::ExecutionEngine => {
+                        let llvm_ref = unsafe { LLVMRef::from_raw(raw_ptr, LLVMRefType::ExecutionEngine) };
+                        if let LLVMRef::ExecutionEngine(engine) = llvm_ref {
+                            unsafe {
+                                execution_engine::LLVMDisposeExecutionEngine(engine);
+                            }
+                        }
+                    },
+                    LLVMRefType::Context => {
+                        let llvm_ref = unsafe { LLVMRef::from_raw(raw_ptr, LLVMRefType::Context) };
+                        if let LLVMRef::Context(context) = llvm_ref {
+                            unsafe {
+                                LLVMContextDispose(context);
+                            }
+                        }
+                    },
+                    _ => {}  // No action needed for other types
+                }
+            } else {
+                eprintln!("Attempted to dispose a null pointer for {:?}", self.kind);
+            }
+        } else {
+            eprintln!("Failed to acquire lock on LLVM pointer for disposal");
+        }
     }
 }

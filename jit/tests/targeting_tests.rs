@@ -1,497 +1,426 @@
-// use analysis::validator::Validator;
-// use common::{constants::{DEFAULT_BASIC_BLOCK_NAME, DEFAULT_FUNCTION_NAME, DEFAULT_MODULE_NAME}, target::*};
-// use ir::core::IRManager;
-// use jit::core::ExecutionEngine;
-
-// #[test]
-// fn test_execution_engine_with_general_targeting() {
-//     let mut resource_pools = IRManager::new();
-
-//     let context_tag = resource_pools.create_context().expect("Failed to create context");
-//     let module_tag = resource_pools.create_module(DEFAULT_MODULE_NAME, context_tag).expect("Failed to create module");
-//     let function_type = resource_pools.int_type(context_tag, 64).expect("Failed to create function type");
-//     let function_value = resource_pools.create_function(Some(function_type), &[], false, context_tag).expect("Failed to create function prototype");
-//     let function_tag = resource_pools.add_function_to_module(module_tag, DEFAULT_FUNCTION_NAME, function_value).expect("Failed to add function to module");
-//     let builder_tag = resource_pools.create_builder(context_tag).expect("Failed to create builder");
-//     let entry_bb_tag = resource_pools.create_basic_block(context_tag, function_tag, DEFAULT_BASIC_BLOCK_NAME).expect("Failed to create entry block");
-//     let return_value = resource_pools.create_integer(context_tag, 0).expect("Failed to create return val");
-
-//     resource_pools.position_builder_at_end(builder_tag, entry_bb_tag);
-//     resource_pools.nonvoid_return(builder_tag, return_value);
-
-//     let module = resource_pools.get_module(module_tag).expect("Failed to retrieve module");
-
-//     match common::io::write_ir_to_file(module.clone(), "test_execution_engine_with_general_targeting") {
-//         Ok(_) => {}
-//         Err(e) => {
-//             eprintln!("File write error: {}", e);
-//             panic!();        
-//         }
-//     }
-
-//     let validator = Validator::new(module.clone());
-//     assert!(validator.is_valid_module(), "Invalid module");
-
-//     let function = resource_pools.get_value(function_tag).expect("Failed to get function");
-//     assert!(validator.is_valid_function(function), "Invalid function");
-
-//     let mut engine = ExecutionEngine::new( module, true);
-//     engine.initialize_target(GeneralTargetConfigurator {}).expect("Failed to configure engine");
-
-//     let result: Result<i64, String> = engine.execute(DEFAULT_FUNCTION_NAME, ());
-
-//     assert!(result.is_ok(), "Execution failed with error: {:?}", result.err());
-//     println!("Execution result: {:?}", result);
-// }
-
-// #[test]
-// fn test_execution_engine_with_arm_targeting() {
-//     let mut resource_pools = IRManager::new();
-
-//     let context_tag = resource_pools.create_context().expect("Failed to create context");
-//     let module_tag = resource_pools.create_module(DEFAULT_MODULE_NAME, context_tag).expect("Failed to create module");
-//     let function_type = resource_pools.int_type(context_tag, 64).expect("Failed to create function type");
-//     let function_value = resource_pools.create_function(Some(function_type), &[], false, context_tag).expect("Failed to create function prototype");
-//     let function_tag = resource_pools.add_function_to_module(module_tag, DEFAULT_FUNCTION_NAME, function_value).expect("Failed to add function to module");
-//     let builder_tag = resource_pools.create_builder(context_tag).expect("Failed to create builder");
-//     let entry_bb_tag = resource_pools.create_basic_block(context_tag, function_tag, DEFAULT_BASIC_BLOCK_NAME).expect("Failed to create entry block");
-//     let return_value = resource_pools.create_integer(context_tag, 0).expect("Failed to create return val");
-
-//     resource_pools.position_builder_at_end(builder_tag, entry_bb_tag);
-//     resource_pools.nonvoid_return(builder_tag, return_value);
-
-//     let module = resource_pools.get_module(module_tag).expect("Failed to retrieve module");
-
-//     match common::io::write_ir_to_file(module.clone(), "test_execution_engine_with_general_targeting") {
-//         Ok(_) => {}
-//         Err(e) => {
-//             eprintln!("File write error: {}", e);
-//             panic!();        
-//         }
-//     }
-
-//     let validator = Validator::new(module.clone());
-//     assert!(validator.is_valid_module(), "Invalid module");
-
-//     let function = resource_pools.get_value(function_tag).expect("Failed to get function");
-//     assert!(validator.is_valid_function(function), "Invalid function");
-
-//     let mut engine = ExecutionEngine::new( module, true);
-//     engine.initialize_target(ARMTargetConfigurator {}).expect("Failed to configure engine");
-
-//     let result: Result<i64, String> = engine.execute(DEFAULT_FUNCTION_NAME, ());
-
-//     assert!(result.is_ok(), "Execution failed with error: {:?}", result.err());
-//     println!("Execution result: {:?}", result);
-// }
-
-// #[test]
-// fn test_execution_engine_with_x86_targeting() {
-//     let mut resource_pools = IRManager::new();
-
-//     let context_tag = resource_pools.create_context().expect("Failed to create context");
-//     let module_tag = resource_pools.create_module(DEFAULT_MODULE_NAME, context_tag).expect("Failed to create module");
-//     let function_type = resource_pools.int_type(context_tag, 64).expect("Failed to create function type");
-//     let function_value = resource_pools.create_function(Some(function_type), &[], false, context_tag).expect("Failed to create function prototype");
-//     let function_tag = resource_pools.add_function_to_module(module_tag, DEFAULT_FUNCTION_NAME, function_value).expect("Failed to add function to module");
-//     let builder_tag = resource_pools.create_builder(context_tag).expect("Failed to create builder");
-//     let entry_bb_tag = resource_pools.create_basic_block(context_tag, function_tag, DEFAULT_BASIC_BLOCK_NAME).expect("Failed to create entry block");
-//     let return_value = resource_pools.create_integer(context_tag, 0).expect("Failed to create return val");
-
-//     resource_pools.position_builder_at_end(builder_tag, entry_bb_tag);
-//     resource_pools.nonvoid_return(builder_tag, return_value);
-
-//     let module = resource_pools.get_module(module_tag).expect("Failed to retrieve module");
+use analysis::validator::Validator;
+use common::{constants::{DEFAULT_BASIC_BLOCK_NAME, DEFAULT_FUNCTION_NAME, DEFAULT_MODULE_NAME}, target::*};
+use ir::core::IRManager;
+use jit::core::ExecutionEngine;
 
-//     match common::io::write_ir_to_file(module.clone(), "test_execution_engine_with_general_targeting") {
-//         Ok(_) => {}
-//         Err(e) => {
-//             eprintln!("File write error: {}", e);
-//             panic!();        
-//         }
-//     }
+#[test]
+fn test_execution_engine_with_general_targeting() {
+    for _ in 1..1000 {
+        let mut resource_pools = IRManager::new();
 
-//     let validator = Validator::new(module.clone());
-//     assert!(validator.is_valid_module(), "Invalid module");
+        let context_tag = resource_pools.create_context().expect("Failed to create context");
+        let module_tag = resource_pools.create_module(DEFAULT_MODULE_NAME, context_tag).expect("Failed to create module");
+        let function_type = resource_pools.int_type(context_tag, 64).expect("Failed to create function type");
+        let function_value = resource_pools.create_function(Some(function_type), &[], false, context_tag).expect("Failed to create function prototype");
+        let function_tag = resource_pools.add_function_to_module(module_tag, DEFAULT_FUNCTION_NAME, function_value).expect("Failed to add function to module");
+        let builder_tag = resource_pools.create_builder(context_tag).expect("Failed to create builder");
+        let entry_bb_tag = resource_pools.create_basic_block(context_tag, function_tag, DEFAULT_BASIC_BLOCK_NAME).expect("Failed to create entry block");
+        let return_value = resource_pools.create_integer(context_tag, 0).expect("Failed to create return val");
 
-//     let function = resource_pools.get_value(function_tag).expect("Failed to get function");
-//     assert!(validator.is_valid_function(function), "Invalid function");
-
-//     let mut engine = ExecutionEngine::new( module, true);
-//     engine.initialize_target(X86TargetConfigurator {}).expect("Failed to configure engine");
-
-//     let result: Result<i64, String> = engine.execute(DEFAULT_FUNCTION_NAME, ());
-
-//     assert!(result.is_ok(), "Execution failed with error: {:?}", result.err());
-//     println!("Execution result: {:?}", result);
-// }
-
-// #[test]
-// fn test_execution_engine_with_mips_targeting() {
-//     let mut resource_pools = IRManager::new();
-
-//     let context_tag = resource_pools.create_context().expect("Failed to create context");
-//     let module_tag = resource_pools.create_module(DEFAULT_MODULE_NAME, context_tag).expect("Failed to create module");
-//     let function_type = resource_pools.int_type(context_tag, 64).expect("Failed to create function type");
-//     let function_value = resource_pools.create_function(Some(function_type), &[], false, context_tag).expect("Failed to create function prototype");
-//     let function_tag = resource_pools.add_function_to_module(module_tag, DEFAULT_FUNCTION_NAME, function_value).expect("Failed to add function to module");
-//     let builder_tag = resource_pools.create_builder(context_tag).expect("Failed to create builder");
-//     let entry_bb_tag = resource_pools.create_basic_block(context_tag, function_tag, DEFAULT_BASIC_BLOCK_NAME).expect("Failed to create entry block");
-//     let return_value = resource_pools.create_integer(context_tag, 0).expect("Failed to create return val");
-
-//     resource_pools.position_builder_at_end(builder_tag, entry_bb_tag);
-//     resource_pools.nonvoid_return(builder_tag, return_value);
-
-//     let module = resource_pools.get_module(module_tag).expect("Failed to retrieve module");
-
-//     match common::io::write_ir_to_file(module.clone(), "test_execution_engine_with_general_targeting") {
-//         Ok(_) => {}
-//         Err(e) => {
-//             eprintln!("File write error: {}", e);
-//             panic!();        
-//         }
-//     }
-
-//     let validator = Validator::new(module.clone());
-//     assert!(validator.is_valid_module(), "Invalid module");
+        resource_pools.position_builder_at_end(builder_tag, entry_bb_tag);
+        resource_pools.nonvoid_return(builder_tag, return_value);
+
+        let module = resource_pools.get_module(module_tag).expect("Failed to retrieve module");
+
+        let validator = Validator::new(module.clone());
+        assert!(validator.is_valid_module(), "Invalid module");
+
+        let function = resource_pools.get_value(function_tag).expect("Failed to get function");
+        assert!(validator.is_valid_function(function), "Invalid function");
+
+        let mut engine = ExecutionEngine::new( module, true);
+        engine.initialize_target(GeneralTargetConfigurator {}).expect("Failed to configure engine");
 
-//     let function = resource_pools.get_value(function_tag).expect("Failed to get function");
-//     assert!(validator.is_valid_function(function), "Invalid function");
-
-//     let mut engine = ExecutionEngine::new( module, true);
-//     engine.initialize_target(MIPSTargetConfigurator {}).expect("Failed to configure engine");
-
-//     let result: Result<i64, String> = engine.execute(DEFAULT_FUNCTION_NAME, ());
-
-//     assert!(result.is_ok(), "Execution failed with error: {:?}", result.err());
-//     println!("Execution result: {:?}", result);
-// }
-
-// #[test]
-// fn test_execution_engine_with_rv_targeting() {
-//     let mut resource_pools = IRManager::new();
-
-//     let context_tag = resource_pools.create_context().expect("Failed to create context");
-//     let module_tag = resource_pools.create_module(DEFAULT_MODULE_NAME, context_tag).expect("Failed to create module");
-//     let function_type = resource_pools.int_type(context_tag, 64).expect("Failed to create function type");
-//     let function_value = resource_pools.create_function(Some(function_type), &[], false, context_tag).expect("Failed to create function prototype");
-//     let function_tag = resource_pools.add_function_to_module(module_tag, DEFAULT_FUNCTION_NAME, function_value).expect("Failed to add function to module");
-//     let builder_tag = resource_pools.create_builder(context_tag).expect("Failed to create builder");
-//     let entry_bb_tag = resource_pools.create_basic_block(context_tag, function_tag, DEFAULT_BASIC_BLOCK_NAME).expect("Failed to create entry block");
-//     let return_value = resource_pools.create_integer(context_tag, 0).expect("Failed to create return val");
-
-//     resource_pools.position_builder_at_end(builder_tag, entry_bb_tag);
-//     resource_pools.nonvoid_return(builder_tag, return_value);
-
-//     let module = resource_pools.get_module(module_tag).expect("Failed to retrieve module");
-
-//     match common::io::write_ir_to_file(module.clone(), "test_execution_engine_with_general_targeting") {
-//         Ok(_) => {}
-//         Err(e) => {
-//             eprintln!("File write error: {}", e);
-//             panic!();        
-//         }
-//     }
-
-//     let validator = Validator::new(module.clone());
-//     assert!(validator.is_valid_module(), "Invalid module");
-
-//     let function = resource_pools.get_value(function_tag).expect("Failed to get function");
-//     assert!(validator.is_valid_function(function), "Invalid function");
-
-//     let mut engine = ExecutionEngine::new( module, true);
-//     engine.initialize_target(RVTargetConfigurator {}).expect("Failed to configure engine");
-
-//     let result: Result<i64, String> = engine.execute(DEFAULT_FUNCTION_NAME, ());
-
-//     assert!(result.is_ok(), "Execution failed with error: {:?}", result.err());
-//     println!("Execution result: {:?}", result);
-// }
-
-// #[test]
-// fn test_execution_engine_with_wasm_targeting() {
-//     let mut resource_pools = IRManager::new();
-
-//     let context_tag = resource_pools.create_context().expect("Failed to create context");
-//     let module_tag = resource_pools.create_module(DEFAULT_MODULE_NAME, context_tag).expect("Failed to create module");
-//     let function_type = resource_pools.int_type(context_tag, 64).expect("Failed to create function type");
-//     let function_value = resource_pools.create_function(Some(function_type), &[], false, context_tag).expect("Failed to create function prototype");
-//     let function_tag = resource_pools.add_function_to_module(module_tag, DEFAULT_FUNCTION_NAME, function_value).expect("Failed to add function to module");
-//     let builder_tag = resource_pools.create_builder(context_tag).expect("Failed to create builder");
-//     let entry_bb_tag = resource_pools.create_basic_block(context_tag, function_tag, DEFAULT_BASIC_BLOCK_NAME).expect("Failed to create entry block");
-//     let return_value = resource_pools.create_integer(context_tag, 0).expect("Failed to create return val");
-
-//     resource_pools.position_builder_at_end(builder_tag, entry_bb_tag);
-//     resource_pools.nonvoid_return(builder_tag, return_value);
-
-//     let module = resource_pools.get_module(module_tag).expect("Failed to retrieve module");
-
-//     match common::io::write_ir_to_file(module.clone(), "test_execution_engine_with_general_targeting") {
-//         Ok(_) => {}
-//         Err(e) => {
-//             eprintln!("File write error: {}", e);
-//             panic!();        
-//         }
-//     }
-
-//     let validator = Validator::new(module.clone());
-//     assert!(validator.is_valid_module(), "Invalid module");
-
-//     let function = resource_pools.get_value(function_tag).expect("Failed to get function");
-//     assert!(validator.is_valid_function(function), "Invalid function");
-
-//     let mut engine = ExecutionEngine::new( module, true);
-//     engine.initialize_target(WasmTargetConfigurator {}).expect("Failed to configure engine");
-
-//     let result: Result<i64, String> = engine.execute(DEFAULT_FUNCTION_NAME, ());
-
-//     assert!(result.is_ok(), "Execution failed with error: {:?}", result.err());
-//     println!("Execution result: {:?}", result);
-// }
-
-// #[test]
-// fn test_execution_engine_with_ppc_targeting() {
-//     let mut resource_pools = IRManager::new();
-
-//     let context_tag = resource_pools.create_context().expect("Failed to create context");
-//     let module_tag = resource_pools.create_module(DEFAULT_MODULE_NAME, context_tag).expect("Failed to create module");
-//     let function_type = resource_pools.int_type(context_tag, 64).expect("Failed to create function type");
-//     let function_value = resource_pools.create_function(Some(function_type), &[], false, context_tag).expect("Failed to create function prototype");
-//     let function_tag = resource_pools.add_function_to_module(module_tag, DEFAULT_FUNCTION_NAME, function_value).expect("Failed to add function to module");
-//     let builder_tag = resource_pools.create_builder(context_tag).expect("Failed to create builder");
-//     let entry_bb_tag = resource_pools.create_basic_block(context_tag, function_tag, DEFAULT_BASIC_BLOCK_NAME).expect("Failed to create entry block");
-//     let return_value = resource_pools.create_integer(context_tag, 0).expect("Failed to create return val");
-
-//     resource_pools.position_builder_at_end(builder_tag, entry_bb_tag);
-//     resource_pools.nonvoid_return(builder_tag, return_value);
-
-//     let module = resource_pools.get_module(module_tag).expect("Failed to retrieve module");
-
-//     match common::io::write_ir_to_file(module.clone(), "test_execution_engine_with_general_targeting") {
-//         Ok(_) => {}
-//         Err(e) => {
-//             eprintln!("File write error: {}", e);
-//             panic!();        
-//         }
-//     }
-
-//     let validator = Validator::new(module.clone());
-//     assert!(validator.is_valid_module(), "Invalid module");
-
-//     let function = resource_pools.get_value(function_tag).expect("Failed to get function");
-//     assert!(validator.is_valid_function(function), "Invalid function");
-
-//     let mut engine = ExecutionEngine::new(module, true);
-//     engine.initialize_target(PPCTargetConfigurator {}).expect("Failed to configure engine");
-
-//     let result: Result<i64, String> = engine.execute(DEFAULT_FUNCTION_NAME, ());
-
-//     assert!(result.is_ok(), "Execution failed with error: {:?}", result.err());
-//     println!("Execution result: {:?}", result);
-// }
-
-// #[test]
-// fn test_execution_engine_with_sparc_targeting() {
-//     let mut resource_pools = IRManager::new();
-
-//     let context_tag = resource_pools.create_context().expect("Failed to create context");
-//     let module_tag = resource_pools.create_module(DEFAULT_MODULE_NAME, context_tag).expect("Failed to create module");
-//     let function_type = resource_pools.int_type(context_tag, 64).expect("Failed to create function type");
-//     let function_value = resource_pools.create_function(Some(function_type), &[], false, context_tag).expect("Failed to create function prototype");
-//     let function_tag = resource_pools.add_function_to_module(module_tag, DEFAULT_FUNCTION_NAME, function_value).expect("Failed to add function to module");
-//     let builder_tag = resource_pools.create_builder(context_tag).expect("Failed to create builder");
-//     let entry_bb_tag = resource_pools.create_basic_block(context_tag, function_tag, DEFAULT_BASIC_BLOCK_NAME).expect("Failed to create entry block");
-//     let return_value = resource_pools.create_integer(context_tag, 0).expect("Failed to create return val");
-
-//     resource_pools.position_builder_at_end(builder_tag, entry_bb_tag);
-//     resource_pools.nonvoid_return(builder_tag, return_value);
-
-//     let module = resource_pools.get_module(module_tag).expect("Failed to retrieve module");
-
-//     match common::io::write_ir_to_file(module.clone(), "test_execution_engine_with_general_targeting") {
-//         Ok(_) => {}
-//         Err(e) => {
-//             eprintln!("File write error: {}", e);
-//             panic!();        
-//         }
-//     }
-
-//     let validator = Validator::new(module.clone());
-//     assert!(validator.is_valid_module(), "Invalid module");
-
-//     let function = resource_pools.get_value(function_tag).expect("Failed to get function");
-//     assert!(validator.is_valid_function(function), "Invalid function");
-
-//     let mut engine = ExecutionEngine::new( module, true);
-//     engine.initialize_target(SparcTargetConfigurator {}).expect("Failed to configure engine");
-
-//     let result: Result<i64, String> = engine.execute(DEFAULT_FUNCTION_NAME, ());
-
-//     assert!(result.is_ok(), "Execution failed with error: {:?}", result.err());
-//     println!("Execution result: {:?}", result);
-// }
-
-// #[test]
-// fn test_execution_engine_with_systemz_targeting() {
-//     let mut resource_pools = IRManager::new();
-
-//     let context_tag = resource_pools.create_context().expect("Failed to create context");
-//     let module_tag = resource_pools.create_module(DEFAULT_MODULE_NAME, context_tag).expect("Failed to create module");
-//     let function_type = resource_pools.int_type(context_tag, 64).expect("Failed to create function type");
-//     let function_value = resource_pools.create_function(Some(function_type), &[], false, context_tag).expect("Failed to create function prototype");
-//     let function_tag = resource_pools.add_function_to_module(module_tag, DEFAULT_FUNCTION_NAME, function_value).expect("Failed to add function to module");
-//     let builder_tag = resource_pools.create_builder(context_tag).expect("Failed to create builder");
-//     let entry_bb_tag = resource_pools.create_basic_block(context_tag, function_tag, DEFAULT_BASIC_BLOCK_NAME).expect("Failed to create entry block");
-//     let return_value = resource_pools.create_integer(context_tag, 0).expect("Failed to create return val");
-
-//     resource_pools.position_builder_at_end(builder_tag, entry_bb_tag);
-//     resource_pools.nonvoid_return(builder_tag, return_value);
-
-//     let module = resource_pools.get_module(module_tag).expect("Failed to retrieve module");
-
-//     match common::io::write_ir_to_file(module.clone(), "test_execution_engine_with_general_targeting") {
-//         Ok(_) => {}
-//         Err(e) => {
-//             eprintln!("File write error: {}", e);
-//             panic!();        
-//         }
-//     }
-
-//     let validator = Validator::new(module.clone());
-//     assert!(validator.is_valid_module(), "Invalid module");
-
-//     let function = resource_pools.get_value(function_tag).expect("Failed to get function");
-//     assert!(validator.is_valid_function(function), "Invalid function");
-
-//     let mut engine = ExecutionEngine::new(module, true);
-//     engine.initialize_target(SystemZTargetConfigurator {}).expect("Failed to configure engine");
-
-//     let result: Result<i64, String> = engine.execute(DEFAULT_FUNCTION_NAME, ());
-
-//     assert!(result.is_ok(), "Execution failed with error: {:?}", result.err());
-//     println!("Execution result: {:?}", result);
-// }
-
-// #[test]
-// fn test_execution_engine_with_aarch64_targeting() {
-//     let mut resource_pools = IRManager::new();
-
-//     let context_tag = resource_pools.create_context().expect("Failed to create context");
-//     let module_tag = resource_pools.create_module(DEFAULT_MODULE_NAME, context_tag).expect("Failed to create module");
-//     let function_type = resource_pools.int_type(context_tag, 64).expect("Failed to create function type");
-//     let function_value = resource_pools.create_function(Some(function_type), &[], false, context_tag).expect("Failed to create function prototype");
-//     let function_tag = resource_pools.add_function_to_module(module_tag, DEFAULT_FUNCTION_NAME, function_value).expect("Failed to add function to module");
-//     let builder_tag = resource_pools.create_builder(context_tag).expect("Failed to create builder");
-//     let entry_bb_tag = resource_pools.create_basic_block(context_tag, function_tag, DEFAULT_BASIC_BLOCK_NAME).expect("Failed to create entry block");
-//     let return_value = resource_pools.create_integer(context_tag, 0).expect("Failed to create return val");
-
-//     resource_pools.position_builder_at_end(builder_tag, entry_bb_tag);
-//     resource_pools.nonvoid_return(builder_tag, return_value);
-
-//     let module = resource_pools.get_module(module_tag).expect("Failed to retrieve module");
-
-//     match common::io::write_ir_to_file(module.clone(), "test_execution_engine_with_general_targeting") {
-//         Ok(_) => {}
-//         Err(e) => {
-//             eprintln!("File write error: {}", e);
-//             panic!();        
-//         }
-//     }
-
-//     let validator = Validator::new(module.clone());
-//     assert!(validator.is_valid_module(), "Invalid module");
-
-//     let function = resource_pools.get_value(function_tag).expect("Failed to get function");
-//     assert!(validator.is_valid_function(function), "Invalid function");
-
-//     let mut engine = ExecutionEngine::new( module, true);
-//     engine.initialize_target(AArch64TargetConfigurator {}).expect("Failed to configure engine");
-
-//     let result: Result<i64, String> = engine.execute(DEFAULT_FUNCTION_NAME, ());
-
-//     assert!(result.is_ok(), "Execution failed with error: {:?}", result.err());
-//     println!("Execution result: {:?}", result);
-// }
-
-// #[test]
-// fn test_execution_engine_with_amdgpu_targeting() {
-//     let mut resource_pools = IRManager::new();
-
-//     let context_tag = resource_pools.create_context().expect("Failed to create context");
-//     let module_tag = resource_pools.create_module(DEFAULT_MODULE_NAME, context_tag).expect("Failed to create module");
-//     let function_type = resource_pools.int_type(context_tag, 64).expect("Failed to create function type");
-//     let function_value = resource_pools.create_function(Some(function_type), &[], false, context_tag).expect("Failed to create function prototype");
-//     let function_tag = resource_pools.add_function_to_module(module_tag, DEFAULT_FUNCTION_NAME, function_value).expect("Failed to add function to module");
-//     let builder_tag = resource_pools.create_builder(context_tag).expect("Failed to create builder");
-//     let entry_bb_tag = resource_pools.create_basic_block(context_tag, function_tag, DEFAULT_BASIC_BLOCK_NAME).expect("Failed to create entry block");
-//     let return_value = resource_pools.create_integer(context_tag, 0).expect("Failed to create return val");
-
-//     resource_pools.position_builder_at_end(builder_tag, entry_bb_tag);
-//     resource_pools.nonvoid_return(builder_tag, return_value);
-
-//     let module = resource_pools.get_module(module_tag).expect("Failed to retrieve module");
-
-//     match common::io::write_ir_to_file(module.clone(), "test_execution_engine_with_general_targeting") {
-//         Ok(_) => {}
-//         Err(e) => {
-//             eprintln!("File write error: {}", e);
-//             panic!();        
-//         }
-//     }
-
-//     let validator = Validator::new(module.clone());
-//     assert!(validator.is_valid_module(), "Invalid module");
-
-//     let function = resource_pools.get_value(function_tag).expect("Failed to get function");
-//     assert!(validator.is_valid_function(function), "Invalid function");
-
-//     let mut engine = ExecutionEngine::new( module, true);
-//     engine.initialize_target(AMDGPUTargetConfigurator {}).expect("Failed to configure engine");
-
-
-//     let result: Result<i64, String> = engine.execute(DEFAULT_FUNCTION_NAME, ());
-
-//     assert!(result.is_ok(), "Execution failed with error: {:?}", result.err());
-//     println!("Execution result: {:?}", result);
-// }
-
-// #[test]
-// fn test_execution_engine_with_bpf_targeting() {
-//     let mut resource_pools = IRManager::new();
-
-//     let context_tag = resource_pools.create_context().expect("Failed to create context");
-//     let module_tag = resource_pools.create_module(DEFAULT_MODULE_NAME, context_tag).expect("Failed to create module");
-//     let function_type = resource_pools.int_type(context_tag, 64).expect("Failed to create function type");
-//     let function_value = resource_pools.create_function(Some(function_type), &[], false, context_tag).expect("Failed to create function prototype");
-//     let function_tag = resource_pools.add_function_to_module(module_tag, DEFAULT_FUNCTION_NAME, function_value).expect("Failed to add function to module");
-//     let builder_tag = resource_pools.create_builder(context_tag).expect("Failed to create builder");
-//     let entry_bb_tag = resource_pools.create_basic_block(context_tag, function_tag, DEFAULT_BASIC_BLOCK_NAME).expect("Failed to create entry block");
-//     let return_value = resource_pools.create_integer(context_tag, 0).expect("Failed to create return val");
-
-//     resource_pools.position_builder_at_end(builder_tag, entry_bb_tag);
-//     resource_pools.nonvoid_return(builder_tag, return_value);
-
-//     let module = resource_pools.get_module(module_tag).expect("Failed to retrieve module");
-
-//     match common::io::write_ir_to_file(module.clone(), "test_execution_engine_with_general_targeting") {
-//         Ok(_) => {}
-//         Err(e) => {
-//             eprintln!("File write error: {}", e);
-//             panic!();        
-//         }
-//     }
-
-//     let validator = Validator::new(module.clone());
-//     assert!(validator.is_valid_module(), "Invalid module");
-
-//     let function = resource_pools.get_value(function_tag).expect("Failed to get function");
-//     assert!(validator.is_valid_function(function), "Invalid function");
-
-//     let mut engine = ExecutionEngine::new( module, true);
-//     engine.initialize_target(BPFTargetConfigurator {}).expect("Failed to configure engine");
-
-//     let result: Result<i64, String> = engine.execute(DEFAULT_FUNCTION_NAME, ());
-    
-//     assert!(result.is_ok(), "Execution failed with error: {:?}", result.err());
-//     println!("Execution result: {:?}", result);
-// }
+        let result: Result<i64, String> = engine.execute(DEFAULT_FUNCTION_NAME, ());
+
+        assert!(result.is_ok(), "Execution failed with error: {:?}", result.err());
+        println!("Execution result: {:?}", result);
+    }
+
+}
+
+#[test]
+fn test_execution_engine_with_arm_targeting() {
+    for _ in 1..1000 {
+        let mut resource_pools = IRManager::new();
+
+        let context_tag = resource_pools.create_context().expect("Failed to create context");
+        let module_tag = resource_pools.create_module(DEFAULT_MODULE_NAME, context_tag).expect("Failed to create module");
+        let function_type = resource_pools.int_type(context_tag, 64).expect("Failed to create function type");
+        let function_value = resource_pools.create_function(Some(function_type), &[], false, context_tag).expect("Failed to create function prototype");
+        let function_tag = resource_pools.add_function_to_module(module_tag, DEFAULT_FUNCTION_NAME, function_value).expect("Failed to add function to module");
+        let builder_tag = resource_pools.create_builder(context_tag).expect("Failed to create builder");
+        let entry_bb_tag = resource_pools.create_basic_block(context_tag, function_tag, DEFAULT_BASIC_BLOCK_NAME).expect("Failed to create entry block");
+        let return_value = resource_pools.create_integer(context_tag, 0).expect("Failed to create return val");
+
+        resource_pools.position_builder_at_end(builder_tag, entry_bb_tag);
+        resource_pools.nonvoid_return(builder_tag, return_value);
+
+        let module = resource_pools.get_module(module_tag).expect("Failed to retrieve module");
+
+        let validator = Validator::new(module.clone());
+        assert!(validator.is_valid_module(), "Invalid module");
+
+        let function = resource_pools.get_value(function_tag).expect("Failed to get function");
+        assert!(validator.is_valid_function(function), "Invalid function");
+
+        let mut engine = ExecutionEngine::new( module, true);
+        engine.initialize_target(ARMTargetConfigurator {}).expect("Failed to configure engine");
+
+        let result: Result<i64, String> = engine.execute(DEFAULT_FUNCTION_NAME, ());
+
+        assert!(result.is_ok(), "Execution failed with error: {:?}", result.err());
+        println!("Execution result: {:?}", result);
+    }
+}
+
+#[test]
+fn test_execution_engine_with_x86_targeting() {
+    for _ in 1..1000 {
+        let mut resource_pools = IRManager::new();
+
+        let context_tag = resource_pools.create_context().expect("Failed to create context");
+        let module_tag = resource_pools.create_module(DEFAULT_MODULE_NAME, context_tag).expect("Failed to create module");
+        let function_type = resource_pools.int_type(context_tag, 64).expect("Failed to create function type");
+        let function_value = resource_pools.create_function(Some(function_type), &[], false, context_tag).expect("Failed to create function prototype");
+        let function_tag = resource_pools.add_function_to_module(module_tag, DEFAULT_FUNCTION_NAME, function_value).expect("Failed to add function to module");
+        let builder_tag = resource_pools.create_builder(context_tag).expect("Failed to create builder");
+        let entry_bb_tag = resource_pools.create_basic_block(context_tag, function_tag, DEFAULT_BASIC_BLOCK_NAME).expect("Failed to create entry block");
+        let return_value = resource_pools.create_integer(context_tag, 0).expect("Failed to create return val");
+
+        resource_pools.position_builder_at_end(builder_tag, entry_bb_tag);
+        resource_pools.nonvoid_return(builder_tag, return_value);
+
+        let module = resource_pools.get_module(module_tag).expect("Failed to retrieve module");
+
+        let validator = Validator::new(module.clone());
+        assert!(validator.is_valid_module(), "Invalid module");
+
+        let function = resource_pools.get_value(function_tag).expect("Failed to get function");
+        assert!(validator.is_valid_function(function), "Invalid function");
+
+        let mut engine = ExecutionEngine::new( module, true);
+        engine.initialize_target(X86TargetConfigurator {}).expect("Failed to configure engine");
+
+        let result: Result<i64, String> = engine.execute(DEFAULT_FUNCTION_NAME, ());
+
+        assert!(result.is_ok(), "Execution failed with error: {:?}", result.err());
+        println!("Execution result: {:?}", result);
+    }
+}
+
+#[test]
+fn test_execution_engine_with_mips_targeting() {
+    for _ in 1..1000 {
+        let mut resource_pools = IRManager::new();
+
+        let context_tag = resource_pools.create_context().expect("Failed to create context");
+        let module_tag = resource_pools.create_module(DEFAULT_MODULE_NAME, context_tag).expect("Failed to create module");
+        let function_type = resource_pools.int_type(context_tag, 64).expect("Failed to create function type");
+        let function_value = resource_pools.create_function(Some(function_type), &[], false, context_tag).expect("Failed to create function prototype");
+        let function_tag = resource_pools.add_function_to_module(module_tag, DEFAULT_FUNCTION_NAME, function_value).expect("Failed to add function to module");
+        let builder_tag = resource_pools.create_builder(context_tag).expect("Failed to create builder");
+        let entry_bb_tag = resource_pools.create_basic_block(context_tag, function_tag, DEFAULT_BASIC_BLOCK_NAME).expect("Failed to create entry block");
+        let return_value = resource_pools.create_integer(context_tag, 0).expect("Failed to create return val");
+
+        resource_pools.position_builder_at_end(builder_tag, entry_bb_tag);
+        resource_pools.nonvoid_return(builder_tag, return_value);
+
+        let module = resource_pools.get_module(module_tag).expect("Failed to retrieve module");
+
+        let validator = Validator::new(module.clone());
+        assert!(validator.is_valid_module(), "Invalid module");
+
+        let function = resource_pools.get_value(function_tag).expect("Failed to get function");
+        assert!(validator.is_valid_function(function), "Invalid function");
+
+        let mut engine = ExecutionEngine::new( module, true);
+        engine.initialize_target(MIPSTargetConfigurator {}).expect("Failed to configure engine");
+
+        let result: Result<i64, String> = engine.execute(DEFAULT_FUNCTION_NAME, ());
+
+        assert!(result.is_ok(), "Execution failed with error: {:?}", result.err());
+        println!("Execution result: {:?}", result);
+    }
+}
+
+#[test]
+fn test_execution_engine_with_rv_targeting() {
+    for _ in 1..1000 {
+        let mut resource_pools = IRManager::new();
+
+        let context_tag = resource_pools.create_context().expect("Failed to create context");
+        let module_tag = resource_pools.create_module(DEFAULT_MODULE_NAME, context_tag).expect("Failed to create module");
+        let function_type = resource_pools.int_type(context_tag, 64).expect("Failed to create function type");
+        let function_value = resource_pools.create_function(Some(function_type), &[], false, context_tag).expect("Failed to create function prototype");
+        let function_tag = resource_pools.add_function_to_module(module_tag, DEFAULT_FUNCTION_NAME, function_value).expect("Failed to add function to module");
+        let builder_tag = resource_pools.create_builder(context_tag).expect("Failed to create builder");
+        let entry_bb_tag = resource_pools.create_basic_block(context_tag, function_tag, DEFAULT_BASIC_BLOCK_NAME).expect("Failed to create entry block");
+        let return_value = resource_pools.create_integer(context_tag, 0).expect("Failed to create return val");
+
+        resource_pools.position_builder_at_end(builder_tag, entry_bb_tag);
+        resource_pools.nonvoid_return(builder_tag, return_value);
+
+        let module = resource_pools.get_module(module_tag).expect("Failed to retrieve module");
+
+        let validator = Validator::new(module.clone());
+        assert!(validator.is_valid_module(), "Invalid module");
+
+        let function = resource_pools.get_value(function_tag).expect("Failed to get function");
+        assert!(validator.is_valid_function(function), "Invalid function");
+
+        let mut engine = ExecutionEngine::new( module, true);
+        engine.initialize_target(RVTargetConfigurator {}).expect("Failed to configure engine");
+
+        let result: Result<i64, String> = engine.execute(DEFAULT_FUNCTION_NAME, ());
+
+        assert!(result.is_ok(), "Execution failed with error: {:?}", result.err());
+        println!("Execution result: {:?}", result);
+    }
+}
+
+#[test]
+fn test_execution_engine_with_wasm_targeting() {
+    for _ in 1..1000 {
+        let mut resource_pools = IRManager::new();
+
+        let context_tag = resource_pools.create_context().expect("Failed to create context");
+        let module_tag = resource_pools.create_module(DEFAULT_MODULE_NAME, context_tag).expect("Failed to create module");
+        let function_type = resource_pools.int_type(context_tag, 64).expect("Failed to create function type");
+        let function_value = resource_pools.create_function(Some(function_type), &[], false, context_tag).expect("Failed to create function prototype");
+        let function_tag = resource_pools.add_function_to_module(module_tag, DEFAULT_FUNCTION_NAME, function_value).expect("Failed to add function to module");
+        let builder_tag = resource_pools.create_builder(context_tag).expect("Failed to create builder");
+        let entry_bb_tag = resource_pools.create_basic_block(context_tag, function_tag, DEFAULT_BASIC_BLOCK_NAME).expect("Failed to create entry block");
+        let return_value = resource_pools.create_integer(context_tag, 0).expect("Failed to create return val");
+
+        resource_pools.position_builder_at_end(builder_tag, entry_bb_tag);
+        resource_pools.nonvoid_return(builder_tag, return_value);
+
+        let module = resource_pools.get_module(module_tag).expect("Failed to retrieve module");
+
+        let validator = Validator::new(module.clone());
+        assert!(validator.is_valid_module(), "Invalid module");
+
+        let function = resource_pools.get_value(function_tag).expect("Failed to get function");
+        assert!(validator.is_valid_function(function), "Invalid function");
+
+        let mut engine = ExecutionEngine::new( module, true);
+        engine.initialize_target(WasmTargetConfigurator {}).expect("Failed to configure engine");
+
+        let result: Result<i64, String> = engine.execute(DEFAULT_FUNCTION_NAME, ());
+
+        assert!(result.is_ok(), "Execution failed with error: {:?}", result.err());
+        println!("Execution result: {:?}", result);
+    }
+}
+
+#[test]
+fn test_execution_engine_with_ppc_targeting() {
+    for _ in 1..1000 {
+        let mut resource_pools = IRManager::new();
+
+        let context_tag = resource_pools.create_context().expect("Failed to create context");
+        let module_tag = resource_pools.create_module(DEFAULT_MODULE_NAME, context_tag).expect("Failed to create module");
+        let function_type = resource_pools.int_type(context_tag, 64).expect("Failed to create function type");
+        let function_value = resource_pools.create_function(Some(function_type), &[], false, context_tag).expect("Failed to create function prototype");
+        let function_tag = resource_pools.add_function_to_module(module_tag, DEFAULT_FUNCTION_NAME, function_value).expect("Failed to add function to module");
+        let builder_tag = resource_pools.create_builder(context_tag).expect("Failed to create builder");
+        let entry_bb_tag = resource_pools.create_basic_block(context_tag, function_tag, DEFAULT_BASIC_BLOCK_NAME).expect("Failed to create entry block");
+        let return_value = resource_pools.create_integer(context_tag, 0).expect("Failed to create return val");
+
+        resource_pools.position_builder_at_end(builder_tag, entry_bb_tag);
+        resource_pools.nonvoid_return(builder_tag, return_value);
+
+        let module = resource_pools.get_module(module_tag).expect("Failed to retrieve module");
+
+        let validator = Validator::new(module.clone());
+        assert!(validator.is_valid_module(), "Invalid module");
+
+        let function = resource_pools.get_value(function_tag).expect("Failed to get function");
+        assert!(validator.is_valid_function(function), "Invalid function");
+
+        let mut engine = ExecutionEngine::new(module, true);
+        engine.initialize_target(PPCTargetConfigurator {}).expect("Failed to configure engine");
+
+        let result: Result<i64, String> = engine.execute(DEFAULT_FUNCTION_NAME, ());
+
+        assert!(result.is_ok(), "Execution failed with error: {:?}", result.err());
+        println!("Execution result: {:?}", result);
+    }
+}
+
+#[test]
+fn test_execution_engine_with_sparc_targeting() {
+    for _ in 1..1000 {
+        let mut resource_pools = IRManager::new();
+
+        let context_tag = resource_pools.create_context().expect("Failed to create context");
+        let module_tag = resource_pools.create_module(DEFAULT_MODULE_NAME, context_tag).expect("Failed to create module");
+        let function_type = resource_pools.int_type(context_tag, 64).expect("Failed to create function type");
+        let function_value = resource_pools.create_function(Some(function_type), &[], false, context_tag).expect("Failed to create function prototype");
+        let function_tag = resource_pools.add_function_to_module(module_tag, DEFAULT_FUNCTION_NAME, function_value).expect("Failed to add function to module");
+        let builder_tag = resource_pools.create_builder(context_tag).expect("Failed to create builder");
+        let entry_bb_tag = resource_pools.create_basic_block(context_tag, function_tag, DEFAULT_BASIC_BLOCK_NAME).expect("Failed to create entry block");
+        let return_value = resource_pools.create_integer(context_tag, 0).expect("Failed to create return val");
+
+        resource_pools.position_builder_at_end(builder_tag, entry_bb_tag);
+        resource_pools.nonvoid_return(builder_tag, return_value);
+
+        let module = resource_pools.get_module(module_tag).expect("Failed to retrieve module");
+
+        let validator = Validator::new(module.clone());
+        assert!(validator.is_valid_module(), "Invalid module");
+
+        let function = resource_pools.get_value(function_tag).expect("Failed to get function");
+        assert!(validator.is_valid_function(function), "Invalid function");
+
+        let mut engine = ExecutionEngine::new( module, true);
+        engine.initialize_target(SparcTargetConfigurator {}).expect("Failed to configure engine");
+
+        let result: Result<i64, String> = engine.execute(DEFAULT_FUNCTION_NAME, ());
+
+        assert!(result.is_ok(), "Execution failed with error: {:?}", result.err());
+        println!("Execution result: {:?}", result);
+    }
+}
+
+#[test]
+fn test_execution_engine_with_systemz_targeting() {
+    for _ in 1..1000 {
+        let mut resource_pools = IRManager::new();
+
+        let context_tag = resource_pools.create_context().expect("Failed to create context");
+        let module_tag = resource_pools.create_module(DEFAULT_MODULE_NAME, context_tag).expect("Failed to create module");
+        let function_type = resource_pools.int_type(context_tag, 64).expect("Failed to create function type");
+        let function_value = resource_pools.create_function(Some(function_type), &[], false, context_tag).expect("Failed to create function prototype");
+        let function_tag = resource_pools.add_function_to_module(module_tag, DEFAULT_FUNCTION_NAME, function_value).expect("Failed to add function to module");
+        let builder_tag = resource_pools.create_builder(context_tag).expect("Failed to create builder");
+        let entry_bb_tag = resource_pools.create_basic_block(context_tag, function_tag, DEFAULT_BASIC_BLOCK_NAME).expect("Failed to create entry block");
+        let return_value = resource_pools.create_integer(context_tag, 0).expect("Failed to create return val");
+
+        resource_pools.position_builder_at_end(builder_tag, entry_bb_tag);
+        resource_pools.nonvoid_return(builder_tag, return_value);
+
+        let module = resource_pools.get_module(module_tag).expect("Failed to retrieve module");
+
+        let validator = Validator::new(module.clone());
+        assert!(validator.is_valid_module(), "Invalid module");
+
+        let function = resource_pools.get_value(function_tag).expect("Failed to get function");
+        assert!(validator.is_valid_function(function), "Invalid function");
+
+        let mut engine = ExecutionEngine::new(module, true);
+        engine.initialize_target(SystemZTargetConfigurator {}).expect("Failed to configure engine");
+
+        let result: Result<i64, String> = engine.execute(DEFAULT_FUNCTION_NAME, ());
+
+        assert!(result.is_ok(), "Execution failed with error: {:?}", result.err());
+        println!("Execution result: {:?}", result);
+    }
+}
+
+#[test]
+fn test_execution_engine_with_aarch64_targeting() {
+    for _ in 1..1000 {
+        let mut resource_pools = IRManager::new();
+
+        let context_tag = resource_pools.create_context().expect("Failed to create context");
+        let module_tag = resource_pools.create_module(DEFAULT_MODULE_NAME, context_tag).expect("Failed to create module");
+        let function_type = resource_pools.int_type(context_tag, 64).expect("Failed to create function type");
+        let function_value = resource_pools.create_function(Some(function_type), &[], false, context_tag).expect("Failed to create function prototype");
+        let function_tag = resource_pools.add_function_to_module(module_tag, DEFAULT_FUNCTION_NAME, function_value).expect("Failed to add function to module");
+        let builder_tag = resource_pools.create_builder(context_tag).expect("Failed to create builder");
+        let entry_bb_tag = resource_pools.create_basic_block(context_tag, function_tag, DEFAULT_BASIC_BLOCK_NAME).expect("Failed to create entry block");
+        let return_value = resource_pools.create_integer(context_tag, 0).expect("Failed to create return val");
+
+        resource_pools.position_builder_at_end(builder_tag, entry_bb_tag);
+        resource_pools.nonvoid_return(builder_tag, return_value);
+
+        let module = resource_pools.get_module(module_tag).expect("Failed to retrieve module");
+
+        let validator = Validator::new(module.clone());
+        assert!(validator.is_valid_module(), "Invalid module");
+
+        let function = resource_pools.get_value(function_tag).expect("Failed to get function");
+        assert!(validator.is_valid_function(function), "Invalid function");
+
+        let mut engine = ExecutionEngine::new( module, true);
+        engine.initialize_target(AArch64TargetConfigurator {}).expect("Failed to configure engine");
+
+        let result: Result<i64, String> = engine.execute(DEFAULT_FUNCTION_NAME, ());
+
+        assert!(result.is_ok(), "Execution failed with error: {:?}", result.err());
+        println!("Execution result: {:?}", result);
+    }
+}
+
+#[test]
+fn test_execution_engine_with_amdgpu_targeting() {
+    for _ in 1..1000 {
+        let mut resource_pools = IRManager::new();
+
+        let context_tag = resource_pools.create_context().expect("Failed to create context");
+        let module_tag = resource_pools.create_module(DEFAULT_MODULE_NAME, context_tag).expect("Failed to create module");
+        let function_type = resource_pools.int_type(context_tag, 64).expect("Failed to create function type");
+        let function_value = resource_pools.create_function(Some(function_type), &[], false, context_tag).expect("Failed to create function prototype");
+        let function_tag = resource_pools.add_function_to_module(module_tag, DEFAULT_FUNCTION_NAME, function_value).expect("Failed to add function to module");
+        let builder_tag = resource_pools.create_builder(context_tag).expect("Failed to create builder");
+        let entry_bb_tag = resource_pools.create_basic_block(context_tag, function_tag, DEFAULT_BASIC_BLOCK_NAME).expect("Failed to create entry block");
+        let return_value = resource_pools.create_integer(context_tag, 0).expect("Failed to create return val");
+
+        resource_pools.position_builder_at_end(builder_tag, entry_bb_tag);
+        resource_pools.nonvoid_return(builder_tag, return_value);
+
+        let module = resource_pools.get_module(module_tag).expect("Failed to retrieve module");
+
+        let validator = Validator::new(module.clone());
+        assert!(validator.is_valid_module(), "Invalid module");
+
+        let function = resource_pools.get_value(function_tag).expect("Failed to get function");
+        assert!(validator.is_valid_function(function), "Invalid function");
+
+        let mut engine = ExecutionEngine::new( module, true);
+        engine.initialize_target(AMDGPUTargetConfigurator {}).expect("Failed to configure engine");
+
+
+        let result: Result<i64, String> = engine.execute(DEFAULT_FUNCTION_NAME, ());
+
+        assert!(result.is_ok(), "Execution failed with error: {:?}", result.err());
+        println!("Execution result: {:?}", result);
+    }
+}
+
+#[test]
+fn test_execution_engine_with_bpf_targeting() {
+    for _ in 1..1000 {
+        let mut resource_pools = IRManager::new();
+
+        let context_tag = resource_pools.create_context().expect("Failed to create context");
+        let module_tag = resource_pools.create_module(DEFAULT_MODULE_NAME, context_tag).expect("Failed to create module");
+        let function_type = resource_pools.int_type(context_tag, 64).expect("Failed to create function type");
+        let function_value = resource_pools.create_function(Some(function_type), &[], false, context_tag).expect("Failed to create function prototype");
+        let function_tag = resource_pools.add_function_to_module(module_tag, DEFAULT_FUNCTION_NAME, function_value).expect("Failed to add function to module");
+        let builder_tag = resource_pools.create_builder(context_tag).expect("Failed to create builder");
+        let entry_bb_tag = resource_pools.create_basic_block(context_tag, function_tag, DEFAULT_BASIC_BLOCK_NAME).expect("Failed to create entry block");
+        let return_value = resource_pools.create_integer(context_tag, 0).expect("Failed to create return val");
+
+        resource_pools.position_builder_at_end(builder_tag, entry_bb_tag);
+        resource_pools.nonvoid_return(builder_tag, return_value);
+
+        let module = resource_pools.get_module(module_tag).expect("Failed to retrieve module");
+
+        let validator = Validator::new(module.clone());
+        assert!(validator.is_valid_module(), "Invalid module");
+
+        let function = resource_pools.get_value(function_tag).expect("Failed to get function");
+        assert!(validator.is_valid_function(function), "Invalid function");
+
+        let mut engine = ExecutionEngine::new( module, true);
+        engine.initialize_target(BPFTargetConfigurator {}).expect("Failed to configure engine");
+
+        let result: Result<i64, String> = engine.execute(DEFAULT_FUNCTION_NAME, ());
+        
+        assert!(result.is_ok(), "Execution failed with error: {:?}", result.err());
+        println!("Execution result: {:?}", result);
+    }
+}

@@ -1,4 +1,0 @@
-; ModuleID = 'main'
-source_filename = "main"
-
-declare void @main()

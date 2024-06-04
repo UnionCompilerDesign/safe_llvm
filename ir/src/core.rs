@@ -166,7 +166,7 @@ impl IRManager {
         let tag = ContextTag(self.next_tag);
         self.increment_tag();
 
-        let c_pointer = SafeLLVMPointer::new(LLVMRef::Context(context))?;
+        let c_pointer = SafeLLVMPointer::new(LLVMRef::Context(context), LLVMRefType::Context)?;
         let context_map = self.contexts.get_or_insert_with(HashMap::new);
         context_map.insert(tag, Arc::new(RwLock::new(c_pointer)));
 
@@ -195,7 +195,7 @@ impl IRManager {
         let tag = ModuleTag(self.next_tag);
         self.increment_tag();
 
-        let c_pointer = SafeLLVMPointer::new(LLVMRef::Module(module))?;
+        let c_pointer = SafeLLVMPointer::new(LLVMRef::Module(module), LLVMRefType::Module)?;
         let module_map = self.modules.get_or_insert_with(HashMap::new);
         module_map.insert(tag, Arc::new(RwLock::new(c_pointer)));
 
@@ -224,7 +224,7 @@ impl IRManager {
         let tag = ValueTag(self.next_tag);
         self.increment_tag();
 
-        let c_pointer = SafeLLVMPointer::new(LLVMRef::Value(value))?;
+        let c_pointer = SafeLLVMPointer::new(LLVMRef::Value(value), LLVMRefType::Value)?;
         let value_map = self.values.get_or_insert_with(HashMap::new);
         value_map.insert(tag, Arc::new(RwLock::new(c_pointer)));
 
@@ -255,7 +255,7 @@ impl IRManager {
 
         self.store_basic_block_tag(basic_block.clone(), tag.clone());
 
-        let c_pointer = SafeLLVMPointer::new(LLVMRef::BasicBlock(basic_block))?;
+        let c_pointer = SafeLLVMPointer::new(LLVMRef::BasicBlock(basic_block), LLVMRefType::BasicBlock)?;
 
         let basic_block_map = self.basic_blocks.get_or_insert_with(HashMap::new);
         basic_block_map.insert(tag, Arc::new(RwLock::new(c_pointer)));
@@ -318,7 +318,7 @@ impl IRManager {
         let tag = BuilderTag(self.next_tag);
         self.increment_tag();        
 
-        let c_pointer = SafeLLVMPointer::new(LLVMRef::Builder(builder))?;
+        let c_pointer = SafeLLVMPointer::new(LLVMRef::Builder(builder), LLVMRefType::Builder)?;
 
         let builder_map = self.builders.get_or_insert_with(HashMap::new);
         builder_map.insert(tag, Arc::new(RwLock::new(c_pointer)));
@@ -348,7 +348,7 @@ impl IRManager {
         let tag = TypeTag(self.next_tag);
         self.increment_tag();    
 
-        let c_pointer = SafeLLVMPointer::new(LLVMRef::Type(type_ref))?;
+        let c_pointer = SafeLLVMPointer::new(LLVMRef::Type(type_ref), LLVMRefType::Type)?;
 
         let type_map = self.types.get_or_insert_with(HashMap::new);
         type_map.insert(tag, Arc::new(RwLock::new(c_pointer)));

@@ -1,8 +1,10 @@
 //! The ExecutionEngine class manages the initialization and operation of an LLVM execution engine, along with its context and module.
 
 extern crate llvm_sys as llvm;
+use analysis::validator::Validator;
 use llvm::{core, execution_engine};
-use std::{any::Any, ffi::{c_char, CStr, CString}, sync::{Arc, RwLock}};
+use llvm_sys::target;
+use std::{any::Any, ffi::{CStr, CString}, sync::{Arc, RwLock}};
 use slog::Logger;
 use common::{pointer::{LLVMRef, LLVMRefType, SafeLLVMPointer}, target::{GeneralTargetConfigurator, TargetConfigurator}};
 
@@ -26,17 +28,47 @@ impl ExecutionEngine {
     /// # Returns
     /// A new instance of `ExecutionEngine`.
     pub fn new(module: Arc<RwLock<SafeLLVMPointer>>, debug_info: bool) -> Self {
-        GeneralTargetConfigurator.configure();
+        // GeneralTargetConfigurator.configure();
+        // unsafe { execution_engine::LLVMLinkInMCJIT(); }
+        // check mcjit versus normal
+        // check memory manager
+
+        let logger = if debug_info {
+            Some(logging::core::init_logger())
+        } else {
+            None
+        };
+
+        logging::core::log_info(&logging::core::init_logger(), "made it1");
+
+        unsafe {
+            target::LLVM_InitializeAllTargetInfos();
+            target::LLVM_InitializeAllTargets();
+            target::LLVM_InitializeAllTargetMCs();
+            target::LLVM_InitializeAllAsmParsers();
+            target::LLVM_InitializeAllAsmPrinters();
+            target::LLVM_InitializeNativeTarget();
+            target::LLVM_InitializeNativeAsmParser();
+            target::LLVM_InitializeNativeAsmPrinter();
+            execution_engine::LLVMLinkInMCJIT();
+        }
+        logging::core::log_info(&logging::core::init_logger(), "made it2");
+
+        let validator = Validator::new(module.clone());
+        if !validator.is_valid_module() {
+            panic!("failed to validate")
+        }
         
-        let mut engine_ref: execution_engine::LLVMExecutionEngineRef = std::ptr::null_mut();
-        let mut out_error: *mut c_char = std::ptr::null_mut();
-        let engine_ptr = &mut engine_ref;
+        let mut engine_ref = std::ptr::null_mut();
+        let mut out_error = std::ptr::null_mut();
 
         let module_rw_lock = module.try_read().expect("Failed to read module");
-        module_rw_lock.write(LLVMRefType::Module, |module_ref| {
+        module_rw_lock.read(LLVMRefType::Module, |module_ref| {
             if let LLVMRef::Module(module_ptr) = module_ref {
                 unsafe {
-                    if execution_engine::LLVMCreateExecutionEngineForModule(engine_ptr, *module_ptr, &mut out_error) != 0 {
+                    logging::core::log_info(&logging::core::init_logger(), "made it3");
+                    if execution_engine::LLVMCreateExecutionEngineForModule(&mut engine_ref, *module_ptr, &mut out_error) != 0 {
+                        logging::core::log_info(&logging::core::init_logger(), "made it4");
                         if !out_error.is_null() {
                             let error_str = CStr::from_ptr(out_error).to_str().unwrap_or("Unknown error");
                             eprintln!("{}", error_str);
@@ -52,13 +84,7 @@ impl ExecutionEngine {
             }
         });
 
-        let engine_cptr = SafeLLVMPointer::new(LLVMRef::ExecutionEngine(engine_ref)).expect("Engine cannot be null");
-
-        let logger = if debug_info {
-            Some(logging::core::init_logger())
-        } else {
-            None
-        };
+        let engine_cptr = SafeLLVMPointer::new(LLVMRef::ExecutionEngine(engine_ref), LLVMRefType::ExecutionEngine).expect("Engine cannot be null");
 
         Self {
             engine: Arc::new(RwLock::new(engine_cptr)),
@@ -97,7 +123,7 @@ impl ExecutionEngine {
         ArgType: Any + Send + Sync, 
     {
         let engine_lock = self.engine.try_read().map_err(|e| format!("Failed to obtain read lock on engine: {}", e))?;
-        let result = engine_lock.write(LLVMRefType::ExecutionEngine, |engine_ref| {
+        let result = engine_lock.read(LLVMRefType::ExecutionEngine, |engine_ref| {
             if let LLVMRef::ExecutionEngine(engine_ptr) = engine_ref {
                 let function_name_c = CString::new(function_name).map_err(|_| "Failed to create CString for function name.")?;
                 let function_address = unsafe { execution_engine::LLVMGetFunctionAddress(*engine_ptr, function_name_c.as_ptr()) };
